@@ -51,7 +51,10 @@ as policy rules:
 
 ## Status
 
-Work in progress — reference/demo, defensive use only. Built around real OVMF / edk2 SBOM + reconcile data.
-Not affiliated with or endorsed by TianoCore.
+Both lanes run **keyless on CI** (`.github/workflows/supply-chain.yml`, green): cosign and Valint each
+sign the firmware SBOM with the GitHub workload OIDC identity, then verify + gate. Locally, the OSS lane
+runs end-to-end over real OVMF data (324-component SBOM, reconcile clean 123/123 → gate ALLOW; honesty
+tests block tampered / wrong-builder / critical-CVE). Reference/demo, defensive use only. Not affiliated
+with or endorsed by TianoCore.
 
 [Valint]: https://github.com/scribe-public
