@@ -21,3 +21,6 @@ venv/
 
 # OS
 .DS_Store
+
+# cosign local keys
+oss-lane/.keys/
