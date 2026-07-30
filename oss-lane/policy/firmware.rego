@@ -22,9 +22,18 @@ allow if {
 	count(critical_cves) == 0
 }
 
+# critical CVEs that are NOT triaged-away in the VEX allowlist (data.cve_allowlist)
 critical_cves contains c if {
 	some c in input.cve.findings
 	c.severity == "CRITICAL"
+	not data.cve_allowlist[c.id]
+}
+
+# criticals explicitly accepted via VEX — surfaced for transparency, do not block
+accepted_criticals contains c if {
+	some c in input.cve.findings
+	c.severity == "CRITICAL"
+	data.cve_allowlist[c.id]
 }
 
 # --- actionable denials (why it was blocked) ---
@@ -51,5 +60,6 @@ deny contains "SBOM bytes do not match the signed attestation subject (possible 
 deny contains msg if {
 	some c in input.cve.findings
 	c.severity == "CRITICAL"
-	msg := sprintf("critical CVE %s in component %q", [c.id, c.component])
+	not data.cve_allowlist[c.id]
+	msg := sprintf("critical CVE %s in component %q (not in VEX allowlist)", [c.id, c.component])
 }
