@@ -19,6 +19,10 @@ Framework **initiative bundles** (whole-framework runs) live in the Valint bundl
 `slsa.l1`, `slsa.l2`, `ssdf`, `sp-800-53`, `sp-800-190`. Run one with
 `valint verify … --initiative-name <name>`.
 
-**Honest scope:** SLSA L1/L2, artifact-signed, composition, and the CVE gate are implemented and tested in
-the OSS lane. NTIA/BSI completeness and the SSDF repo-posture controls are *mapped* here (the rules exist in
-the Valint bundle); wiring every one end-to-end is future work, not claimed as done.
+**Honest scope:** the OSS lane authenticates the builder's **keyless OIDC identity** over the signed
+evidence (the authenticity core of SLSA L2 — the signer SAN is extracted from the Fulcio cert and checked,
+not asserted), and enforces composition (reconcile), the SBOM-hash↔signed-subject binding, and the CVE/VEX
+gate — all tested in CI. It does **not** yet emit a full SLSA *provenance predicate* (buildType / invocation
+/ materials); adding one via `cosign attest-blob --type slsaprovenance` or `actions/attest-build-provenance`
+is the documented next step. NTIA/BSI completeness and the SSDF repo-posture controls are *mapped* here (the
+rules exist in the Valint bundle); wiring each end-to-end is future work, not claimed as done.
