@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Honesty tests: prove the gate ALLOWS a clean input and BLOCKS each failure mode.
+set -uo pipefail
+
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+GATE="$HERE/../oss-lane/gate.sh"
+IN="$HERE/../oss-lane/inputs"
+fail=0
+
+expect() { # <fixture> <allow|deny>
+  "$GATE" "$IN/$1" >/dev/null 2>&1; rc=$?
+  got=allow; [ "$rc" -ne 0 ] && got=deny
+  if [ "$got" = "$2" ]; then
+    printf 'PASS  %-22s -> %s\n' "$1" "$2"
+  else
+    printf 'FAIL  %-22s expected %s, got %s\n' "$1" "$2" "$got"; fail=1
+  fi
+}
+
+echo "== OSS-lane gate honesty tests =="
+expect clean.json          allow
+expect tampered-sbom.json  deny
+expect wrong-builder.json  deny
+expect critical-cve.json   deny
+echo "================================"
+[ "$fail" -eq 0 ] && echo "ALL PASS" || echo "FAILURES"
+exit $fail

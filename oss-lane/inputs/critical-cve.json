@@ -1,0 +1,13 @@
+{
+  "sbom": { "present": true, "hash": "sha256:3b1f0a9c8e2d4b6a7c5e9f01234567890abcdef1122334455667788990011aabb" },
+  "signature": { "verified": true },
+  "provenance": {
+    "builder_id": "https://github.com/houdini91/firmware-sbom-supplychain/.github/workflows/release.yml@refs/heads/main",
+    "source_repo": "https://github.com/houdini91/firmware-sbom-supplychain"
+  },
+  "reconcile": { "clean": true, "missing": [], "added": [], "modified": [] },
+  "cve": { "findings": [
+    { "id": "CVE-2024-0001", "component": "openssl", "severity": "CRITICAL" },
+    { "id": "CVE-2023-9999", "component": "brotli", "severity": "LOW" }
+  ] }
+}
