@@ -24,3 +24,5 @@ venv/
 
 # cosign local keys
 oss-lane/.keys/
+
+valint-lane/.keys/

@@ -38,7 +38,7 @@ CVE="$(jq '[.matches[]? | {id: .vulnerability.id, component: .artifact.name, sev
 echo "   findings: $(echo "$CVE"|jq length)  critical: $(echo "$CVE"|jq '[.[]|select(.severity=="CRITICAL")]|length')"
 
 echo "== 5. assemble gate input =="
-BUILDER="${BUILDER_ID:-https://github.com/houdini91/firmware-sbom-supplychain/.github/workflows/release.yml@refs/heads/main}"
+BUILDER="${BUILDER_ID:-https://github.com/houdini91/firmware-sbom-supplychain/.github/workflows/supply-chain.yml@refs/heads/main}"
 REPO="${SOURCE_REPO:-https://github.com/houdini91/firmware-sbom-supplychain}"
 HASH="$(jq -r '.metadata.component.hashes[0].content' "$SBOM")"
 CLEAN="$(jq '(.summary.missing==0) and (.summary.modified==0) and (.summary.added_suspicious==0)' "$VERDICT")"
