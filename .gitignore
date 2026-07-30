@@ -26,3 +26,8 @@ venv/
 oss-lane/.keys/
 
 valint-lane/.keys/
+
+# generated per run
+inputs/gate-input.json
+inputs/grype.json
+inputs/sbom.att.bundle
