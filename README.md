@@ -19,6 +19,25 @@ generate → verify(sig+provenance) → reconcile(bytes==SBOM) → CVE map → a
 Stages 1–3 (generate the CycloneDX SBOM from the edk2 build, reconcile it against the actual firmware bytes)
 come from the companion `edk2-sbom` tooling. **This repo is stages 4–6: attest, and gate.**
 
+## The tools, in one line each
+
+- **SBOM** (Software Bill of Materials) — the ingredient list of the firmware: every module, library, and
+  third-party component, in [CycloneDX](https://cyclonedx.org) JSON.
+- **[cosign](https://github.com/sigstore/cosign)** — sigstore's signing tool. It cryptographically signs
+  the SBOM (and an attestation about it) and later verifies that signature. "Keyless" mode signs with a
+  short-lived certificate tied to the CI job's identity (no long-lived private key).
+- **[OPA](https://www.openpolicyagent.org)** (Open Policy Agent) — a policy engine. You hand it facts
+  (JSON) and a policy written in *Rego*; it answers allow/deny. It does the *deciding*, not the gathering.
+- **[Valint](https://github.com/scribe-public)** — a supply-chain evidence + policy tool (author: this
+  project's author). It both *signs* evidence (like cosign) and *verifies compliance policies* against it,
+  resolving named rules and whole-framework "initiatives" (SLSA, SSDF, SP-800-53) from a policy bundle.
+- **[grype](https://github.com/anchore/grype)** — scans the SBOM's components for known CVEs.
+- **reconcile** — this project's own check: carve the actual firmware binary and confirm it contains
+  exactly what the SBOM claims (verify, don't trust).
+
+The two lanes below do the *same* job — sign the evidence, then gate on policy — one with cosign+OPA, one
+with Valint, so the outcome is provably not tied to a single tool.
+
 ## Two lanes, side by side
 
 | Step | `oss-lane/` | `valint-lane/` |

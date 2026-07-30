@@ -76,13 +76,50 @@ compliant if {
 	n_incomplete == 0
 }
 
+# ---------- quality metrics (honest, reflecting the real content) ----------
+pct(n) := round((n * 100) / total)
+
+# a "real" version is not just the firmware build label echoed onto every module
+build_label := object.get(input.metadata.component, "version", "")
+
+real_version(c) if {
+	has_version(c)
+	c.version != build_label
+}
+
+n_real_version := count([c | some c in input.components; real_version(c)])
+n_hashes := count([c | some c in input.components; count(object.get(c, "hashes", [])) > 0])
+n_licenses := count([c | some c in input.components; count(object.get(c, "licenses", [])) > 0])
+
+# dependency-graph coverage: how many components actually appear as a graph node
+dep_refs contains r if {
+	some d in input.dependencies
+	r := d.ref
+}
+
+n_in_graph := count([c | some c in input.components; c["bom-ref"] in dep_refs])
+
+# the primary component (metadata.component) must be checked separately from components[]
+primary := object.get(input.metadata, "component", {})
+
+primary_report := {
+	"has_supplier": count([1 | has_supplier(primary)]) > 0,
+	"has_external_id": count([1 | has_unique_id(primary)]) > 0,
+	"has_hash": count(object.get(primary, "hashes", [])) > 0,
+	"has_license": count(object.get(primary, "licenses", [])) > 0,
+}
+
 report := {
 	"total_components": total,
-	"complete": total - n_incomplete,
-	"incomplete": n_incomplete,
-	"coverage": coverage,
+	"ntia_compliant": compliant,
+	"incomplete_components": n_incomplete,
+	"identifiers_purl_cpe": {"n": coverage.unique_id, "pct": pct(coverage.unique_id)},
+	"version": {"present": coverage.version, "real": n_real_version, "placeholder": total - n_real_version},
+	"supplier": {"n": coverage.supplier, "pct": pct(coverage.supplier)},
+	"hashes": {"n": n_hashes, "pct": pct(n_hashes)},
+	"licenses": {"n": n_licenses, "pct": pct(n_licenses)},
+	"dependency_graph_coverage": {"in_graph": n_in_graph, "pct": pct(n_in_graph)},
+	"primary_component": primary_report,
 	"sbom_author": has_author,
 	"sbom_timestamp": has_timestamp,
-	"has_dependencies": has_dependencies,
-	"ntia_compliant": compliant,
 }
