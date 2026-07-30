@@ -47,32 +47,15 @@ fi
 CVE="$(jq '[.matches[]? | {id: .vulnerability.id, component: .artifact.name, severity: (.vulnerability.severity|ascii_upcase)}] | unique' "$IN/grype.json")"
 echo "   findings: $(echo "$CVE"|jq length)  critical: $(echo "$CVE"|jq '[.[]|select(.severity=="CRITICAL")]|length')"
 
-echo "== 5. extract SIGNED evidence + assemble gate input =="
-# F3/F4: trust the reconcile verdict + subject digest ONLY from the VERIFIED attestation, not the
-# on-disk file. Compute the SBOM's real digest now and bind it to the signed subject in the policy.
-if [ "$SIG" = "true" ]; then
-  STMT="$(jq -r '.base64Signature' "$IN/sbom.att.bundle" | base64 -d | jq -r '.payload' | base64 -d)"
-  SUBJECT_DIGEST="$(printf '%s' "$STMT" | jq -r '.subject[0].digest.sha256 // ""')"
-  PRED="$(printf '%s' "$STMT" | jq -c '.predicate')"
-else
-  SUBJECT_DIGEST=""; PRED='{}'
-fi
-SBOM_HASH="$(sha256sum "$SBOM" | cut -d' ' -f1)"           # actual bytes on disk
-PRESENT="$(jq '(.components|length) > 0' "$SBOM")"          # F4: real, not a constant
-CLEAN="$(printf '%s' "$PRED" | jq '((.summary.missing // 1)==0) and ((.summary.modified // 1)==0) and ((.summary.added_suspicious // 1)==0)')"
-BUILDER="${BUILDER_ID:-https://github.com/houdini91/firmware-sbom-supplychain/.github/workflows/supply-chain.yml@refs/heads/main}"
-REPO="${SOURCE_REPO:-https://github.com/houdini91/firmware-sbom-supplychain}"
-jq -n --arg sig "$SIG" --arg sh "$SBOM_HASH" --arg sd "$SUBJECT_DIGEST" \
-      --arg b "$BUILDER" --arg r "$REPO" --argjson present "$PRESENT" \
-      --argjson clean "$CLEAN" --argjson pred "$PRED" --argjson cve "$CVE" '{
-  sbom:        {present:$present, hash:("sha256:"+$sh)},
-  attestation: {subject_digest:(if $sd=="" then "" else "sha256:"+$sd end)},
-  signature:   {verified:($sig=="true")},
-  provenance:  {builder_id:$b, source_repo:$r},
-  reconcile:   {clean:$clean, missing:($pred.missing // []), added:($pred.added // []), modified:($pred.modified // [])},
-  cve:         {findings:$cve}
-}' > "$IN/gate-input.json"
-echo "   subject=sha256:${SUBJECT_DIGEST:0:12}…  sbom=sha256:${SBOM_HASH:0:12}…  clean=$CLEAN  present=$PRESENT"
+echo "== 5. assemble gate input from VERIFIED evidence (shared assembler) =="
+# Local key-signing carries no cert identity, so builder_id can't be cryptographically verified here:
+# default to DEV_ASSUME_IDENTITY (loudly warned). CI keyless extracts a real identity instead.
+SBOM="$SBOM" BUNDLE="$IN/sbom.att.bundle" SIG="$SIG" \
+  BUILDER_ID="${BUILDER_ID:-https://github.com/houdini91/firmware-sbom-supplychain/.github/workflows/supply-chain.yml@refs/heads/main}" \
+  SOURCE_REPO="${SOURCE_REPO:-https://github.com/houdini91/firmware-sbom-supplychain}" \
+  GRYPE_JSON="$IN/grype.json" OUT="$IN/gate-input.json" \
+  DEV_ASSUME_IDENTITY="${DEV_ASSUME_IDENTITY:-1}" \
+  bash "$HERE/assemble-gate-input.sh"
 
 echo "== 6. gate =="
 "$HERE/gate.sh" "$IN/gate-input.json"

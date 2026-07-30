@@ -1,8 +1,8 @@
 name: firmware-supply-chain
 
-# Reference workflow: keyless-sign the firmware SBOM, verify it, and gate deployment on policy.
-# This is the pattern a producer copies into their own release pipeline (protected trigger + isolated
-# builder + the builder's own keyless OIDC identity). It runs on committed OVMF SBOM + reconcile inputs.
+# Reference workflow: keyless-sign the firmware SBOM, verify it, and gate deployment on policy —
+# every gate input derived from evidence (shared assembler), CVE scan run for real, and an
+# in-pipeline negative test proving the gate blocks a post-sign tamper.
 
 on:
   push:
@@ -11,7 +11,7 @@ on:
 
 permissions:
   contents: read
-  id-token: write   # keyless OIDC signing (Fulcio/Rekor) — the whole point of running on CI
+  id-token: write   # keyless OIDC signing (Fulcio/Rekor)
 
 jobs:
   attest-and-gate:
@@ -27,9 +27,11 @@ jobs:
         run: |
           curl -fsSL -o /usr/local/bin/opa https://openpolicyagent.org/downloads/latest/opa_linux_amd64_static
           chmod +x /usr/local/bin/opa
-          opa version
 
       - uses: sigstore/cosign-installer@v3
+
+      - name: Install grype
+        run: curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
 
       - name: Keyless attest the SBOM (predicate = reconcile verdict)
         run: |
@@ -53,27 +55,28 @@ jobs:
             echo "sig=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Assemble gate input and gate
+      - name: CVE scan (grype over the SBOM)   # F1: real scan, no hardcoded empty
+        run: grype "sbom:inputs/sbom.cdx.json" -o json > inputs/grype.json
+
+      - name: Assemble gate input from verified evidence, then gate
         run: |
-          HASH=$(jq -r '.metadata.component.hashes[0].content' inputs/sbom.cdx.json)
-          CLEAN=$(jq '(.summary.missing==0) and (.summary.modified==0) and (.summary.added_suspicious==0)' inputs/reconcile-verdict.json)
-          jq -n \
-            --arg sig "${{ steps.verify.outputs.sig }}" \
-            --arg h "$HASH" --arg b "$BUILDER_ID" --arg r "$SOURCE_REPO" \
-            --argjson clean "$CLEAN" --slurpfile v inputs/reconcile-verdict.json '{
-              sbom:       {present:true, hash:("sha256:"+$h)},
-              signature:  {verified:($sig=="true")},
-              provenance: {builder_id:$b, source_repo:$r},
-              reconcile:  {clean:$clean, missing:($v[0].missing//[]), added:($v[0].added//[]), modified:($v[0].modified//[])},
-              cve:        {findings:[]}
-            }' > inputs/gate-input.json
+          SBOM=inputs/sbom.cdx.json \
+          BUNDLE=inputs/sbom.att.bundle \
+          SIG=${{ steps.verify.outputs.sig }} \
+          BUILDER_ID="$BUILDER_ID" SOURCE_REPO="$SOURCE_REPO" \
+          GRYPE_JSON=inputs/grype.json OUT=inputs/gate-input.json \
+          bash oss-lane/assemble-gate-input.sh
+          echo "--- gate input ---"; jq '{sbom,attestation,signature,provenance,reconcile:{clean:.reconcile.clean},cve:{n:(.cve.findings|length)}}' inputs/gate-input.json
           OPA=/usr/local/bin/opa ./oss-lane/gate.sh inputs/gate-input.json
 
-      - name: Honesty tests (gate must block tampered / wrong-builder / critical-CVE)
+      - name: Fixture honesty tests
         run: OPA=/usr/local/bin/opa ./tests/run.sh
 
-  # Second lane: the same firmware SBOM, signed + compliance-verified with Valint,
-  # keyless via the GitHub workload identity (attest-default: sigstore-github) — just like cosign above.
+      - name: In-pipeline negative test (F5) — a post-sign tamper must be blocked
+        run: OPA=/usr/local/bin/opa ./tests/pipeline-negative.sh
+
+  # Second lane: the same SBOM, signed + compliance-verified with Valint, keyless via the GitHub
+  # workload identity (attest-default: sigstore-github) — just like cosign above.
   valint-lane:
     runs-on: ubuntu-latest
     permissions:
