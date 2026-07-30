@@ -71,3 +71,41 @@ jobs:
 
       - name: Honesty tests (gate must block tampered / wrong-builder / critical-CVE)
         run: OPA=/usr/local/bin/opa ./tests/run.sh
+
+  # Second lane: the same firmware SBOM, signed + compliance-verified with Valint,
+  # keyless via the GitHub workload identity (attest-default: sigstore-github) — just like cosign above.
+  valint-lane:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Valint — keyless attest the firmware SBOM
+        uses: scribe-security/action-bom@v2.0.6
+        with:
+          target: file:inputs/sbom.cdx.json
+          format: attest
+          attest-default: sigstore-github
+          scribe-disable: "true"
+
+      - name: Valint — verify custom firmware-composition policy
+        uses: scribe-security/action-verify@v2.0.6
+        continue-on-error: true   # report mode: show the compliance run without gating the demo
+        with:
+          target: file:inputs/sbom.cdx.json
+          input-format: attest-cyclonedx-json
+          rule: valint-lane/policies/firmware-composition.yaml
+          verbose: "2"
+          scribe-disable: "true"
+
+      - name: Valint — verify against a framework initiative (SLSA L2)
+        uses: scribe-security/action-verify@v2.0.6
+        continue-on-error: true
+        with:
+          target: file:inputs/sbom.cdx.json
+          input-format: attest-cyclonedx-json
+          initiative-name: slsa.l2
+          verbose: "2"
+          scribe-disable: "true"
