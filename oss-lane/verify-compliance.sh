@@ -15,16 +15,18 @@ POL="$HERE/policy/compliance"
 [ -f "$SBOM" ] || { echo "sbom not found: $SBOM" >&2; exit 2; }
 
 echo "== NTIA / BSI minimum-elements — $(basename "$SBOM") =="
-r="$("$OPA" eval -I -f json -d "$POL/ntia.rego" 'data.firmware.compliance.ntia.report' < "$SBOM")"
-printf '%s' "$r" | jq -r '.result[0].expressions[0].value | @json' | jq -r '
-  "  components      : \(.total_components)",
-  "  complete        : \(.complete)",
-  "  incomplete      : \(.incomplete)",
-  "  field coverage  : name=\(.coverage.name) version=\(.coverage.version) unique_id=\(.coverage.unique_id) supplier=\(.coverage.supplier)",
-  "  sbom author     : \(.sbom_author)",
-  "  sbom timestamp  : \(.sbom_timestamp)",
-  "  dependencies    : \(.has_dependencies)",
-  "  NTIA compliant  : \(.ntia_compliant)"'
+"$OPA" eval -I -f json -d "$POL/ntia.rego" 'data.firmware.compliance.ntia.report' < "$SBOM" \
+  | jq -r '.result[0].expressions[0].value |
+  "  components          : \(.total_components)",
+  "  NTIA compliant      : \(.ntia_compliant)   (incomplete: \(.incomplete_components))",
+  "  external id (purl/cpe): \(.identifiers_purl_cpe.n)/\(.total_components)  (\(.identifiers_purl_cpe.pct)%)   <- CVE-mappable",
+  "  real version        : \(.version.real)/\(.total_components)   (\(.version.placeholder) are the build-label placeholder)",
+  "  supplier            : \(.supplier.n)/\(.total_components)  (\(.supplier.pct)%)",
+  "  hashes              : \(.hashes.n)/\(.total_components)  (\(.hashes.pct)%)",
+  "  licenses            : \(.licenses.n)/\(.total_components)  (\(.licenses.pct)%)",
+  "  in dependency graph : \(.dependency_graph_coverage.in_graph)/\(.total_components)  (\(.dependency_graph_coverage.pct)%)",
+  "  sbom author/time    : \(.sbom_author) / \(.sbom_timestamp)",
+  "  primary component   : supplier=\(.primary_component.has_supplier) id=\(.primary_component.has_external_id) hash=\(.primary_component.has_hash) license=\(.primary_component.has_license)"'
 
 echo "== top incomplete components (missing required fields) =="
 "$OPA" eval -I -f json -d "$POL/ntia.rego" 'data.firmware.compliance.ntia.incomplete' < "$SBOM" \
