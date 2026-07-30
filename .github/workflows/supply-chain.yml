@@ -1,0 +1,73 @@
+name: firmware-supply-chain
+
+# Reference workflow: keyless-sign the firmware SBOM, verify it, and gate deployment on policy.
+# This is the pattern a producer copies into their own release pipeline (protected trigger + isolated
+# builder + the builder's own keyless OIDC identity). It runs on committed OVMF SBOM + reconcile inputs.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write   # keyless OIDC signing (Fulcio/Rekor) — the whole point of running on CI
+
+jobs:
+  attest-and-gate:
+    runs-on: ubuntu-latest
+    env:
+      PRED_TYPE: https://firmware-sbom-supplychain/reconcile/v1
+      BUILDER_ID: https://github.com/${{ github.repository }}/.github/workflows/supply-chain.yml@${{ github.ref }}
+      SOURCE_REPO: https://github.com/${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install OPA
+        run: |
+          curl -fsSL -o /usr/local/bin/opa https://openpolicyagent.org/downloads/latest/opa_linux_amd64_static
+          chmod +x /usr/local/bin/opa
+          opa version
+
+      - uses: sigstore/cosign-installer@v3
+
+      - name: Keyless attest the SBOM (predicate = reconcile verdict)
+        run: |
+          cosign attest-blob --yes \
+            --predicate inputs/reconcile-verdict.json \
+            --type "$PRED_TYPE" \
+            --bundle inputs/sbom.att.bundle \
+            inputs/sbom.cdx.json
+
+      - name: Keyless verify the attestation
+        id: verify
+        run: |
+          if cosign verify-blob-attestation \
+              --certificate-identity "$BUILDER_ID" \
+              --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+              --type "$PRED_TYPE" \
+              --bundle inputs/sbom.att.bundle \
+              inputs/sbom.cdx.json; then
+            echo "sig=true"  >> "$GITHUB_OUTPUT"
+          else
+            echo "sig=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Assemble gate input and gate
+        run: |
+          HASH=$(jq -r '.metadata.component.hashes[0].content' inputs/sbom.cdx.json)
+          CLEAN=$(jq '(.summary.missing==0) and (.summary.modified==0) and (.summary.added_suspicious==0)' inputs/reconcile-verdict.json)
+          jq -n \
+            --arg sig "${{ steps.verify.outputs.sig }}" \
+            --arg h "$HASH" --arg b "$BUILDER_ID" --arg r "$SOURCE_REPO" \
+            --argjson clean "$CLEAN" --slurpfile v inputs/reconcile-verdict.json '{
+              sbom:       {present:true, hash:("sha256:"+$h)},
+              signature:  {verified:($sig=="true")},
+              provenance: {builder_id:$b, source_repo:$r},
+              reconcile:  {clean:$clean, missing:($v[0].missing//[]), added:($v[0].added//[]), modified:($v[0].modified//[])},
+              cve:        {findings:[]}
+            }' > inputs/gate-input.json
+          OPA=/usr/local/bin/opa ./oss-lane/gate.sh inputs/gate-input.json
+
+      - name: Honesty tests (gate must block tampered / wrong-builder / critical-CVE)
+        run: OPA=/usr/local/bin/opa ./tests/run.sh

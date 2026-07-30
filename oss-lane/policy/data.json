@@ -1,6 +1,6 @@
 {
   "expected": {
-    "builder_id": "https://github.com/houdini91/firmware-sbom-supplychain/.github/workflows/release.yml@refs/heads/main",
+    "builder_id": "https://github.com/houdini91/firmware-sbom-supplychain/.github/workflows/supply-chain.yml@refs/heads/main",
     "source_repo": "https://github.com/houdini91/firmware-sbom-supplychain"
   }
 }

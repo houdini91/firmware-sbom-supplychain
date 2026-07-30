@@ -1,0 +1,28 @@
+# Firmware composition + provenance gate — Valint lane.
+#
+# Mirrors the OSS lane's firmware.deploy policy, expressed as Valint rules that resolve from the
+# scribe-public/sample-policies bundle (auto-cloned by `valint verify`). Run with:
+#
+#   valint verify file:../inputs/sbom.cdx.json -i attest-cyclonedx-json \
+#     --rule policies/firmware-composition.yaml --exit-code 1
+#
+# The `evidence.signed: true` clauses enforce the signature check (keyless on CI, x509 offline).
+name: "Firmware composition + provenance gate"
+description: "SBOM present & signed, SLSA L2 provenance authenticated, no critical CVE — over the firmware SBOM evidence."
+
+rules:
+  # SBOM exists and is signed (the signature check)
+  - uses: sbom/require-sbom@v2
+    evidence:
+      signed: true
+
+  # SBOM meets NTIA / TR-03183 minimum elements
+  - uses: sbom/NTIA-compliance@v2
+
+  # SLSA L2: provenance is authenticated (signed by the isolated builder)
+  - uses: slsa/l2-provenance-authenticated@v2
+
+  # no critical vulnerabilities ship
+  - uses: sarif/trivy/verify-cve-severity@v2
+    with:
+      max_severity: high    # anything CRITICAL fails the gate
