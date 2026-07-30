@@ -1,0 +1,23 @@
+# signing material — NEVER commit
+*.key
+*.pem
+cosign.key
+cosign.pub
+*.private
+
+# tool binaries fetched locally
+bin/opa
+bin/cosign
+bin/valint
+
+# scratch / generated
+*.tmp
+.tmp/
+tmp/
+__pycache__/
+*.pyc
+venv/
+.env
+
+# OS
+.DS_Store
