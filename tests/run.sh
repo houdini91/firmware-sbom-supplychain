@@ -22,6 +22,7 @@ expect clean.json          allow
 expect tampered-sbom.json  deny
 expect wrong-builder.json  deny
 expect critical-cve.json   deny
+expect swapped-sbom.json   deny
 echo "================================"
 [ "$fail" -eq 0 ] && echo "ALL PASS" || echo "FAILURES"
 exit $fail

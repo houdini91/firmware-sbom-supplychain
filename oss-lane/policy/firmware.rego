@@ -15,6 +15,7 @@ default allow := false
 allow if {
 	input.sbom.present
 	input.signature.verified
+	input.sbom.hash == input.attestation.subject_digest
 	input.provenance.builder_id == data.expected.builder_id
 	input.provenance.source_repo == data.expected.source_repo
 	input.reconcile.clean
@@ -42,6 +43,10 @@ deny contains msg if {
 }
 
 deny contains "reconcile failed: SBOM does not match firmware bytes" if not input.reconcile.clean
+
+deny contains "SBOM bytes do not match the signed attestation subject (possible swap after signing)" if {
+	input.sbom.hash != input.attestation.subject_digest
+}
 
 deny contains msg if {
 	some c in input.cve.findings

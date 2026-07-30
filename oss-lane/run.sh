@@ -31,26 +31,48 @@ if "$COSIGN" verify-blob-attestation --key "$KEYS/cosign.pub" --type "$TYPE" \
 echo "   signature.verified = $SIG"
 
 echo "== 4. CVE scan (grype over the SBOM) =="
-if command -v grype >/dev/null 2>&1; then
-  grype "sbom:$SBOM" -o json > "$IN/grype.json" 2>/dev/null || echo '{"matches":[]}' > "$IN/grype.json"
-else echo '{"matches":[]}' > "$IN/grype.json"; fi
+# F6: fail closed — a missing/broken scanner is NOT "found nothing". A scanner that produces a valid
+# matches array is trusted even if it exits non-zero (e.g. DB-staleness warning). SKIP_CVE=1 disables loudly.
+if [ "${SKIP_CVE:-0}" = "1" ]; then
+  echo "   ⚠ SKIP_CVE=1 → CVE gate DISABLED (not a clean scan; findings forced empty)"
+  echo '{"matches":[]}' > "$IN/grype.json"
+elif command -v grype >/dev/null 2>&1 \
+     && grype "sbom:$SBOM" -o json > "$IN/grype.json" 2>/dev/null \
+     && jq -e 'has("matches")' "$IN/grype.json" >/dev/null 2>&1; then
+  : # scanned OK
+else
+  echo "   ERROR: CVE scan unavailable (grype missing or DB unusable). Fix grype, or set SKIP_CVE=1 to disable." >&2
+  exit 3
+fi
 CVE="$(jq '[.matches[]? | {id: .vulnerability.id, component: .artifact.name, severity: (.vulnerability.severity|ascii_upcase)}] | unique' "$IN/grype.json")"
 echo "   findings: $(echo "$CVE"|jq length)  critical: $(echo "$CVE"|jq '[.[]|select(.severity=="CRITICAL")]|length')"
 
-echo "== 5. assemble gate input =="
+echo "== 5. extract SIGNED evidence + assemble gate input =="
+# F3/F4: trust the reconcile verdict + subject digest ONLY from the VERIFIED attestation, not the
+# on-disk file. Compute the SBOM's real digest now and bind it to the signed subject in the policy.
+if [ "$SIG" = "true" ]; then
+  STMT="$(jq -r '.base64Signature' "$IN/sbom.att.bundle" | base64 -d | jq -r '.payload' | base64 -d)"
+  SUBJECT_DIGEST="$(printf '%s' "$STMT" | jq -r '.subject[0].digest.sha256 // ""')"
+  PRED="$(printf '%s' "$STMT" | jq -c '.predicate')"
+else
+  SUBJECT_DIGEST=""; PRED='{}'
+fi
+SBOM_HASH="$(sha256sum "$SBOM" | cut -d' ' -f1)"           # actual bytes on disk
+PRESENT="$(jq '(.components|length) > 0' "$SBOM")"          # F4: real, not a constant
+CLEAN="$(printf '%s' "$PRED" | jq '((.summary.missing // 1)==0) and ((.summary.modified // 1)==0) and ((.summary.added_suspicious // 1)==0)')"
 BUILDER="${BUILDER_ID:-https://github.com/houdini91/firmware-sbom-supplychain/.github/workflows/supply-chain.yml@refs/heads/main}"
 REPO="${SOURCE_REPO:-https://github.com/houdini91/firmware-sbom-supplychain}"
-HASH="$(jq -r '.metadata.component.hashes[0].content' "$SBOM")"
-CLEAN="$(jq '(.summary.missing==0) and (.summary.modified==0) and (.summary.added_suspicious==0)' "$VERDICT")"
-jq -n --arg sig "$SIG" --arg h "$HASH" --arg b "$BUILDER" --arg r "$REPO" \
-      --argjson clean "$CLEAN" --slurpfile v "$VERDICT" --argjson cve "$CVE" '{
-  sbom:       {present:true, hash:("sha256:"+$h)},
-  signature:  {verified:($sig=="true")},
-  provenance: {builder_id:$b, source_repo:$r},
-  reconcile:  {clean:$clean, missing:($v[0].missing//[]), added:($v[0].added//[]), modified:($v[0].modified//[])},
-  cve:        {findings:$cve}
+jq -n --arg sig "$SIG" --arg sh "$SBOM_HASH" --arg sd "$SUBJECT_DIGEST" \
+      --arg b "$BUILDER" --arg r "$REPO" --argjson present "$PRESENT" \
+      --argjson clean "$CLEAN" --argjson pred "$PRED" --argjson cve "$CVE" '{
+  sbom:        {present:$present, hash:("sha256:"+$sh)},
+  attestation: {subject_digest:(if $sd=="" then "" else "sha256:"+$sd end)},
+  signature:   {verified:($sig=="true")},
+  provenance:  {builder_id:$b, source_repo:$r},
+  reconcile:   {clean:$clean, missing:($pred.missing // []), added:($pred.added // []), modified:($pred.modified // [])},
+  cve:         {findings:$cve}
 }' > "$IN/gate-input.json"
-echo "   inputs/gate-input.json"
+echo "   subject=sha256:${SUBJECT_DIGEST:0:12}…  sbom=sha256:${SBOM_HASH:0:12}…  clean=$CLEAN  present=$PRESENT"
 
 echo "== 6. gate =="
 "$HERE/gate.sh" "$IN/gate-input.json"
