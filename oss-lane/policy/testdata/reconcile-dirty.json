@@ -1,0 +1,6 @@
+{
+  "_type": "https://in-toto.io/Statement/v0.1",
+  "predicateType": "https://firmware-sbom-supplychain/reconcile/v1",
+  "subject": [{ "name": "sbom.cdx.json", "digest": { "sha256": "d41ad3148efb6acf48b357b03e8d5067d1930e03536c2d7148d5470d40395859" } }],
+  "predicate": { "summary": { "declared": 123, "observed": 124, "validated": 120, "missing": 1, "modified": 2, "added_structural": 0, "added_suspicious": 1 } }
+}
