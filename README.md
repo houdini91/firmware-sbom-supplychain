@@ -7,8 +7,10 @@ fails policy — shown **two ways over the same evidence**:
 - an **OSS lane** — `cosign` + Open Policy Agent (reproducible today with community-standard tools), and
 - a **Valint lane** — signing + compliance policy with [Valint], the supply-chain evidence/policy tool.
 
-Same firmware, same signed evidence, same pass/fail outcome — verified by both, so it's provably not
-tool-locked.
+Same firmware, same signed evidence. The **OSS lane is the hard gate** — a policy violation fails the run.
+The **Valint lane runs the same compliance intent keyless** (via its rule/initiative bundles) but currently
+in **report mode** (non-blocking), so it demonstrates the same evidence being checked by an independent
+tool, not a second enforcement point. Honest scope, stated up front.
 
 ## The pipeline
 
@@ -35,8 +37,8 @@ come from the companion `edk2-sbom` tooling. **This repo is stages 4–6: attest
 - **reconcile** — this project's own check: carve the actual firmware binary and confirm it contains
   exactly what the SBOM claims (verify, don't trust).
 
-The two lanes below do the *same* job — sign the evidence, then gate on policy — one with cosign+OPA, one
-with Valint, so the outcome is provably not tied to a single tool.
+The two lanes below run over the *same* signed evidence — one with cosign+OPA (the enforcing gate), one with
+Valint (the same compliance checks, currently reporting) — so the result isn't tied to a single tool.
 
 ## Two lanes, side by side
 
@@ -47,7 +49,9 @@ with Valint, so the outcome is provably not tied to a single tool.
 | **Policy / compliance** | `opa eval` over `policy/*.rego` | `valint verify` → YAML policy → sample-policy rego hierarchy |
 
 Locally both sign with a key so the demo runs offline; the reference GitHub Actions workflow swaps that for
-**keyless OIDC** (`cosign` / `attest-build-provenance` via Fulcio/Rekor) produced inside an isolated builder.
+**keyless OIDC** signing (`cosign` via Fulcio/Rekor, using the runner's workload identity). *(On a public
+repo this is where GitHub's one-line `actions/attest-build-provenance` would slot in; it's unavailable on
+user-owned private repos, so we build + keyless-sign the SLSA provenance predicate with cosign instead.)*
 
 ## Compliance frameworks
 
@@ -70,11 +74,17 @@ as policy rules:
 
 ## Status
 
-Both lanes run **keyless on CI** (`.github/workflows/supply-chain.yml`, green): cosign and Valint each
-sign the firmware SBOM with the GitHub workload OIDC identity, then verify + gate. Locally, the OSS lane
-runs end-to-end over real OVMF data (324-component SBOM, reconcile clean 123/123 → gate ALLOW; honesty
-tests block tampered / wrong-builder / critical-CVE). Reference/demo, defensive use only. Not affiliated
-with or endorsed by TianoCore.
+**Green on CI** (`.github/workflows/supply-chain.yml`), all keyless via the runner's OIDC identity. The
+`attest-and-gate` job keyless-signs the SBOM **and a real SLSA provenance predicate**, verifies both, runs a
+**grype** CVE scan (`anchore/scan-action`), assembles a gate input entirely from *verified* evidence
+(signer identity extracted from the Fulcio cert, SBOM-hash ↔ signed-subject binding, reconcile verdict
+decoded from the signed payload), enforces the **OPA gate** (with a **VEX allowlist** for triaged CVEs),
+runs fixture + in-pipeline negative tests, and demonstrates cosign's **native `verify-attestation --policy`**
+over the OCI-stored SBOM. The `valint-lane` job signs + runs compliance keyless (report mode).
+
+Locally the OSS lane runs end-to-end over real OVMF data (324-component SBOM, reconcile clean 123/123 →
+ALLOW; honesty tests block tampered / wrong-builder / critical-CVE / swapped-SBOM). Reference/demo,
+defensive use only. Not affiliated with or endorsed by TianoCore.
 
 ## Trust model & honest limitations
 
