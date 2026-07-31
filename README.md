@@ -76,4 +76,25 @@ runs end-to-end over real OVMF data (324-component SBOM, reconcile clean 123/123
 tests block tampered / wrong-builder / critical-CVE). Reference/demo, defensive use only. Not affiliated
 with or endorsed by TianoCore.
 
+## Trust model & honest limitations
+
+The gate is only as trustworthy as its inputs, so it's worth being explicit about what it does and
+doesn't protect:
+
+- **Actions are pinned to commit SHAs** (not mutable tags), and each job takes the **minimum token scope**
+  (only `attest-and-gate` gets `id-token: write`, for keyless signing).
+- **The gate's decision inputs live in the repo** — `inputs/reconcile-verdict.json` (the reconcile
+  predicate), `oss-lane/policy/cve-allowlist.json` (VEX), and `oss-lane/policy/data.json` (the expected
+  builder identity). A commit that edits these can change the verdict, so they are covered by
+  [`CODEOWNERS`](.github/CODEOWNERS) and **require branch protection on `main`** to be meaningful. Signing
+  does *not* protect them — they're inside the signed repo.
+- **Demo limitation:** in this demo the reconcile verdict is *committed*, not regenerated in CI (CI has the
+  SBOM but not the multi-hundred-MB firmware image to re-carve). A real operator pipeline would **regenerate
+  the reconcile verdict inside the isolated builder** from the actual firmware, so the gate *proves* the
+  bytes rather than *trusting* a committed file. That's the intended production shape; the demo shows the
+  policy/attestation machinery around it.
+- The local runner's `DEV_ASSUME_IDENTITY` fallback (used only when signing with a local key, which carries
+  no cert identity) is **unreachable in CI** — CI keyless signing always yields a real, extracted signer
+  identity. A local `ALLOW` therefore proves less than a CI `ALLOW`.
+
 [Valint]: https://github.com/scribe-public

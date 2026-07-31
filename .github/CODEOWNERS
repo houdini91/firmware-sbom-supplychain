@@ -1,0 +1,6 @@
+# The gate's trust roots. These files decide allow/deny, and a commit that edits them can pass the
+# gate (the pipeline signs the repo, so signing does not protect them). Require review here, and
+# enable branch protection on `main` so this is enforced. See "Trust model" in the README.
+/oss-lane/policy/                @houdini91
+/inputs/reconcile-verdict.json   @houdini91
+/.github/workflows/              @houdini91
