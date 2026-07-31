@@ -5,6 +5,15 @@
 > the right shape and where it should live. Nothing here is claimed as the only way, and the honest
 > limitations are called out throughout. Feedback very welcome.
 
+**Terms used below:** *SBOM* software bill of materials; *CycloneDX/SPDX* SBOM formats; *coSWID / uSWID*
+Concise SWID tags and the tool that writes/embeds them (fwupd reads them on-device); *SLSA* supply-chain
+provenance framework; *in-toto / DSSE* signed-attestation format; *keyless signing* sigstore signing with a
+short-lived certificate bound to an OIDC workload identity (no long-lived private key); *VEX* Vulnerability
+Exploitability eXchange (per-CVE "affected / not affected" triage); *OPA* Open Policy Agent (the Rego policy
+engine); *FV / FFS / PE32* edk2 Firmware Volume, its Firmware File System entries, and the PE image inside;
+*TPM / PCR* the measurement chip and its Platform Configuration Registers; *RIM* Reference Integrity Manifest
+(the expected measurement values a device's PCRs are checked against); *IBV* Independent BIOS Vendor.
+
 ## Why
 
 Firmware SBOMs are a recognized, still-unfilled need — the UEFI Forum published a firmware-SBOM proposal, and
@@ -24,15 +33,19 @@ These belong to different actors, which is the crux of the design.
 
 **edk2 is a source project** — it ships source and stable tags, never a signed firmware binary. So it can
 provide the *generator* (tooling), but it does not build firmware and does not verify anyone's binary. The
-firmware **builder** (IBV/OEM, a distro building OVMF, or an operator self-building) produces the image and,
-ideally, the SBOM. The **operator** — the fleet/consumer — ingests someone else's firmware and has to decide
-whether to trust it. Verification lives there.
+firmware **builder** (an IBV/OEM, a distro building OVMF, or an operator self-building) produces the image
+and, ideally, the SBOM. The **operator** — the fleet/consumer — ingests someone else's firmware and has to
+decide whether to trust it. Verification lives there.
 
 ```mermaid
 flowchart LR
-  E["edk2 (upstream)\nprovides the SBOM generator\n(-Y SBOM, build-time)"] -->|tooling| B
-  B["Builder (IBV / OEM / distro / self)\nbuilds firmware + generates the SBOM\n+ embeds coSWID"] -->|ships image + SBOM + attestation| O
-  O["Operator / fleet (consumer)\nverify -> reconcile -> gate -> deploy"] --> D["Devices"]
+  E["edk2 upstream<br/>provides the SBOM generator<br/>build-time -Y SBOM"]
+  B["Builder — IBV, OEM, distro, or self<br/>builds firmware and SBOM<br/>embeds coSWID"]
+  O["Operator fleet consumer<br/>verify, reconcile, gate"]
+  D["Devices"]
+  E -->|tooling| B
+  B -->|ships image plus SBOM plus attestation| O
+  O -->|deploy approved image| D
 ```
 
 **What we'd suggest contributing upstream is only the generator** (plus this write-up). The verification/gate
@@ -54,65 +67,153 @@ data — no build-system surgery, no binary parsing, no new heavy dependency (Cy
 310-component CycloneDX 1.6 SBOM: one component per built module and resolved library instance, a
 module→library `dependsOn` graph (122 edges), per-component `edk2:moduleType`/`edk2:arch`/`edk2:isLibrary`
 properties, and a workspace-relative `externalReference` to each module `.inf`. A generated example is
-committed in the PR for direct review. Third-party submodule versions and FV placement are natural next
-increments, not yet emitted.)*
+committed in the PR for direct review. Per-component binary digests, third-party submodule versions, and FV
+placement are natural next increments, not yet emitted — see the reconcile note below on why digests matter.)*
 
 ### Part 2 — the operator verification + gate (a reference pattern)
 
-Once a firmware + SBOM reach an operator, the pipeline is: **verify → reconcile → CVE → attest → gate → bind**.
-The novel piece is **reconcile**.
+The key idea readers most often miss: the lifecycle runs on **two different clocks**, and the OPA gate is the
+boundary between them.
+
+- **Admission time** — static analysis of *artifacts at rest* (the image file, its SBOM, its attestation).
+  No device is involved. Everything from ingest through the gate lives here, and the gate's output is a
+  decision about an **image identity**: "the firmware whose SBOM hashes to `H` is authentic, accurately
+  described, and CVE-triaged → approved to deploy."
+- **Runtime** — later, on the actual device: it boots, the TPM measures the code as it executes, and a
+  *separate* step checks that what booted matches what the gate approved. This is where "measured boot"
+  lives — **not** as a pipeline stage the operator's CI runs.
 
 ```mermaid
-flowchart LR
-  I["ingest\nimage + SBOM + attestation"] --> V["verify\nsignature + provenance (crypto)"]
-  V --> R["reconcile\ndeclared SBOM vs the actual bytes"]
-  R --> C["CVE map\n(+ VEX triage)"] --> A["attest\noperator's verdict, keyless"] --> G["OPA gate\ndeploy?"] --> M["measured boot\nbind to TPM/RIM"]
+flowchart TB
+  BLD["Builder<br/>build image, generate SBOM<br/>H = hash of the SBOM document<br/>sign attestation, derive golden RIM"]
+  subgraph ADM["ADMISSION TIME — static analysis of artifacts, no device present"]
+    direction LR
+    ING["ingest<br/>image, SBOM, attestation"]
+    VER["verify<br/>signature and SLSA provenance"]
+    REC["reconcile<br/>carve FFS and PE32 modules<br/>compare to declared SBOM"]
+    CVE["CVE map<br/>plus VEX triage"]
+    ATT["attest<br/>operator verdict, keyless"]
+    GATE{"OPA gate<br/>may it deploy"}
+    OK["approved image identity H"]
+    NO["blocked, route to triage"]
+    ING --> VER --> REC --> CVE --> ATT --> GATE
+    GATE -->|allow| OK
+    GATE -->|deny| NO
+  end
+  subgraph RT["RUNTIME — on the device, ASPIRATIONAL, not in the reference"]
+    direction LR
+    PWR["device power on"]
+    MEAS["measured boot<br/>TPM extends PCRs as code runs"]
+    BIND{"remote attestation<br/>TPM quote vs golden RIM"}
+    TRUST["device admitted to fleet"]
+    DRIFT["drift, quarantine"]
+    PWR --> MEAS --> BIND
+    BIND -->|match| TRUST
+    BIND -->|mismatch| DRIFT
+  end
+  BLD --> ING
+  BLD -. golden RIM, expected PCRs .-> BIND
+  OK -. approved reference .-> BIND
 ```
 
-Three *different* questions, three mechanisms, in order — this is the part most easily conflated:
+The novel piece is **reconcile**. Three *different* questions, three mechanisms, in order — this is the part
+most easily conflated:
 
 | Question | Mechanism |
 |---|---|
-| Is it authentic, built where it claims? | **signature + SLSA provenance** verification (cosign, keyless identity) |
-| Does the authenticated SBOM describe *these bytes*? | **reconcile** — carve the image → observed set, diff vs declared |
+| Is it authentic, built where it claims? | **signature + SLSA provenance** verification (cosign, keyless identity). Note provenance is itself a *signed claim* about origin — it attests where/how, not that the SBOM is accurate. |
+| Does the SBOM describe *these bytes*? | **reconcile** — carve the image to its FFS/PE32 modules, compare to the declared set |
 | Given all verdicts, may it deploy? | **OPA policy gate** — ANDs the facts |
 
 A signature proves *who* signed and that it wasn't altered in transit — **not** that the SBOM is *accurate*.
-Reconcile is what turns a signed *claim* into a checked *fact*. That's the "verify, don't trust" primitive,
-and it's the thing we'd most like the community's view on (including whether it should be standardized, e.g.
-as a reconcile/VEX evidence type).
+Reconcile is what turns a signed *claim* into a checked *fact*.
+
+**What reconcile can and cannot check — honestly.** Carving is real: tools parse FV → FFS (by `FILE_GUID`) →
+PE32, yielding the observable **module** set. But that granularity matters:
+
+- **Modules, not libraries.** Library instances are statically linked *into* their consuming module's PE32 —
+  they have no separate byte range and are not independently carvable. So of the 310 declared components,
+  reconcile directly observes the ~120 FFS **modules**; the library instances and the 122-edge dependsOn
+  graph are checked only *transitively* (present inside the module that links them), not one-by-one.
+- **Membership vs integrity.** The current SBOM carries no per-component binary digest, so the SBOM *alone*
+  supports only set-membership (is a `FILE_GUID` present/absent). Detecting a *modified* module needs an
+  expected digest to compare against; in the reference those digests come from the build tree's `.efi`
+  outputs, so reconcile is really "build outputs vs image bytes, with the SBOM as the index." Adding
+  per-component digests to the generator would let the SBOM stand on its own here (open question below).
+- **Carving's hard edges** (where the real engineering risk sits): FV sections are LZMA/GUIDed-compressed and
+  some GUIDed extractors are vendor-custom; the PE copy inside the FV is rebased/relocated/debug-stripped
+  versus the build `.efi`, so bytes must be *canonicalized* before hashing or legitimate images mismatch; and
+  carving surfaces **observed-but-undeclared** regions (FSP, microcode, ME, NVRAM, padding, reset vector)
+  that a source SBOM never declares and that need an allowlist to avoid false "extra component" verdicts.
+
+## Measured boot / the runtime bind (aspirational)
+
+At **runtime**, measured boot hashes each stage of code *as it executes* and extends those hashes into the
+TPM's PCRs — a fact about what physically ran on this machine. The **bind** is remote attestation: the device
+emits a signed TPM **quote** of its PCRs, and a verifier compares it against a **golden RIM** (the expected
+measurement values) derived from the gate-approved image. Match → the fleet is provably running what passed
+policy; mismatch → something was flashed out-of-band that never went through the gate (drift or tampering).
+
+This is the runtime continuation of the admission-time verdict — it carries "these bytes are approved"
+forward onto real hardware. **It is aspirational in this design, not implemented in the reference:** it needs
+a real TPM + attestation verifier, and generating a correct golden RIM / expected-PCR set for real firmware is
+genuinely hard (PCR values depend on SEC/PEI/microcode and event-log ordering; predicting them even for OVMF
+is nontrivial). It is shown in the lifecycle for completeness and marked as direction, not a shipped step.
+
+## One build, three linked artifacts (not "one hash everywhere")
+
+A single build yields three artifacts for three consumers. Two of them reference the SBOM's **document hash
+`H`**; the third does **not** — this is a distinction worth stating precisely, because it's easy to overclaim:
+
+```mermaid
+flowchart LR
+  S["one build<br/>canonical SBOM<br/>document hash H = hash of the SBOM JSON"]
+  S -->|embed coSWID via uSWID| C1["on-device inventory<br/>coSWID tag carries H<br/>fwupd reads it"]
+  S -->|sign attestation| C2["admission gate<br/>attestation subject = H"]
+  S -->|derive golden RIM| C3["runtime attestation<br/>RIM = per-component measurement digests<br/>checked against TPM PCRs, not equal to H"]
+```
+
+- **coSWID (on-device)** and the **signed attestation (gate)** both carry/point at the same `H`, so the SBOM
+  the operator gated is provably the SBOM shipped on the device.
+- The **measured-boot RIM** is *derived from the same build* but its values are **per-component runtime
+  measurement digests** (hashes of the measured FV/PE32 events, in the TPM's algorithm and measurement order)
+  that resolve against PCRs. Those are **not** `H`, and it would be wrong to say they are — the RIM is
+  *linked to* the SBOM, not equal to its document hash.
+- **Circularity caveat:** embedding a coSWID that carries `H` *into* the image changes the bytes the SBOM
+  describes and that measured boot will hash. `H` must therefore be computed pre-embed (or over a region that
+  excludes the coSWID section), or the reference is self-referential.
+
+This is meant to *fit* the existing embedded-SBOM plan (coSWID/uSWID/fwupd), not compete with it.
 
 ## The three lenses
 
-**Security.** What the gate defends against: a signed-but-inaccurate SBOM (reconcile catches it); a component
-swapped after SBOM generation (shows as `modified`); an artifact from an unexpected builder (provenance
-identity check); a known-critical CVE reaching the fleet (CVE gate + VEX triage); and drift across the fleet
-(measured-boot binds the approved image). Trust boundaries: generation + signing run inside an **isolated
-builder** with the builder's own **keyless OIDC identity** (not any human key), on a protected trigger; the
-CI actions are **SHA-pinned** and inventoried in a signed **build-tools SBOM** so the toolchain is evidence
-too. **Honest limitations:** in the reference demo the reconcile verdict is a *committed* input rather than
-regenerated in CI (a real pipeline regenerates it in the builder, where the firmware is present); the
-build-tools SBOM lists direct tools, not their transitive deps; and one lane (a second tool) runs compliance
-in report mode, not as a gate. These are documented, not hidden.
+**Security.** What the gate defends against: a signed-but-inaccurate SBOM (reconcile catches it at module
+granularity); a module swapped after SBOM generation (shows as `modified`, given per-module digests); an
+artifact from an unexpected builder (provenance identity check); a known-critical CVE reaching the fleet (CVE
+gate + VEX triage); and — at runtime, aspirationally — drift across the fleet (measured-boot bind). Trust
+boundaries: generation + signing run inside an **isolated builder** with the builder's own **keyless OIDC
+identity** (not any human key), on a protected trigger; the CI actions are **SHA-pinned** and inventoried in a
+signed **build-tools SBOM** so the toolchain is evidence too. **Honest limitations:** the reconcile verdict is
+a *committed* input in the demo rather than regenerated in CI (a real pipeline regenerates it in the builder,
+where the firmware is present); reconcile is module-granular and the SBOM currently lacks per-component
+digests (see above); the build-tools SBOM lists direct tools, not transitive deps; one lane runs compliance
+in report mode, not as a gate; and the measured-boot bind is aspirational. These are documented, not hidden.
 
 **Functional.** Every gate input is derived from evidence: the signer identity is extracted from the verified
 certificate; the SBOM's real digest is bound to the signed attestation subject; the reconcile verdict is
 decoded from the signed payload; CVEs come from a real scan with a VEX allowlist for triaged findings. The
 policy engine only *decides* — it gathers nothing. The same policy intent is expressible in cosign's native
-rego and in an independent tool, so the outcome isn't tool-locked.
+Rego and in an independent tool, so the outcome isn't tool-locked.
 
 **Operational.** For a fleet operator this is a normal release-then-deploy flow: the builder produces the
 firmware + SBOM + provenance; the operator ingests, verifies, reconciles, CVE-triages (a real VEX loop — a
 raw scanner over coarse firmware CPEs over-reports, so triage is required, not optional), gates, and only
-then rolls out — binding the approved image to measured boot. A blocked deploy is a normal, expected event
-that routes to triage, not a failure.
+then rolls out. A blocked deploy is a normal, expected event that routes to triage, not a failure.
 
 ## Relationship to existing work (not a new integration point)
 
-- **coSWID / uSWID / fwupd** (embedded SBOM, on-device): complementary. One canonical SBOM (content hash `H`)
-  projects three ways — embedded coSWID for the device, a signed attestation for the gate, a measured-boot
-  RIM for runtime — all resolving to the same `H`. This is meant to *fit* the existing embedded-SBOM plan,
-  not compete with it.
+- **coSWID / uSWID / fwupd** (embedded SBOM, on-device): complementary — see "one build, three linked
+  artifacts" above. This fits the embedded-SBOM plan; it doesn't replace it.
 - **SLSA / in-toto / sigstore / OPA:** used as-is. The provenance, signing, and policy are stock; the new
   pieces are the generator and reconcile.
 
@@ -159,17 +260,22 @@ own. Nothing here is posted upstream without explicit sign-off.
 
 1. Is `-Y SBOM` (a `BuildReport.py` report type) the right home for the generator, or a standalone tool?
 2. CycloneDX vs SPDX as the primary format (the reference emits CycloneDX and converts to SPDX)?
-3. Is **reconcile** (declared-vs-observed) worth standardizing as an evidence/VEX type, or left to operators?
-4. Does the coSWID/measured-boot unification (`same H, three channels`) match the direction of the embedded
-   SBOM work?
-5. Where should the boundary sit between "edk2 provides" and "operator does" — is the generator-only upstream
+3. Should the generator emit **per-component binary digests** so reconcile can check module *integrity* from
+   the SBOM alone, rather than leaning on the build tree?
+4. Is **reconcile** (declared-vs-observed) worth standardizing — most naturally as a new **in-toto predicate
+   type**, not a VEX type (VEX encodes CVE exploitability, not composition)?
+5. Does the one-build/three-artifacts model match the direction of the embedded-SBOM + measured-boot work?
+6. Where should the boundary sit between "edk2 provides" and "operator does" — is the generator-only upstream
    ask the right scope?
 
 ## Non-goals / honest scope
 
 Not a claim that firmware SBOMs are solved; not a finished spec; not a request to host a signing pipeline in
-edk2. Blob coverage is partial (FSP/microcode/ME have no build report — the generator is exact only for what's
-built from source). The reference targets OVMF/edk2 for reproducibility. Defensive use only.
+edk2. Reconcile is module-granular (libraries verified only transitively) and the reference draws expected
+digests from the build tree. The measured-boot bind is aspirational, not implemented. Blob coverage is partial
+(FSP/microcode/ME have no build report — the generator is exact only for what's built from source). Component
+counts (e.g. 310) are for a specific OvmfPkgX64 DEBUG/GCC build and vary by platform/target. The reference
+targets OVMF/edk2 for reproducibility. Defensive use only.
 
 [#10507]: https://github.com/tianocore/edk2/issues/10507
 [#6455]: https://github.com/tianocore/edk2/pull/6455
