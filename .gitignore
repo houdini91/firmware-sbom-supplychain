@@ -33,3 +33,5 @@ inputs/grype.json
 inputs/sbom.att.bundle
 inputs/sbom.slsa.bundle
 inputs/slsa-predicate.json
+inputs/build-tools.cdx.json
+inputs/build-tools.sig.bundle
