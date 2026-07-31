@@ -1,6 +1,14 @@
 # cosign-native policy for `cosign verify-attestation --policy` (OCI path, feature b).
-# cosign evaluates this Rego against the in-toto statement (input = the attestation statement),
-# checking package `signature` — `allow` (bool) must hold and `deny` (messages) must be empty.
+#
+# cosign's real contract (verified against pkg/cosign/rego/rego.go, cosign v3/main):
+#   - it queries ONLY `data.signature.allow`, hard-coded; package MUST be `signature`.
+#   - `allow` MUST evaluate to a boolean `true` — the docs' `allow[msg]` *set* form silently
+#     always fails (sigstore/cosign#2871). Hence `default allow := false` + a boolean `allow`.
+#   - `deny` below is NOT read by cosign; it's kept for local debugging (`opa eval data.signature.deny`).
+#   - cosign forces Rego v0; `import rego.v1` is the bridge that lets the v1 `if`/`contains` compile
+#     under it (works on cosign 2.5.2 AND opa 1.18 — validated clean=allow / dirty=deny on both).
+#   - `input` is the FULL in-toto Statement: use `input.predicateType` + `input.predicate.*`.
+#
 # This is the predicate-level check (does the SIGNED reconcile verdict say the bytes match?);
 # the composite OPA gate (firmware.rego) still covers SBOM-hash binding, CVE/VEX, and identity.
 package signature

@@ -18,6 +18,7 @@ jobs:
     permissions:
       contents: read
       id-token: write   # keyless OIDC signing (this job only)
+      packages: write   # push the SBOM to ghcr for the cosign-native policy demo (feature b)
     env:
       PRED_TYPE: https://firmware-sbom-supplychain/reconcile/v1
       BUILDER_ID: https://github.com/${{ github.repository }}/.github/workflows/supply-chain.yml@${{ github.ref }}
@@ -113,6 +114,22 @@ jobs:
 
       - name: In-pipeline negative test (F5) — a post-sign tamper must be blocked
         run: OPA=/usr/local/bin/opa ./tests/pipeline-negative.sh
+
+      # Feature (b): cosign's NATIVE policy over an OCI attestation — complementary to the OPA gate above.
+      # Uploads the SBOM to ghcr (no oras), keyless-attests the reconcile verdict, then verifies the
+      # attestation AGAINST the rego policy in one cosign command. Proven locally (clean=pass / dirty=fail).
+      - name: cosign-native OCI policy check (verify-attestation --policy)
+        run: |
+          echo "${{ github.token }}" | cosign login ghcr.io -u "${{ github.actor }}" --password-stdin
+          REF="ghcr.io/${{ github.repository }}/sbom:${{ github.sha }}"
+          cosign upload blob -f inputs/sbom.cdx.json "$REF"
+          cosign attest --yes --predicate inputs/reconcile-verdict.json --type "$PRED_TYPE" "$REF"
+          cosign verify-attestation \
+            --certificate-identity "$BUILDER_ID" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            --type "$PRED_TYPE" \
+            --policy oss-lane/policy/cosign-reconcile.rego "$REF"
+          echo "✓ cosign-native policy verified the signed reconcile predicate over the OCI artifact"
 
   # Second lane: the same SBOM, signed + compliance-verified with Valint, keyless via the GitHub
   # workload identity (attest-default: sigstore-github) — just like cosign above.
