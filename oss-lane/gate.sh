@@ -15,7 +15,10 @@ INPUT="${1:?usage: gate.sh <gate-input.json>}"
 
 [ -x "$OPA" ] || { echo "opa not found at $OPA" >&2; exit 2; }
 
-result="$("$OPA" eval -I -f json -d "$POLICY" 'data.firmware.deploy' < "$INPUT")"
+# load only the deploy policy + its data (NOT the whole dir — testdata/ and other packages would collide)
+result="$("$OPA" eval -I -f json \
+  -d "$POLICY/firmware.rego" -d "$POLICY/data.json" -d "$POLICY/cve-allowlist.json" \
+  'data.firmware.deploy' < "$INPUT")"
 allow="$(printf '%s' "$result" | jq -r '.result[0].expressions[0].value.allow')"
 
 if [ "$allow" = "true" ]; then
