@@ -31,18 +31,36 @@ jobs:
 
       - uses: sigstore/cosign-installer@v3
 
-      - name: Generate a real SLSA provenance attestation for the SBOM   # F7: real predicate, not just identity
-        uses: actions/attest-build-provenance@v2
-        with:
-          subject-path: inputs/sbom.cdx.json
-
-      - name: Verify the SLSA provenance (hard gate — fails if missing/invalid)
-        env:
-          GH_TOKEN: ${{ github.token }}
+      # F7 real: a genuine SLSA provenance v1 predicate, keyless-signed. (On a PUBLIC repo you can swap
+      # this for `actions/attest-build-provenance`, which uses GitHub's attestation store; that store is
+      # unavailable on user-owned private repos, so we sign the predicate with cosign here instead.)
+      - name: Build + keyless-sign a SLSA provenance predicate for the SBOM
         run: |
-          gh attestation verify inputs/sbom.cdx.json --repo "${{ github.repository }}" \
-            --predicate-type https://slsa.dev/provenance/v1
-          echo "✓ SLSA provenance attestation verified for the SBOM"
+          jq -n \
+            --arg repo "${{ github.server_url }}/${{ github.repository }}" \
+            --arg ref "${{ github.ref }}" \
+            --arg builder "${{ github.server_url }}/${{ github.workflow_ref }}" \
+            --arg sha "${{ github.sha }}" \
+            --arg run "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" '{
+              buildDefinition: {
+                buildType: "https://actions.github.io/buildtypes/workflow/v1",
+                externalParameters: {workflow: {ref: $ref, repository: $repo, path: ".github/workflows/supply-chain.yml"}},
+                resolvedDependencies: [{uri: ("git+" + $repo + "@" + $ref), digest: {gitCommit: $sha}}]
+              },
+              runDetails: {builder: {id: $builder}, metadata: {invocationId: $run}}
+            }' > inputs/slsa-predicate.json
+          cosign attest-blob --yes --type slsaprovenance1 \
+            --predicate inputs/slsa-predicate.json \
+            --bundle inputs/sbom.slsa.bundle inputs/sbom.cdx.json
+
+      - name: Verify the SLSA provenance (hard gate)
+        run: |
+          cosign verify-blob-attestation \
+            --certificate-identity "$BUILDER_ID" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            --type slsaprovenance1 \
+            --bundle inputs/sbom.slsa.bundle inputs/sbom.cdx.json
+          echo "✓ SLSA provenance predicate verified (builder: $(jq -r .runDetails.builder.id inputs/slsa-predicate.json))"
 
       - name: Install grype
         run: curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
