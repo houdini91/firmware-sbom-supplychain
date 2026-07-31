@@ -31,3 +31,5 @@ valint-lane/.keys/
 inputs/gate-input.json
 inputs/grype.json
 inputs/sbom.att.bundle
+inputs/sbom.slsa.bundle
+inputs/slsa-predicate.json
