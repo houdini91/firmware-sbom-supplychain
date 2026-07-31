@@ -62,9 +62,6 @@ jobs:
             --bundle inputs/sbom.slsa.bundle inputs/sbom.cdx.json
           echo "✓ SLSA provenance predicate verified (builder: $(jq -r .runDetails.builder.id inputs/slsa-predicate.json))"
 
-      - name: Install grype
-        run: curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
-
       - name: Keyless attest the SBOM (predicate = reconcile verdict)
         run: |
           cosign attest-blob --yes \
@@ -87,8 +84,17 @@ jobs:
             echo "sig=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: CVE scan (grype over the SBOM)   # F1: real scan, no hardcoded empty
-        run: grype "sbom:inputs/sbom.cdx.json" -o json > inputs/grype.json
+      - name: CVE scan (grype via anchore/scan-action)   # F1 + idiomatic action
+        id: scan
+        uses: anchore/scan-action@v6
+        with:
+          sbom: inputs/sbom.cdx.json
+          output-format: json
+          fail-build: false
+          severity-cutoff: critical
+
+      - name: Collect scan results
+        run: cp "${{ steps.scan.outputs.json }}" inputs/grype.json
 
       - name: Assemble gate input from verified evidence, then gate
         run: |
