@@ -12,6 +12,10 @@ The **Valint lane runs the same compliance intent keyless** (via its rule/initia
 in **report mode** (non-blocking), so it demonstrates the same evidence being checked by an independent
 tool, not a second enforcement point. Honest scope, stated up front.
 
+> **Design & rationale:** [`DESIGN.md`](DESIGN.md) — a discussion-framed write-up of the security /
+> functional / operational design and the who-does-what boundary, written to double as the note that would
+> attach to the upstream generator discussion (edk2 #10507). A proposal to open a conversation, not a mandate.
+
 ## The pipeline
 
 ```
