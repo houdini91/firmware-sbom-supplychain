@@ -10,26 +10,27 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  id-token: write       # keyless OIDC signing (Fulcio/Rekor)
-  attestations: write   # actions/attest-build-provenance (real SLSA provenance)
+  contents: read   # least-privilege default; each job opts into more
 
 jobs:
   attest-and-gate:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write   # keyless OIDC signing (this job only)
     env:
       PRED_TYPE: https://firmware-sbom-supplychain/reconcile/v1
       BUILDER_ID: https://github.com/${{ github.repository }}/.github/workflows/supply-chain.yml@${{ github.ref }}
       SOURCE_REPO: https://github.com/${{ github.repository }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Install OPA
         run: |
           curl -fsSL -o /usr/local/bin/opa https://openpolicyagent.org/downloads/latest/opa_linux_amd64_static
           chmod +x /usr/local/bin/opa
 
-      - uses: sigstore/cosign-installer@v3
+      - uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac # v3
 
       # F7 real: a genuine SLSA provenance v1 predicate, keyless-signed. (On a PUBLIC repo you can swap
       # this for `actions/attest-build-provenance`, which uses GitHub's attestation store; that store is
@@ -86,7 +87,7 @@ jobs:
 
       - name: CVE scan (grype via anchore/scan-action)   # F1 + idiomatic action
         id: scan
-        uses: anchore/scan-action@v6
+        uses: anchore/scan-action@1638637db639e0ade3258b51db49a9a137574c3e # v6
         with:
           sbom: inputs/sbom.cdx.json
           output-format: json
@@ -121,10 +122,10 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Valint — keyless attest the firmware SBOM
-        uses: scribe-security/action-bom@v2.0.6
+        uses: scribe-security/action-bom@418f70159ff29f5b5b365e0e970228b787260ab2 # v2.0.6
         with:
           target: file:inputs/sbom.cdx.json
           format: attest
@@ -132,7 +133,7 @@ jobs:
           scribe-disable: "true"
 
       - name: Valint — verify custom firmware-composition policy
-        uses: scribe-security/action-verify@v2.0.6
+        uses: scribe-security/action-verify@fc908abde0d5d5a931dd030229151033a886505c # v2.0.6
         continue-on-error: true   # report mode: show the compliance run without gating the demo
         with:
           target: file:inputs/sbom.cdx.json
@@ -142,7 +143,7 @@ jobs:
           scribe-disable: "true"
 
       - name: Valint — verify against a framework initiative (SLSA L2)
-        uses: scribe-security/action-verify@v2.0.6
+        uses: scribe-security/action-verify@fc908abde0d5d5a931dd030229151033a886505c # v2.0.6
         continue-on-error: true
         with:
           target: file:inputs/sbom.cdx.json
