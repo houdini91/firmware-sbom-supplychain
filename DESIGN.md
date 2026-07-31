@@ -50,8 +50,12 @@ data — no build-system surgery, no binary parsing, no new heavy dependency (Cy
 #10507 directly and is the automated generator #6455 lacked. The natural upstream form is a native
 `-Y SBOM` report type in `BuildReport.py`, reusing the same data.
 
-*(A working standalone implementation exists and produces a 324-component CycloneDX SBOM from an OVMF build,
-with module→library dependency edges, submodule versions, FV placement, and per-module source provenance.)*
+*(Implemented as a native `-Y SBOM` report type — [edk2 PR #2]. A full OvmfPkgX64 DEBUG/GCC build produces a
+310-component CycloneDX 1.6 SBOM: one component per built module and resolved library instance, a
+module→library `dependsOn` graph (122 edges), per-component `edk2:moduleType`/`edk2:arch`/`edk2:isLibrary`
+properties, and a workspace-relative `externalReference` to each module `.inf`. A generated example is
+committed in the PR for direct review. Third-party submodule versions and FV placement are natural next
+increments, not yet emitted.)*
 
 ### Part 2 — the operator verification + gate (a reference pattern)
 
@@ -119,6 +123,38 @@ that routes to triage, not a failure.
 - (Separately, operator-side and not upstream:) the reconcile verifier + the gate reference workflow, as a
   copy-me pattern.
 
+## The concrete PRs this ties together
+
+Three self-contained PRs stage the *generation + embed* half. Each stands alone technically; this document is
+the hub that explains how they connect. They currently live on personal forks for review and have **not** been
+sent upstream.
+
+| PR | Repo | Role |
+|---|---|---|
+| [edk2 PR #2] — `-Y SBOM` generator | edk2 / BaseTools | **The anchor.** Build-time CycloneDX from the `-Y COMPILE_INFO` AutoGen data. Directly answers [#10507]; ships a reference OvmfPkgX64 SBOM. |
+| [uSWID PR #1] — CDX 1.4+ component types | hughsie/python-uswid | **The embed bridge.** uSWID converts CDX→coSWID and embeds it so fwupd reads it on-device; the generator's output tripped uSWID's type parser — this fixes the round-trip. |
+| [edk2 PR #1] — libspdm 3.7.0→3.8.2 | edk2 / SecurityPkg | **Supply-chain hygiene, same theme.** Refreshes a third-party component and honestly scopes its exposure — exactly the stale-pin an SBOM surfaces. |
+
+The *verification* half (reconcile + attest + OPA gate + provenance) is this repo, operator-side, and is
+deliberately **not** proposed upstream.
+
+## Where this gets discussed (engagement sequence)
+
+One concrete, working artifact per conversation — no big-bang proposal:
+
+1. **[#10507]** — comment offering the `-Y SBOM` generator ([edk2 PR #2]) + example, using this write-up for
+   the shape. *This is where the generator lands.*
+2. **`devel@edk2.groups.io`** — edk2's canonical path is `git send-email` with maintainers Cc'd (Bob Feng,
+   Yuwei Chen); the GitHub PR is a convenience mirror. PR #2 is already formatted for the list.
+3. **Richard Hughes / fwupd + uSWID** — lead with the embed round-trip ([uSWID PR #1]; cf. fwupd [#9414]
+   merged, [#10263] open), then the verification angle.
+4. **UEFI Forum firmware-SBOM effort** — higher-level positioning once the concrete generator exists to
+   point at.
+
+**Reference topology.** This `DESIGN.md` is the single hub and links out to all three PRs. The upstream-bound
+PRs cite only the **public anchor [#10507]** (never this personal repo), so each stays clean to upstream on its
+own. Nothing here is posted upstream without explicit sign-off.
+
 ## Open questions for the community
 
 1. Is `-Y SBOM` (a `BuildReport.py` report type) the right home for the generator, or a standalone tool?
@@ -137,3 +173,8 @@ built from source). The reference targets OVMF/edk2 for reproducibility. Defensi
 
 [#10507]: https://github.com/tianocore/edk2/issues/10507
 [#6455]: https://github.com/tianocore/edk2/pull/6455
+[edk2 PR #2]: https://github.com/houdini91/edk2/pull/2
+[edk2 PR #1]: https://github.com/houdini91/edk2/pull/1
+[uSWID PR #1]: https://github.com/houdini91/python-uswid/pull/1
+[#9414]: https://github.com/fwupd/fwupd/pull/9414
+[#10263]: https://github.com/fwupd/fwupd/pull/10263
