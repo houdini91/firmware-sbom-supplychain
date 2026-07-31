@@ -4,7 +4,7 @@
 #   3 cosign verify-blob-attestation  4 grype CVE scan  5 assemble gate input  6 OPA gate
 #
 # Local demo signs with a key. The CI workflow does the same steps with KEYLESS OIDC
-# (cosign / attest-build-provenance) and passes the runner's provenance in via env.
+# (cosign keyless) and extracts the real signer identity in the shared assembler.
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
