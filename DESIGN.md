@@ -38,14 +38,23 @@ and, ideally, the SBOM. The **operator** — the fleet/consumer — ingests some
 decide whether to trust it. Verification lives there.
 
 ```mermaid
+%%{init: {"theme":"base","themeVariables":{"fontFamily":"ui-sans-serif, system-ui, -apple-system, sans-serif","fontSize":"14px","lineColor":"#94a3b8","edgeLabelBackground":"#ffffff"},"flowchart":{"curve":"basis","htmlLabels":true,"nodeSpacing":55,"rankSpacing":70,"padding":10}}}%%
 flowchart LR
-  E["edk2 upstream<br/>provides the SBOM generator<br/>build-time -Y SBOM"]
-  B["Builder — IBV, OEM, distro, or self<br/>builds firmware and SBOM<br/>embeds coSWID"]
-  O["Operator fleet consumer<br/>verify, reconcile, gate"]
-  D["Devices"]
+  E["<b>edk2 upstream</b><br/>provides the SBOM generator<br/><i>build-time -Y SBOM</i>"]
+  B["<b>Builder</b> — IBV, OEM, distro, or self<br/>builds firmware and SBOM<br/>embeds coSWID"]
+  O["<b>Operator</b> — fleet consumer<br/>verify, reconcile, gate"]
+  D(["Devices"])
   E -->|tooling| B
-  B -->|ships image plus SBOM plus attestation| O
+  B -->|image + SBOM + attestation| O
   O -->|deploy approved image| D
+  classDef upstream fill:#e0edff,stroke:#3b82f6,stroke-width:1.5px,color:#0f172a;
+  classDef builder fill:#eef2f7,stroke:#64748b,stroke-width:1.5px,color:#0f172a;
+  classDef operator fill:#ede9fe,stroke:#8b5cf6,stroke-width:1.5px,color:#2e1065;
+  classDef device fill:#dcfce7,stroke:#22c55e,stroke-width:1.5px,color:#14532d;
+  class E upstream;
+  class B builder;
+  class O operator;
+  class D device;
 ```
 
 **What we'd suggest contributing upstream is only the generator** (plus this write-up). The verification/gate
@@ -84,36 +93,51 @@ boundary between them.
   lives — **not** as a pipeline stage the operator's CI runs.
 
 ```mermaid
+%%{init: {"theme":"base","themeVariables":{"fontFamily":"ui-sans-serif, system-ui, -apple-system, sans-serif","fontSize":"13px","lineColor":"#94a3b8","edgeLabelBackground":"#ffffff","clusterBorder":"#cbd5e1"},"flowchart":{"curve":"basis","htmlLabels":true,"nodeSpacing":38,"rankSpacing":48,"padding":8}}}%%
 flowchart TB
-  BLD["Builder<br/>build image, generate SBOM<br/>H = hash of the SBOM document<br/>sign attestation, derive golden RIM"]
-  subgraph ADM["ADMISSION TIME — static analysis of artifacts, no device present"]
+  BLD["<b>Builder</b><br/>build image, generate SBOM<br/>H = hash of the SBOM document<br/>sign attestation, derive golden RIM"]
+  subgraph ADM["🗎 &nbsp;ADMISSION TIME&nbsp; — static analysis of artifacts, no device present"]
     direction LR
     ING["ingest<br/>image, SBOM, attestation"]
-    VER["verify<br/>signature and SLSA provenance"]
+    VER["verify<br/>signature + SLSA provenance"]
     REC["reconcile<br/>carve FFS and PE32 modules<br/>compare to declared SBOM"]
-    CVE["CVE map<br/>plus VEX triage"]
+    CVE["CVE map<br/>+ VEX triage"]
     ATT["attest<br/>operator verdict, keyless"]
-    GATE{"OPA gate<br/>may it deploy"}
-    OK["approved image identity H"]
-    NO["blocked, route to triage"]
+    GATE{"OPA gate<br/>may it deploy?"}
+    OK(["✓ approved image identity H"])
+    NO(["✕ blocked → triage"])
     ING --> VER --> REC --> CVE --> ATT --> GATE
     GATE -->|allow| OK
     GATE -->|deny| NO
   end
-  subgraph RT["RUNTIME — on the device, ASPIRATIONAL, not in the reference"]
+  subgraph RT["⚙ &nbsp;RUNTIME&nbsp; — on the device · ASPIRATIONAL, not in the reference"]
     direction LR
     PWR["device power on"]
     MEAS["measured boot<br/>TPM extends PCRs as code runs"]
     BIND{"remote attestation<br/>TPM quote vs golden RIM"}
-    TRUST["device admitted to fleet"]
-    DRIFT["drift, quarantine"]
+    TRUST(["✓ device admitted to fleet"])
+    DRIFT(["✕ drift → quarantine"])
     PWR --> MEAS --> BIND
     BIND -->|match| TRUST
     BIND -->|mismatch| DRIFT
   end
   BLD --> ING
-  BLD -. golden RIM, expected PCRs .-> BIND
+  BLD -. golden RIM / expected PCRs .-> BIND
   OK -. approved reference .-> BIND
+  classDef builder fill:#eef2f7,stroke:#64748b,stroke-width:1.5px,color:#0f172a;
+  classDef adm fill:#e0edff,stroke:#3b82f6,stroke-width:1.5px,color:#0f172a;
+  classDef decision fill:#fef3c7,stroke:#f59e0b,stroke-width:1.5px,color:#7c2d12;
+  classDef good fill:#dcfce7,stroke:#22c55e,stroke-width:1.5px,color:#14532d;
+  classDef bad fill:#ffe4e6,stroke:#f43f5e,stroke-width:1.5px,color:#7f1d1d;
+  classDef rt fill:#ede9fe,stroke:#8b5cf6,stroke-width:1.5px,color:#2e1065;
+  class BLD builder;
+  class ING,VER,REC,CVE,ATT adm;
+  class GATE,BIND decision;
+  class OK,TRUST good;
+  class NO,DRIFT bad;
+  class PWR,MEAS rt;
+  style ADM fill:#f5f9ff,stroke:#93c5fd,stroke-width:1.5px,color:#1e3a8a;
+  style RT fill:#faf5ff,stroke:#c4b5fd,stroke-width:1.5px,color:#5b21b6;
 ```
 
 The novel piece is **reconcile**. Three *different* questions, three mechanisms, in order — this is the part
@@ -166,11 +190,20 @@ A single build yields three artifacts for three consumers. Two of them reference
 `H`**; the third does **not** — this is a distinction worth stating precisely, because it's easy to overclaim:
 
 ```mermaid
+%%{init: {"theme":"base","themeVariables":{"fontFamily":"ui-sans-serif, system-ui, -apple-system, sans-serif","fontSize":"14px","lineColor":"#94a3b8","edgeLabelBackground":"#ffffff"},"flowchart":{"curve":"basis","htmlLabels":true,"nodeSpacing":50,"rankSpacing":80,"padding":10}}}%%
 flowchart LR
-  S["one build<br/>canonical SBOM<br/>document hash H = hash of the SBOM JSON"]
-  S -->|embed coSWID via uSWID| C1["on-device inventory<br/>coSWID tag carries H<br/>fwupd reads it"]
-  S -->|sign attestation| C2["admission gate<br/>attestation subject = H"]
-  S -->|derive golden RIM| C3["runtime attestation<br/>RIM = per-component measurement digests<br/>checked against TPM PCRs, not equal to H"]
+  S["<b>one build → one canonical SBOM</b><br/>document hash H = hash of the SBOM JSON"]
+  S -->|embed coSWID via uSWID| C1["<b>on-device inventory</b><br/>coSWID tag carries H<br/>fwupd reads it"]
+  S -->|sign attestation| C2["<b>admission gate</b><br/>attestation subject = H"]
+  S -->|derive golden RIM| C3["<b>runtime attestation</b><br/>RIM = per-component measurement digests<br/><i>checked against TPM PCRs — not equal to H</i>"]
+  classDef src fill:#cffafe,stroke:#06b6d4,stroke-width:2px,color:#083344;
+  classDef ondev fill:#ede9fe,stroke:#8b5cf6,stroke-width:1.5px,color:#2e1065;
+  classDef adm fill:#e0edff,stroke:#3b82f6,stroke-width:1.5px,color:#0f172a;
+  classDef rt fill:#f3e8ff,stroke:#a855f7,stroke-width:1.5px,color:#581c87;
+  class S src;
+  class C1 ondev;
+  class C2 adm;
+  class C3 rt;
 ```
 
 - **coSWID (on-device)** and the **signed attestation (gate)** both carry/point at the same `H`, so the SBOM
