@@ -11,7 +11,8 @@ on:
 
 permissions:
   contents: read
-  id-token: write   # keyless OIDC signing (Fulcio/Rekor)
+  id-token: write       # keyless OIDC signing (Fulcio/Rekor)
+  attestations: write   # actions/attest-build-provenance (real SLSA provenance)
 
 jobs:
   attest-and-gate:
@@ -29,6 +30,19 @@ jobs:
           chmod +x /usr/local/bin/opa
 
       - uses: sigstore/cosign-installer@v3
+
+      - name: Generate a real SLSA provenance attestation for the SBOM   # F7: real predicate, not just identity
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: inputs/sbom.cdx.json
+
+      - name: Verify the SLSA provenance (hard gate — fails if missing/invalid)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh attestation verify inputs/sbom.cdx.json --repo "${{ github.repository }}" \
+            --predicate-type https://slsa.dev/provenance/v1
+          echo "✓ SLSA provenance attestation verified for the SBOM"
 
       - name: Install grype
         run: curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
