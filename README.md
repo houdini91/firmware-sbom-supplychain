@@ -63,7 +63,8 @@ The gate is the "compliance framework" engine. This repo ships one worked exampl
 provenance + a custom firmware-composition policy) and a mapping showing how additional frameworks express
 as policy rules:
 
-- **SLSA** — build provenance meets L2+ (builder identity, source, signed).
+- **SLSA** — build provenance at **L1** (provenance exists + signed), with a strong signer-identity check;
+  L2 (control-plane-generated provenance) is the documented gap. See [`FRAMEWORKS.md`](./FRAMEWORKS.md).
 - **Custom firmware composition** — SBOM present ∧ signature verified ∧ reconcile clean ∧ no critical CVE ∧
   provenance bound to the trusted builder.
 - **NIST SSDF (SP 800-218)** and **BSI TR-03183** — control→rule mapping in `oss-lane/compliance-map.md`.
@@ -82,12 +83,14 @@ as policy rules:
 `attest-and-gate` job keyless-signs the SBOM **and a real SLSA provenance predicate**, verifies both, runs a
 **grype** CVE scan (`anchore/scan-action`), assembles a gate input entirely from *verified* evidence
 (signer identity extracted from the Fulcio cert, SBOM-hash ↔ signed-subject binding, reconcile verdict
-decoded from the signed payload), enforces the **OPA gate** (with a **VEX allowlist** for triaged CVEs),
+decoded from the signed payload), enforces the **OPA gate** (with a **VEX allowlist** for triaged CVEs) and
+keyless-signs its verdict as a **SLSA VSA** (Verification Summary Attestation),
 runs fixture + in-pipeline negative tests, and demonstrates cosign's **native `verify-attestation --policy`**
 over the OCI-stored SBOM. The `valint-lane` job signs + runs compliance keyless (report mode).
 
-Locally the OSS lane runs end-to-end over real OVMF data (324-component SBOM, reconcile clean 123/123 →
-ALLOW; honesty tests block tampered / wrong-builder / critical-CVE / swapped-SBOM). Reference/demo,
+Locally the OSS lane runs end-to-end over real OVMF data (310-component SBOM, reconcile clean 123/123 →
+ALLOW, emitting a signed SLSA VSA; honesty tests block tampered / wrong-builder / critical-CVE /
+swapped-SBOM). Reference/demo,
 defensive use only. Not affiliated with or endorsed by TianoCore.
 
 ## Trust model & honest limitations
