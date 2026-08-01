@@ -107,7 +107,17 @@ jobs:
           GRYPE_JSON=inputs/grype.json OUT=inputs/gate-input.json \
           bash oss-lane/assemble-gate-input.sh
           echo "--- gate input ---"; jq '{sbom,attestation,signature,provenance,reconcile:{clean:.reconcile.clean},cve:{n:(.cve.findings|length)}}' inputs/gate-input.json
-          OPA=/usr/local/bin/opa ./oss-lane/gate.sh inputs/gate-input.json
+          VSA_OUT=inputs/vsa.intoto.json OPA=/usr/local/bin/opa ./oss-lane/gate.sh inputs/gate-input.json
+          echo "--- VSA (signed gate verdict) ---"; jq '{result:.predicate.verificationResult, levels:.predicate.verifiedLevels, reports:[.predicate.verifierReports[]|{name,isSuccess,controls}]}' inputs/vsa.intoto.json
+
+      - name: Sign the gate verdict (SLSA VSA) keyless
+        run: |
+          cosign sign-blob --yes --bundle inputs/vsa.sig.bundle inputs/vsa.intoto.json
+          cosign verify-blob \
+            --certificate-identity "$BUILDER_ID" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            --bundle inputs/vsa.sig.bundle inputs/vsa.intoto.json
+          echo "✓ gate verdict signed + verified as a portable SLSA Verification Summary Attestation"
 
       - name: Fixture honesty tests
         run: OPA=/usr/local/bin/opa ./tests/run.sh

@@ -4,6 +4,9 @@
 > shape that seems to work, backed by a running reference implementation, and asks the community whether it's
 > the right shape and where it should live. Nothing here is claimed as the only way, and the honest
 > limitations are called out throughout. Feedback very welcome.
+>
+> For how this maps to existing security frameworks (SLSA L1→L3, CRA/BSI/CISA SBOM fields, TCG RIM / RATS,
+> and the normalization to in-toto/VSA vocabulary), see the companion [`FRAMEWORKS.md`](./FRAMEWORKS.md).
 
 **Terms used below:** *SBOM* software bill of materials; *CycloneDX/SPDX* SBOM formats; *coSWID / uSWID*
 Concise SWID tags and the tool that writes/embeds them (fwupd reads them on-device); *SLSA* supply-chain
