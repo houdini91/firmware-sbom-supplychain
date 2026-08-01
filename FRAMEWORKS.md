@@ -32,7 +32,7 @@ These are the atoms every table below refers to.
 
 | # | Evidence | Form | Notes / honest limits |
 |---|---|---|---|
-| ① | **CycloneDX 1.6 SBOM** | in-toto SBOM predicate | build-time, from edk2 `-Y COMPILE_INFO` data; **no per-component hashes/licenses/PURLs yet** |
+| ① | **CycloneDX 1.6 SBOM** | in-toto SBOM predicate | build-time, from edk2 `-Y COMPILE_INFO` data; per-component **SHA-256/512 hashes** on modules (PR #2); **licenses/PURLs + submodule components still pending** (Tier-2) |
 | ② | **SLSA provenance** | `slsa.dev/provenance/v1` predicate | **self-signed by the build job → SLSA L1** (not L2, see below) |
 | ③ | **Reconcile verdict** | (custom) in-toto predicate | declared SBOM vs bytes carved from the image; **module/FFS-granular**; a *committed* input in the demo |
 | ④ | **CVE + VEX** | scan report + allowlist | raw scan over coarse firmware CPEs → VEX triage required |
@@ -144,7 +144,7 @@ Field-by-field (current generator output: `type, bom-ref=GUID, name, supplier=Ti
 | Component **name** | ✅ | ✅ | ✅ | — | ✅ | `component.name` | ok |
 | Component **version** | ✅ | ✅ | ✅ | — | ◐ only when known | `component.version` | partial |
 | **Dependencies** | ✅ | ✅ | ✅ (top-lvl) | ✅ (top-lvl) | ✅ 122 edges | `dependencies` | ok (BSI wants completeness flag) |
-| Component **hash** | ✅ **SHA-512** | ✅ **value+alg** | — | — | ❌ | `component.hashes` | **miss (critical)** |
+| Component **hash** | ✅ **SHA-512** | ✅ **value+alg** | — | — | ✅ SHA-256+SHA-512 (modules; libs N/A) | `component.hashes` | **done (PR #2)** |
 | Component **license** | ✅ | ✅ | — | — | ❌ | `component.licenses` | **miss** |
 | **Unique identifiers** CPE/PURL | ◐ Additional | ✅ | ◐ | — | ❌ (only internal GUID) | `component.purl`/`.cpe` | **miss** |
 | Component **producer/creator** | ✅ | ✅ | ✅ | — | ◐ hardcoded `TianoCore` | `component.supplier` | partial/inaccurate |
@@ -152,12 +152,12 @@ Field-by-field (current generator output: `type, bom-ref=GUID, name, supplier=Ti
 | **Executable/archive/structured** | ✅ | — | — | — | ❌ (`edk2:*` instead) | `component.properties` (BSI taxonomy) | miss (BSI) |
 | Source / deployable **URI** | ◐ Additional | — | — | — | ◐ `.inf` as `type:other` | `externalReferences` (`vcs`/`distribution`) | partial |
 | SBOM **timestamp** | ✅ | ✅ | ✅ | — | ✅ | `metadata.timestamp` | ok |
-| SBOM **author** | ✅ | ✅ | ✅ | — | ◐ supplier only | `metadata.authors` | partial |
-| SBOM **tool name / version** | — | ✅ both | — | — | ◐ name only | `metadata.tools` | partial |
-| SBOM **generation context** (lifecycle phase) | — | ✅ **new** | — | — | ❌ | `metadata.lifecycles` | miss (trivial — it's `build`) |
+| SBOM **author** | ✅ | ✅ | ✅ | — | ✅ `metadata.authors` | `metadata.authors` | **done (PR #2)** |
+| SBOM **tool name / version** | — | ✅ both | — | — | ✅ name + version | `metadata.tools` | **done (PR #2)** |
+| SBOM **generation context** (lifecycle phase) | — | ✅ **new** | — | — | ✅ `[{phase: build}]` | `metadata.lifecycles` | **done (PR #2)** |
 | **Format name + version** | ✅ (CDX≥1.6) | ✅ | — | ◐ | ✅ | `bomFormat`/`specVersion` | ok |
 
-**Verdicts:** CRA (law) ✅ pass · NTIA 2021 ~mostly (weak identifiers) · **BSI v2.1.0 ❌** · **CISA 2026 ❌**.
+**Verdicts (after PR #2 Tier-1):** CRA (law) ✅ pass · NTIA 2021 ✅ · **CISA 2026 ◐** (hash/author/tool/context now met; still missing **license** + **identifiers**) · **BSI v2.1.0 ◐** (hash now met; still missing **license**, **filename**, **executable/archive/structured** props). The remaining gaps are all Tier-2.
 
 **Why the gaps converge (good news):**
 1. The now-mandatory **`component.hashes` (SHA-512) is exactly what reconcile (③) needs** to check *integrity* not just membership. So per-component digests are **triply motivated**: reconcile + BSI + CISA.
@@ -167,8 +167,8 @@ Field-by-field (current generator output: `type, bom-ref=GUID, name, supplier=Ti
 **Honest caution (don't force it):** `license` and `PURL/CPE` are clean for the **third-party submodules** (openssl, brotli … — where they also feed CVE mapping) but **not meaningful per edk2 FFS module** — there is no sensible PURL type for "an edk2 module." Fabricating one everywhere would be the trap. Emit them where real; mark N/A where not.
 
 ### Generator backlog (derived from the gaps)
-- **Tier 1** (compliance + reconcile, easy): `component.hashes` SHA-512 · `metadata.lifecycles=build` · tool version · `metadata.authors`.
-- **Tier 2** (compliance, moderate): emit **third-party submodule components** with `purl`/`cpe`/`licenses`/real `supplier` (also fixes the hardcoded-TianoCore inaccuracy + feeds CVE mapping) · BSI property taxonomy for filename/exec/archive/structured.
+- **Tier 1 — ✅ done ([edk2 PR #2]):** `component.hashes` SHA-256+SHA-512 (GenFw rebase-to-0 canonicalization, modules only) · `metadata.lifecycles=build` · tool version · `metadata.authors`.
+- **Tier 2** (compliance, moderate): emit **third-party submodule components** with `purl`/`cpe`/`licenses`/real `supplier` (also fixes the hardcoded-TianoCore inaccuracy + feeds CVE mapping — and would finally make the 13 vendored submodules *visible* in the SBOM) · BSI property taxonomy for filename/exec/archive/structured.
 - **Tier 3** (honest non-goals): per-edk2-module PURL/CPE where meaningless → document N/A, don't fabricate.
 
 ---
@@ -216,7 +216,7 @@ a framework can require evidence we don't emit yet).
 | **SLSA** | Build L3 — isolated builder | isolated-build attestation | ⭘ **gap** | *(stub)* |
 | **CRA** | Annex I §1 — SBOM exists, machine-readable, top-level deps | ① | ✅ | `bomFormat ∧ specVersion ∧ dependencies` |
 | **BSI v2.1.0** | required SBOM fields present | ① (enriched) | ◐ **fails now** | `∀ c: c.hashes ∧ c.licenses ∧ c.name ∧ c.version` |
-| **CISA 2026** | hash + license + generation context | ① (enriched) | ◐ **fails now** | `metadata.lifecycles ∧ ∀ c: c.hashes` |
+| **CISA 2026** | hash + license + generation context | ① (enriched) | ◐ hash+context ✅ (PR #2), license pending | `metadata.lifecycles ∧ ∀ c: c.hashes` |
 | **(novel)** | declared SBOM matches observed bytes | ③ | ✅ (module-granular) | `reconcile.verdict = "match"` |
 | **NIST 800-161 / general** | no known-critical exploitable CVE | ④ + OpenVEX | ✅ | `¬∃ cve: critical ∧ ¬vex_not_affected` |
 | **SSDF PS.2 / general** | artifact signed by expected identity | ⑤ | ✅ | `sig_valid ∧ signer = expected` |
