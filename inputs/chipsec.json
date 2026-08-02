@@ -1,0 +1,57 @@
+{
+  "predicateType": "https://firmware-sbom-supplychain/chipsec-posture/v1",
+  "target": "OVMF/QEMU (platform-configuration assessment)",
+  "critical_passed": true,
+  "summary": {
+    "total": 8,
+    "passed": 3,
+    "failed": 0,
+    "not_applicable": 4,
+    "warning": 1,
+    "critical_applicable": 3,
+    "critical_failed": []
+  },
+  "results": [
+    {
+      "module": "common.bios_ts",
+      "result": "NOTAPPLICABLE",
+      "critical": true
+    },
+    {
+      "module": "common.bios_wp",
+      "result": "PASSED",
+      "critical": true
+    },
+    {
+      "module": "common.secureboot.variables",
+      "result": "PASSED",
+      "critical": true
+    },
+    {
+      "module": "common.smm",
+      "result": "PASSED",
+      "critical": true
+    },
+    {
+      "module": "common.smrr",
+      "result": "NOTAPPLICABLE",
+      "critical": true
+    },
+    {
+      "module": "common.spi_desc",
+      "result": "NOTAPPLICABLE",
+      "critical": true
+    },
+    {
+      "module": "common.spi_lock",
+      "result": "NOTAPPLICABLE",
+      "critical": true
+    },
+    {
+      "module": "common.uefi.access_uefispec",
+      "result": "WARNING",
+      "critical": false
+    }
+  ],
+  "note": "Platform-configuration assessment against the OVMF/QEMU target, not physical silicon and not runtime measured boot. NOTAPPLICABLE (HW-root checks with no QEMU backing) is not a failure. Detection/recovery (SP 800-193 \u00a74.3/\u00a74.4) and a TPM quote (RATS \u00a78.1) remain out of scope."
+}
