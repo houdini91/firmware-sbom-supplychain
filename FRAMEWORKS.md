@@ -9,11 +9,11 @@
 
 ## Posture in three tiers
 
-- **Enforced today** — the deploy pipeline **hard-blocks the release** on **eleven OPA verifier reports** (SBOM
+- **Enforced today** — the deploy pipeline **hard-blocks the release** on **twelve OPA verifier reports** (SBOM
   present · attestation signature · SBOM↔subject binding · provenance identity · **SLSA L2 provenance** ·
   reconcile · CVE/VEX · **CHIPSEC platform posture** · **reconcile membership** (SI-7/CM-8(3)) · **component
   integrity** (SI-7(1)) · **VEX adjudication** (RV.1.1, high+critical) · **third-party identity** (CISA
-  License/PURL, S2C2F SCA-2)). The count is **twelve**; the SLSA-L2 one is additionally backed by the
+  License/PURL, S2C2F SCA-2)). The SLSA-L2 one is additionally backed by the
   `gh attestation verify` CI hard-gate. These are the controls we can defend as *actually enforced*, not merely
   mapped. The remaining planned rules are tracked in [`POLICY-EXPANSION.md`](./POLICY-EXPANSION.md).
 - **Satisfiable from evidence we already emit** — many named controls across SLSA, NIST SSDF/800-53/800-161,
@@ -63,7 +63,7 @@ not asserted.
 | **E9** | **OpenSSF Scorecard** | Scorecard SARIF (keyless-signed) | repo security-posture score | `scorecard-analysis` workflow — push + weekly; Security-tab uploaded, published to the OpenSSF API (badge), keyless-signed. Posture evidence (R5) | — (soft evidence, deliberately not a hard gate) |
 | **E10** | **CHIPSEC posture** | in-toto predicate | platform-firmware protections | `chipsec-lane` — CHIPSEC modules vs the OVMF/QEMU target → `critical_passed` (applicable critical modules PASS; `NOTAPPLICABLE` HW-root checks excluded). Config assessment, not runtime measured boot (R3) | `chipsec-posture` *(gate)* |
 
-> **The trust anchor:** the ten gate reports are `sbom-present` (E1), `attestation-signature` (E5),
+> **The trust anchor:** the twelve gate reports are `sbom-present` (E1), `attestation-signature` (E5),
 > `sbom-binding` (E1↔E5 digest), `provenance-identity` (E2), `slsa-provenance` (E2, backed by the
 > `gh attestation verify` CI hard-gate), `reconcile` (E3), `cve-triage` (E4), `chipsec-posture` (E10),
 > `reconcile-membership` (E3, SI-7/CM-8(3)), `component-integrity` (E1, SI-7(1)), `vex-adjudicated` (E4, RV.1.1 —
