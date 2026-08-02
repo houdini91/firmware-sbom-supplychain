@@ -84,6 +84,19 @@ jobs:
       - name: Collect scan results
         run: cp "${{ steps.scan.outputs.json }}" inputs/grype.json
 
+      # Build-tools SBOM: inventory the CI toolchain (SHA-pinned actions + tool versions) and keyless-sign it,
+      # so the *build* supply chain is signed evidence too — not just the firmware product SBOM. Produced +
+      # verified BEFORE the gate so `build-tools-signed` (SSDF PO.3.2 / S2C2F REB-3) can consume it as a fact.
+      - name: Build-tools SBOM (inventory + keyless-sign the CI toolchain)
+        run: |
+          ./oss-lane/build-tools-sbom.sh inputs/build-tools.cdx.json
+          cosign sign-blob --yes --bundle inputs/build-tools.sig.bundle inputs/build-tools.cdx.json
+          cosign verify-blob \
+            --certificate-identity "$BUILDER_ID" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            --bundle inputs/build-tools.sig.bundle inputs/build-tools.cdx.json
+          echo "✓ CI toolchain inventoried ($(jq '.components|length' inputs/build-tools.cdx.json) components) + keyless-signed"
+
       - name: Assemble gate input from verified evidence, then gate
         run: |
           SBOM=inputs/sbom.cdx.json \
@@ -92,6 +105,7 @@ jobs:
           BUILDER_ID="$BUILDER_ID" SOURCE_REPO="$SOURCE_REPO" \
           SLSA_VERIFIED=true \
           CHIPSEC_JSON=inputs/chipsec.json \
+          BUILD_TOOLS_JSON=inputs/build-tools.cdx.json BUILD_TOOLS_SIG=true \
           GRYPE_JSON=inputs/grype.json OUT=inputs/gate-input.json \
           bash oss-lane/assemble-gate-input.sh
           echo "--- gate input ---"; jq '{sbom,attestation,signature,provenance,reconcile:{clean:.reconcile.clean},cve:{n:(.cve.findings|length)}}' inputs/gate-input.json
@@ -128,18 +142,6 @@ jobs:
             --type "$PRED_TYPE" \
             --policy oss-lane/policy/cosign-reconcile.rego "$REF"
           echo "✓ cosign-native policy verified the signed reconcile predicate over the OCI artifact"
-
-      # Build-tools SBOM: inventory the CI toolchain (SHA-pinned actions + tool versions) and keyless-sign it,
-      # so the *build* supply chain is signed evidence too — not just the firmware product SBOM.
-      - name: Build-tools SBOM (inventory + keyless-sign the CI toolchain)
-        run: |
-          ./oss-lane/build-tools-sbom.sh inputs/build-tools.cdx.json
-          cosign sign-blob --yes --bundle inputs/build-tools.sig.bundle inputs/build-tools.cdx.json
-          cosign verify-blob \
-            --certificate-identity "$BUILDER_ID" \
-            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
-            --bundle inputs/build-tools.sig.bundle inputs/build-tools.cdx.json
-          echo "✓ CI toolchain inventoried ($(jq '.components|length' inputs/build-tools.cdx.json) components) + keyless-signed"
 
   # Second lane: the same SBOM, signed + compliance-verified with Valint, keyless via the GitHub
   # workload identity (attest-default: sigstore-github) — just like cosign above.

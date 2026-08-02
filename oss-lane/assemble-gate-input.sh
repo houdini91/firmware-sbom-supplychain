@@ -28,6 +28,26 @@ if [ -n "$CHIPSEC_JSON" ] && [ -f "$CHIPSEC_JSON" ]; then
 else
   CHIPSEC_PASSED="${CHIPSEC_PASSED:-false}"
 fi
+# Build-tools SBOM posture (E7 — SSDF PO.3.2 / S2C2F REB-3): when BUILD_TOOLS_JSON is set,
+# derive present (file exists + components>0), unpinned (components lacking BOTH a version and
+# a hash — a "latest" version counts as unpinned), and all_pinned (unpinned empty).
+# signature_verified is established in CI by the cosign verify-blob of the build-tools bundle,
+# which sets BUILD_TOOLS_SIG=true here. The offline demo cannot run it; DEV_ASSUME_BUILDTOOLS=1
+# opts into an ASSUMED signature (warned) — EXACTLY mirroring the SLSA_VERIFIED/DEV_ASSUME_SLSA pattern.
+BUILD_TOOLS_JSON="${BUILD_TOOLS_JSON:-}"
+BUILD_TOOLS_SIG="${BUILD_TOOLS_SIG:-false}"
+if [ "$BUILD_TOOLS_SIG" != "true" ] && [ "${DEV_ASSUME_BUILDTOOLS:-0}" = "1" ]; then
+  BUILD_TOOLS_SIG=true; BUILDTOOLS_ASSUMED=1
+fi
+if [ -n "$BUILD_TOOLS_JSON" ] && [ -f "$BUILD_TOOLS_JSON" ]; then
+  BUILDTOOLS="$(jq -c '
+    {present: ((.components|length) > 0),
+     unpinned: [.components[] | select(((.version|not) or (.version=="latest")) and (.hashes|not)) | .name]}
+    | . + {all_pinned: ((.unpinned|length) == 0)}' "$BUILD_TOOLS_JSON")"
+else
+  BUILDTOOLS='{"present":false,"unpinned":[],"all_pinned":false}'
+fi
+BUILDTOOLS="$(printf '%s' "$BUILDTOOLS" | jq -c --arg sig "$BUILD_TOOLS_SIG" '. + {signature_verified: ($sig=="true")}')"
 
 if [ "$SIG" = "true" ]; then
   STMT="$(jq -r '.base64Signature' "$BUNDLE" | base64 -d | jq -r '.payload' | base64 -d)"
@@ -81,14 +101,16 @@ jq -n --arg sig "$SIG" --arg sh "$SBOM_HASH" --arg sd "$SUBJECT_DIGEST" \
       --argjson clean "$CLEAN" --argjson pred "$PRED" --argjson cve "$CVE" \
       --arg slsa "$SLSA_VERIFIED" --arg chipsec "$CHIPSEC_PASSED" \
       --argjson integ "$INTEG" --argjson declared "$DECLARED" --argjson matched "$MATCHED" \
-      --argjson missing_n "$MISSING_N" --argjson undeclared "$UNDECLARED" --argjson thirdparty "$THIRDPARTY" '{
+      --argjson missing_n "$MISSING_N" --argjson undeclared "$UNDECLARED" --argjson thirdparty "$THIRDPARTY" \
+      --argjson buildtools "$BUILDTOOLS" '{
   sbom:        {present:$present, hash:("sha256:"+$sh), integrity:$integ, thirdparty:$thirdparty},
   attestation: {subject_digest:(if $sd=="" then "" else "sha256:"+$sd end)},
   signature:   {verified:($sig=="true")},
   provenance:  {builder_id:$b, source_repo:$r, slsa_verified:($slsa=="true")},
   reconcile:   {clean:$clean, missing:($pred.missing // []), added:($pred.added // []), modified:($pred.modified // []), declared:$declared, matched:$matched, missing_count:$missing_n, undeclared_observed:$undeclared},
   cve:         {findings:$cve},
-  chipsec:     {critical_passed:($chipsec=="true")}
+  chipsec:     {critical_passed:($chipsec=="true")},
+  build_tools: {present:$buildtools.present, signature_verified:$buildtools.signature_verified, all_pinned:$buildtools.all_pinned, unpinned:$buildtools.unpinned}
 }' > "$OUT"
 
 echo "   builder_id=$EFFECTIVE_BUILDER"
@@ -96,3 +118,5 @@ echo "   builder_id=$EFFECTIVE_BUILDER"
   echo "   ⚠ DEV_ASSUME_IDENTITY=1 — builder identity ASSUMED, not cryptographically verified (CI keyless verifies it for real)"
 [ "${SLSA_ASSUMED:-0}" != "1" ] || \
   echo "   ⚠ DEV_ASSUME_SLSA=1 — SLSA L2 provenance ASSUMED for local demo, not platform-verified (CI verifies it via gh attestation verify)"
+[ "${BUILDTOOLS_ASSUMED:-0}" != "1" ] || \
+  echo "   ⚠ DEV_ASSUME_BUILDTOOLS=1 — build-tools signature ASSUMED for local demo, not verified (CI verifies it via cosign verify-blob of the build-tools bundle)"

@@ -25,5 +25,11 @@
   },
   "cve": {
     "findings": []
+  },
+  "build_tools": {
+    "present": true,
+    "signature_verified": true,
+    "all_pinned": true,
+    "unpinned": []
   }
 }

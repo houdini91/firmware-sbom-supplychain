@@ -96,6 +96,21 @@ _thirdparty_ok if {
 	count(input.sbom.thirdparty.missing) == 0
 }
 
+# SSDF PO.3.2, S2C2F REB-3: the build-tools SBOM (E7 — the CI actions/tools that
+# produce & verify the firmware SBOM) is present, its signature verified, and every
+# component SHA/version-pinned (none unpinned/"latest"). The assembler surfaces the
+# pinning check as `build_tools.unpinned` (components lacking BOTH a version and a hash).
+# HONESTY: pinned tool digests prove WHICH tools ran (toolchain integrity + pinning —
+# PO.3.2 / REB-3). They do NOT prove build isolation or per-binary hardening flags, so
+# this maps to PO.3.2 + REB-3 ONLY — not SLSA L3 and not PW.6.1 (hardening records are
+# roadmap R7, not derivable from a pinned tool inventory).
+default _build_tools_ok := false
+_build_tools_ok if {
+	input.build_tools.present
+	input.build_tools.signature_verified
+	count(input.build_tools.unpinned) == 0
+}
+
 # ---------------------------------------------------------------------------
 # Normalized verifier reports — one per fact, tagged with the controls it
 # satisfies. The gate ANDs isSuccess across all of them.
@@ -159,6 +174,12 @@ verifier_reports := [
 		["CISA-2026-license", "CISA-2026-software-id", "S2C2F-SCA-2", "SSDF-PW.4.4"],
 	),
 	_report(
+		"build-tools-signed", _build_tools_ok,
+		"build-tools SBOM present, signature verified, and every component SHA/version-pinned",
+		_build_tools_msg,
+		["SSDF-PO.3.2", "S2C2F-REB-3"],
+	),
+	_report(
 		"reconcile", _reconcile_clean,
 		"declared SBOM matches observed firmware bytes",
 		"reconcile failed: SBOM does not match firmware bytes",
@@ -199,6 +220,11 @@ _vex_msg := sprintf("%d high/critical CVE(s) lack a non-empty VEX justification:
 _thirdparty_msg := sprintf(
 	"third-party identity incomplete: %d component(s) lack purl/license %v (total third-party=%v)",
 	[count(object.get(input, ["sbom", "thirdparty", "missing"], [])), object.get(input, ["sbom", "thirdparty", "missing"], []), object.get(input, ["sbom", "thirdparty", "total"], 0)],
+)
+
+_build_tools_msg := sprintf(
+	"build-tools SBOM not verified: present=%v signature_verified=%v unpinned=%v",
+	[object.get(input, ["build_tools", "present"], false), object.get(input, ["build_tools", "signature_verified"], false), object.get(input, ["build_tools", "unpinned"], [])],
 )
 
 # ---------------------------------------------------------------------------
@@ -252,6 +278,8 @@ deny contains _integrity_msg if not _integrity_coverage
 deny contains _vex_msg if not _vex_adjudicated
 
 deny contains _thirdparty_msg if not _thirdparty_ok
+
+deny contains _build_tools_msg if not _build_tools_ok
 
 deny contains "reconcile failed: SBOM does not match firmware bytes" if not input.reconcile.clean
 
