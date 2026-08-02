@@ -74,6 +74,18 @@ _integrity_coverage if {
 	count(_integrity_unresolved) == 0
 }
 
+# RV.1.1/RV.1.2, S2C2F SCA-1: every HIGH/CRITICAL finding carries a non-empty VEX
+# justification. Extends cve-triage (CRITICAL + allowlist-membership-only) to HIGH
+# and requires the justification string, not just that the CVE id is a key.
+_unadjudicated contains c if {
+	some c in input.cve.findings
+	upper(c.severity) in {"CRITICAL", "HIGH"}
+	object.get(data.cve_allowlist, c.id, "") == ""
+}
+
+default _vex_adjudicated := false
+_vex_adjudicated if count(_unadjudicated) == 0
+
 # ---------------------------------------------------------------------------
 # Normalized verifier reports — one per fact, tagged with the controls it
 # satisfies. The gate ANDs isSuccess across all of them.
@@ -125,6 +137,12 @@ verifier_reports := [
 		["SI-7(1)", "CISA-2026-hash"],
 	),
 	_report(
+		"vex-adjudicated", _vex_adjudicated,
+		"every high/critical CVE carries a non-empty VEX justification",
+		_vex_msg,
+		["SSDF-RV.1.1", "SSDF-RV.1.2", "S2C2F-SCA-1"],
+	),
+	_report(
 		"reconcile", _reconcile_clean,
 		"declared SBOM matches observed firmware bytes",
 		"reconcile failed: SBOM does not match firmware bytes",
@@ -159,6 +177,8 @@ _reconcile_membership_msg := sprintf(
 )
 
 _integrity_msg := sprintf("%d module(s) lack a hash and are not in data.hash_exempt: %v", [count(_integrity_unresolved), _integrity_unresolved])
+
+_vex_msg := sprintf("%d high/critical CVE(s) lack a non-empty VEX justification: %v", [count(_unadjudicated), {c.id | some c in _unadjudicated}])
 
 # ---------------------------------------------------------------------------
 # Decision: allow iff every verifier report succeeded.
@@ -207,6 +227,8 @@ deny contains "platform protections not verified (CHIPSEC critical module failed
 deny contains _reconcile_membership_msg if not _reconcile_membership
 
 deny contains _integrity_msg if not _integrity_coverage
+
+deny contains _vex_msg if not _vex_adjudicated
 
 deny contains "reconcile failed: SBOM does not match firmware bytes" if not input.reconcile.clean
 
