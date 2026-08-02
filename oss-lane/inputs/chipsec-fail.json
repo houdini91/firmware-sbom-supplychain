@@ -9,5 +9,5 @@
   },
   "reconcile": { "clean": true, "missing": [], "added": [], "modified": [] },
   "cve": { "findings": [] },
-  "chipsec": { "critical_passed": true }
+  "chipsec": { "critical_passed": false }
 }

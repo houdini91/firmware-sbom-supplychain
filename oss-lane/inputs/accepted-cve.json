@@ -10,5 +10,6 @@
   "reconcile": { "clean": true, "missing": [], "added": [], "modified": [] },
   "cve": { "findings": [
     { "id": "CVE-2021-38578", "component": "edk2", "severity": "CRITICAL" }
-  ] }
+  ] },
+  "chipsec": { "critical_passed": true }
 }

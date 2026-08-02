@@ -9,10 +9,11 @@
 
 ## Posture in three tiers
 
-- **Enforced today** — the deploy pipeline **hard-blocks the release** on **seven OPA verifier reports** (SBOM
+- **Enforced today** — the deploy pipeline **hard-blocks the release** on **eight OPA verifier reports** (SBOM
   present · attestation signature · SBOM↔subject binding · provenance identity · **SLSA L2 provenance** ·
-  reconcile · CVE/VEX), the SLSA-L2 one backed by the `gh attestation verify` CI hard-gate. These are the
-  controls we can defend as *actually enforced*, not merely mapped.
+  reconcile · CVE/VEX · **CHIPSEC platform posture**), the SLSA-L2 one backed by the `gh attestation verify` CI
+  hard-gate. These are the controls we can defend as *actually enforced*, not merely mapped. The next tranche of
+  rules (turning more evidence into enforced conformance) is planned in [`POLICY-EXPANSION.md`](./POLICY-EXPANSION.md).
 - **Satisfiable from evidence we already emit** — many named controls across SLSA, NIST SSDF/800-53/800-161,
   OpenSSF S2C2F, the CISA/NTIA SBOM elements, EU CRA, BSI TR-03183-2, and NIST 800-190 are met or partly met by
   the seven evidence artifacts — but *not wired into a gate*. Marked `EVIDENCE` / `PARTIAL`.
@@ -35,7 +36,7 @@ framework  →  §control (exact ref)  →  evidence that proves it  →  status
 
 | Status | Meaning |
 |---|---|
-| **`ENFORCED`** | The release is **hard-blocked if this fails** — by one of the seven OPA `verifier_reports` in [`firmware.rego`](./oss-lane/policy/firmware.rego) *(gate)*; the `slsa-provenance` report is additionally backed by a CI hard-gate step *(CI)*, `gh attestation verify`. The mechanism is named per row. |
+| **`ENFORCED`** | The release is **hard-blocked if this fails** — by one of the eight OPA `verifier_reports` in [`firmware.rego`](./oss-lane/policy/firmware.rego) *(gate)*; the `slsa-provenance` report is additionally backed by a CI hard-gate step *(CI)*, `gh attestation verify`. The mechanism is named per row. |
 | **`EVIDENCE`** | We produce the artifact/field, but no gate rule checks it yet — the control is *satisfiable from what we emit*, just not *enforced*. |
 | **`PARTIAL`** | The evidence meets the control only in part; the named shortfall is in the note. |
 | **`PLANNED`** | A concrete, near-term artifact change (mostly SBOM enrichment + byte-integrity reconcile) would satisfy it. |
@@ -57,12 +58,13 @@ not asserted.
 | **E6** | **VSA** | `slsa.dev/verification_summary/v1` | the gate's verdict, as portable signed evidence | `verifier.id`/`policy.uri`/`verificationResult:PASSED`/`verifiedLevels:[L2]` populated; `resourceUri` generic; no `dependencyLevels` | output artifact |
 | **E7** | **Build-tools SBOM** | CycloneDX + SHA-pins | the *build* toolchain is inventoried + signed | CI actions/tools, SHA-pinned + keyless-signed; **direct only, not transitive** | — (not gated) |
 | **E8** | **SAST report** | CodeQL SARIF (keyless-signed) | static code-analysis findings | `codeql-sast` workflow — `python` (this repo's tooling, **0 findings**) on push + scoped edk2 `c-cpp` (NetworkPkg) on dispatch; **green in CI**, Security-tab uploaded, keyless-signed, and **severity-gated** (fails ≥7.0) | `codeql-sast` severity gate *(CI)* |
-| **E9** | **OpenSSF Scorecard** | Scorecard SARIF (keyless-signed) | repo security-posture score | `scorecard-analysis` workflow — push + weekly; Security-tab uploaded, published to the OpenSSF API (badge), keyless-signed. Posture evidence (R5) | — (evidence, not gated) |
+| **E9** | **OpenSSF Scorecard** | Scorecard SARIF (keyless-signed) | repo security-posture score | `scorecard-analysis` workflow — push + weekly; Security-tab uploaded, published to the OpenSSF API (badge), keyless-signed. Posture evidence (R5) | — (soft evidence, deliberately not a hard gate) |
+| **E10** | **CHIPSEC posture** | in-toto predicate | platform-firmware protections | `chipsec-lane` — CHIPSEC modules vs the OVMF/QEMU target → `critical_passed` (applicable critical modules PASS; `NOTAPPLICABLE` HW-root checks excluded). Config assessment, not runtime measured boot (R3) | `chipsec-posture` *(gate)* |
 
-> **The trust anchor:** the seven gate reports are `sbom-present` (E1), `attestation-signature` (E5),
+> **The trust anchor:** the eight gate reports are `sbom-present` (E1), `attestation-signature` (E5),
 > `sbom-binding` (E1↔E5 digest), `provenance-identity` (E2), `slsa-provenance` (E2, backed by the
-> `gh attestation verify` CI hard-gate), `reconcile` (E3), `cve-triage` (E4) — the gate ANDs them and emits E6.
-> E1 and E5 each feed two reports.
+> `gh attestation verify` CI hard-gate), `reconcile` (E3), `cve-triage` (E4), `chipsec-posture` (E10) — the gate
+> ANDs them and emits E6. E1 and E5 each feed two reports.
 
 ## Cross-framework overlap — one evidence, many controls
 
@@ -308,11 +310,12 @@ enforcement it asks for is still futuristic.)*
 
 | Ref | Ask | New evidence required | Status | Note |
 |---|---|---|:--:|---|
-| **§4.2.1** Protection and Update of Mutable Code | only authenticated firmware updates apply | on-device Root of Trust for Update (RTU) | **PARTIAL** *(pre-deployment)* | E5+E2 prove the *update image* is authentic before deployment; the on-device RTU that *refuses* unsigned images is futuristic. |
+| **§4.2.1** Protection and Update of Mutable Code | only authenticated firmware updates apply | E5, E2, **E10** (CHIPSEC `bios_wp`/`bios_ts`) | **ENFORCED ◐** *(gate: chipsec-posture)* | CHIPSEC BIOS write-protection config checks are gate-enforced (config-level, OVMF target) via `chipsec-posture`; E5+E2 prove the update image is authentic. The on-device RTU + runtime enforcement remains futuristic. |
 | **§4.3.1** Detection of Corrupted Code | detect corruption vs an authorized reference | measured-boot measurement + golden RIM, on-device | **FUTURISTIC ◐ analog** | Runtime twin of E3 reconcile — E3 compares *build outputs to SBOM*, not *running firmware to a reference*. |
 | **§4.3.2** Detection of Corrupted Critical Data | detect critical-data corruption vs reference | as above | **FUTURISTIC** | — |
 | **§4.4.1 / §4.4.2** Recovery of Mutable Code / of Critical Data | auto-recover to a known-good state | golden recovery image + on-device RTRec | **FUTURISTIC** | We can *supply* a signed known-good image (E2/E5); the recovery mechanism is runtime-only. |
-| **§4.2.2 / §4.2.3 / §4.2.4** Protection of immutable code / runtime / critical data | hardware-enforced integrity | hardware protection mechanism | **FUTURISTIC** | No E1–E7 touch. |
+| **§4.2.2** Protection of immutable code | write-protected/immutable regions | **E10** (CHIPSEC `spi_desc`/`spi_lock`) | **ENFORCED ◐** *(gate: chipsec-posture)* | CHIPSEC SPI descriptor/lock config checks touch §4.2.2 at config level on the OVMF target; hardware-enforced runtime integrity remains futuristic. |
+| **§4.2.3 / §4.2.4** Runtime protection of code / critical data | hardware-enforced runtime integrity | hardware mechanism + runtime evidence | **FUTURISTIC** | CHIPSEC `smm`/`smrr` config checks are indicative, but true runtime integrity needs on-device measurement. |
 
 ### IETF RATS — RFC 9334 (roles §4.1; conceptual messages §8.x; topological models §5.x)
 
