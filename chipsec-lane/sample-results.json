@@ -1,0 +1,11 @@
+{
+  "_comment": "Realistic CHIPSEC result shape for the OVMF/QEMU target (chipsec_main --json). Config-level checks PASS; hardware-root checks with no QEMU backing are NOTAPPLICABLE. Replace with a real run via chipsec-lane/README.md.",
+  "chipsec.modules.common.secureboot.variables": { "result": "PASSED" },
+  "chipsec.modules.common.bios_wp": { "result": "PASSED" },
+  "chipsec.modules.common.smm": { "result": "PASSED" },
+  "chipsec.modules.common.bios_ts": { "result": "NOTAPPLICABLE" },
+  "chipsec.modules.common.spi_desc": { "result": "NOTAPPLICABLE" },
+  "chipsec.modules.common.spi_lock": { "result": "NOTAPPLICABLE" },
+  "chipsec.modules.common.smrr": { "result": "NOTAPPLICABLE" },
+  "chipsec.modules.common.uefi.access_uefispec": { "result": "WARNING" }
+}
