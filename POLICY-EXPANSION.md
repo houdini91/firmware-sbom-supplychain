@@ -22,7 +22,7 @@ rubber-stamp; drop the clause and the rule is theater.
 | **`vex-adjudicated`** | RV.1.1, RV.2.2, S2C2F SCA-1 | E4+VEX+CSAF | every high/critical finding has a **non-empty justification** | require the **justification string** — an unjustified/absent one fails; extends gating to HIGH | **implemented** |
 | **`thirdparty-identifiers`** | PW.4.4, CISA License/ID, S2C2F SCA-2 | E1 | every **third-party** component has purl+license | edk2 FFS **excluded by construction** (the `edk2:vendored` marker, not a loosened threshold); `thirdparty.total≥1` (non-vacuous) | **implemented** |
 | **`slsa-level-floor`** | SR-4, SR-4(3) | E2 | `slsa_verified ∧ slsa_level≥2 ∧ source_repo==expected` | floor **`≥2`, never L3** — E2 is L2 (hosted), not hermetic/isolated | planned (tighten `slsa-provenance`) |
-| **`build-tools-signed`** | SSDF PO.3.2, S2C2F REB-3 | E7 | `sbom_present ∧ sig_verified ∧ pinning=="sha" ∧ direct_only` | map to **PO.3.x, NOT PW.6.1** — this proves *which* tools, not hardening flags | planned |
+| **`build-tools-signed`** | SSDF PO.3.2, S2C2F REB-3 | E7 | `build_tools.present ∧ signature_verified ∧ count(unpinned)==0` (direct only) | map to **PO.3.x, NOT PW.6.1** — this proves *which* tools, not hardening flags | **implemented** |
 | **`evidence-chain-bound`** | SLSA subject binding | E1/E2/E5/E6 | all subject digests equal one artifact digest | binds SBOM↔attestation↔provenance↔VSA↔signature into one chain | planned (extend `sbom-binding`) |
 
 ## Rules we deliberately do NOT write (refusing conformance theater)

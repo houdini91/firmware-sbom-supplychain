@@ -9,11 +9,11 @@
 
 ## Posture in three tiers
 
-- **Enforced today** — the deploy pipeline **hard-blocks the release** on **twelve OPA verifier reports** (SBOM
+- **Enforced today** — the deploy pipeline **hard-blocks the release** on **thirteen OPA verifier reports** (SBOM
   present · attestation signature · SBOM↔subject binding · provenance identity · **SLSA L2 provenance** ·
   reconcile · CVE/VEX · **CHIPSEC platform posture** · **reconcile membership** (SI-7/CM-8(3)) · **component
   integrity** (SI-7(1)) · **VEX adjudication** (RV.1.1, high+critical) · **third-party identity** (CISA
-  License/PURL, S2C2F SCA-2)). The SLSA-L2 one is additionally backed by the
+  License/PURL, S2C2F SCA-2) · **build-tools signed** (SSDF PO.3.2 / S2C2F REB-3)). The SLSA-L2 one is additionally backed by the
   `gh attestation verify` CI hard-gate. These are the controls we can defend as *actually enforced*, not merely
   mapped. The remaining planned rules are tracked in [`POLICY-EXPANSION.md`](./POLICY-EXPANSION.md).
 - **Satisfiable from evidence we already emit** — many named controls across SLSA, NIST SSDF/800-53/800-161,
@@ -38,7 +38,7 @@ framework  →  §control (exact ref)  →  evidence that proves it  →  status
 
 | Status | Meaning |
 |---|---|
-| **`ENFORCED`** | The release is **hard-blocked if this fails** — by one of the twelve OPA `verifier_reports` in [`firmware.rego`](./oss-lane/policy/firmware.rego) *(gate)*; the `slsa-provenance` report is additionally backed by a CI hard-gate step *(CI)*, `gh attestation verify`. The mechanism is named per row. |
+| **`ENFORCED`** | The release is **hard-blocked if this fails** — by one of the thirteen OPA `verifier_reports` in [`firmware.rego`](./oss-lane/policy/firmware.rego) *(gate)*; the `slsa-provenance` report is additionally backed by a CI hard-gate step *(CI)*, `gh attestation verify`. The mechanism is named per row. |
 | **`EVIDENCE`** | We produce the artifact/field, but no gate rule checks it yet — the control is *satisfiable from what we emit*, just not *enforced*. |
 | **`PARTIAL`** | The evidence meets the control only in part; the named shortfall is in the note. |
 | **`PLANNED`** | A concrete, near-term artifact change (mostly SBOM enrichment + byte-integrity reconcile) would satisfy it. |
@@ -58,16 +58,17 @@ not asserted.
 | **E4** | **CVE + VEX** | grype JSON + OpenVEX | no un-triaged critical vulnerability ships | scan over E1 + OpenVEX triage allowlist | `cve-triage` *(gate)* |
 | **E5** | **Signature + signer identity** | cosign keyless (Fulcio/Rekor) DSSE | the signed artifact came from the expected build identity | OIDC SAN extracted from the Fulcio cert and **checked**, not asserted; **signed subject is the SBOM/attestation, not the firmware image** | `attestation-signature` + `sbom-binding` *(gate)* |
 | **E6** | **VSA** | `slsa.dev/verification_summary/v1` | the gate's verdict, as portable signed evidence | `verifier.id`/`policy.uri`/`verificationResult:PASSED`/`verifiedLevels:[L2]` populated; `resourceUri` generic; no `dependencyLevels` | output artifact |
-| **E7** | **Build-tools SBOM** | CycloneDX + SHA-pins | the *build* toolchain is inventoried + signed | CI actions/tools, SHA-pinned + keyless-signed; **direct only, not transitive** | — (not gated) |
+| **E7** | **Build-tools SBOM** | CycloneDX + SHA-pins | the *build* toolchain is inventoried + signed | CI actions/tools, SHA-pinned + keyless-signed; **direct only, not transitive** | `build-tools-signed` *(gate)* |
 | **E8** | **SAST report** | CodeQL SARIF (keyless-signed) | static code-analysis findings | `codeql-sast` workflow — `python` (this repo's tooling, **0 findings**) on push + scoped edk2 `c-cpp` (NetworkPkg) on dispatch; **green in CI**, Security-tab uploaded, keyless-signed, and **severity-gated** (fails ≥7.0) | `codeql-sast` severity gate *(CI)* |
 | **E9** | **OpenSSF Scorecard** | Scorecard SARIF (keyless-signed) | repo security-posture score | `scorecard-analysis` workflow — push + weekly; Security-tab uploaded, published to the OpenSSF API (badge), keyless-signed. Posture evidence (R5) | — (soft evidence, deliberately not a hard gate) |
 | **E10** | **CHIPSEC posture** | in-toto predicate | platform-firmware protections | `chipsec-lane` — CHIPSEC modules vs the OVMF/QEMU target → `critical_passed` (applicable critical modules PASS; `NOTAPPLICABLE` HW-root checks excluded). Config assessment, not runtime measured boot (R3) | `chipsec-posture` *(gate)* |
 
-> **The trust anchor:** the twelve gate reports are `sbom-present` (E1), `attestation-signature` (E5),
+> **The trust anchor:** the thirteen gate reports are `sbom-present` (E1), `attestation-signature` (E5),
 > `sbom-binding` (E1↔E5 digest), `provenance-identity` (E2), `slsa-provenance` (E2, backed by the
 > `gh attestation verify` CI hard-gate), `reconcile` (E3), `cve-triage` (E4), `chipsec-posture` (E10),
 > `reconcile-membership` (E3, SI-7/CM-8(3)), `component-integrity` (E1, SI-7(1)), `vex-adjudicated` (E4, RV.1.1 —
-> every high/critical CVE needs a non-empty justification), `thirdparty-identifiers` (E1, CISA License/PURL) — the gate ANDs them and emits E6. The
+> every high/critical CVE needs a non-empty justification), `thirdparty-identifiers` (E1, CISA License/PURL),
+> `build-tools-signed` (E7, SSDF PO.3.2 / S2C2F REB-3 — the build toolchain is signed + SHA/version-pinned) — the gate ANDs them and emits E6. The
 > `component-integrity` rule passes only with an explicit reviewed `data.hash_exempt` entry (ResetVector), never a
 > relaxed threshold.
 
@@ -86,7 +87,7 @@ enforced) — see the per-framework tables for the exact status of every cell.
 | **E4** CVE+VEX | — | RV.1.1, RV.2.2, PW.4.4◐ | **RA-5** | **SCA-1** | — | §II(1) vuln, §II(3)◐ | §8.1.14 (CSAF-pref) | **§4.1.1** | — |
 | **E5** Sig+ID | Prov-Authentic (L2) input | **PS.2.1** | SI-7(15)◐ | — | — | §II(7)◐, Annex VII 2(b) | §8.1.15 | §4.1.5◐ | RATS §4.1 (RP trust) |
 | **E6** VSA | VSA `verification_summary` | PO.4.2◐ | — | — | — | — | — | — | RATS §8.4 / RP-analog |
-| **E7** Build-tools SBOM | (isolation: SHA-pin) | PO.3.2◐ | CM-8 (tools) | INV-1◐ | — | — | §8.4.3 (Build SBOM) | — | — |
+| **E7** Build-tools SBOM | (isolation: SHA-pin) | **PO.3.2** | CM-8 (tools) | INV-1◐ | — | — | §8.4.3 (Build SBOM) | — | — |
 | **E8** SAST | — | **PW.7.1**, **PW.8** | **SA-11(1)** | — | — | §II(3)◐ | — | — | — |
 | **E9** Scorecard | — | PO.1◐ | — | posture◐ | — | — | — | — | — |
 
@@ -176,7 +177,7 @@ edk2 firmware build. L3 is the honest remaining gap.
 | **PS.2.1** | make software-integrity verification info available to acquirers | E5, E1 | **ENFORCED** *(gate)* | `attestation-signature`; keyless sig + extracted signer identity. |
 | **PS.3.1** | archive integrity + provenance data per release | E2, E1, E5 | **PARTIAL** | Artifacts produced/stored (E2 as attestation); a retention *policy* is the missing process half. |
 | **PS.3.2** | collect + share provenance for **all** components (e.g. an SBOM) | E1, E2 | **PARTIAL** | E1 exists but omits PURLs/licenses/**submodule components** → "all components" not yet met. |
-| **PO.3.2** | deploy/operate tools securely; verify tool integrity & provenance | E7, E2 | **PARTIAL** | E7 SHA-pins CI tools (direct only). |
+| **PO.3.2** | deploy/operate tools securely; verify tool integrity & provenance | E7, E2 | **ENFORCED** *(gate)* | `build-tools-signed` hard-gates on the E7 build-tools SBOM being present, signed, and every component SHA/version-pinned (direct only). |
 | **PO.3.3** | configure tools to emit artifacts evidencing secure practices | E2, E6, E1, E7 | **EVIDENCE** | Provenance + VSA + SBOMs are exactly these artifacts. |
 | **PO.4.2** | automate collection/enforcement of security-check results | E6, E4 | **PARTIAL** | E6 VSA is the signed gate verdict; defining the criteria (PO.4.1) is process. |
 | **PW.4.1 / PW.4.4** | acquire + continuously verify third-party components (vuln + integrity) | E4, E5, E1 | **PARTIAL** | E4/E5 cover the checks; capped by E1's missing third-party components. NIST maps PW.4.4 → SR-4(3)/SR-4(4). |

@@ -47,7 +47,13 @@ fi
 CVE="$(jq '[.matches[]? | {id: .vulnerability.id, component: .artifact.name, severity: (.vulnerability.severity|ascii_upcase)}] | unique' "$IN/grype.json")"
 echo "   findings: $(echo "$CVE"|jq length)  critical: $(echo "$CVE"|jq '[.[]|select(.severity=="CRITICAL")]|length')"
 
-echo "== 5. assemble gate input from VERIFIED evidence (shared assembler) =="
+echo "== 5. build-tools SBOM (inventory the CI toolchain, SHA-pinned) =="
+# E7: inventory the actions/tools that build & verify the SBOM so the build-tools-signed gate
+# (SSDF PO.3.2 / S2C2F REB-3) has a fact to consume. Local key-signing carries no cert identity,
+# so the signature can't be verified here: opt into DEV_ASSUME_BUILDTOOLS (loudly warned).
+"$HERE/build-tools-sbom.sh" "$IN/build-tools.cdx.json"
+
+echo "== 6. assemble gate input from VERIFIED evidence (shared assembler) =="
 # Local key-signing carries no cert identity, so builder_id can't be cryptographically verified here:
 # default to DEV_ASSUME_IDENTITY (loudly warned). CI keyless extracts a real identity instead.
 SBOM="$SBOM" BUNDLE="$IN/sbom.att.bundle" SIG="$SIG" \
@@ -57,7 +63,9 @@ SBOM="$SBOM" BUNDLE="$IN/sbom.att.bundle" SIG="$SIG" \
   DEV_ASSUME_IDENTITY="${DEV_ASSUME_IDENTITY:-1}" \
   DEV_ASSUME_SLSA="${DEV_ASSUME_SLSA:-1}" \
   CHIPSEC_JSON="${CHIPSEC_JSON:-$IN/chipsec.json}" \
+  BUILD_TOOLS_JSON="${BUILD_TOOLS_JSON:-$IN/build-tools.cdx.json}" \
+  DEV_ASSUME_BUILDTOOLS="${DEV_ASSUME_BUILDTOOLS:-1}" \
   bash "$HERE/assemble-gate-input.sh"
 
-echo "== 6. gate =="
+echo "== 7. gate =="
 "$HERE/gate.sh" "$IN/gate-input.json"
