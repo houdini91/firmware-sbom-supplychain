@@ -56,7 +56,7 @@ not asserted.
 | **E5** | **Signature + signer identity** | cosign keyless (Fulcio/Rekor) DSSE | the signed artifact came from the expected build identity | OIDC SAN extracted from the Fulcio cert and **checked**, not asserted; **signed subject is the SBOM/attestation, not the firmware image** | `attestation-signature` + `sbom-binding` *(gate)* |
 | **E6** | **VSA** | `slsa.dev/verification_summary/v1` | the gate's verdict, as portable signed evidence | `verifier.id`/`policy.uri`/`verificationResult:PASSED`/`verifiedLevels:[L2]` populated; `resourceUri` generic; no `dependencyLevels` | output artifact |
 | **E7** | **Build-tools SBOM** | CycloneDX + SHA-pins | the *build* toolchain is inventoried + signed | CI actions/tools, SHA-pinned + keyless-signed; **direct only, not transitive** | — (not gated) |
-| **E8** | **SAST report** | CodeQL SARIF | static code-analysis findings | `codeql-sast` workflow — `python` (this repo's tooling) on push + scoped edk2 `c-cpp` (NetworkPkg) on dispatch; **green in CI**, uploaded to the Security tab. First *code-analysis* evidence. Attestation + `sast` gate report = the rest of R2 | — (SARIF produced, not gated yet) |
+| **E8** | **SAST report** | CodeQL SARIF (keyless-signed) | static code-analysis findings | `codeql-sast` workflow — `python` (this repo's tooling, **0 findings**) on push + scoped edk2 `c-cpp` (NetworkPkg) on dispatch; **green in CI**, Security-tab uploaded, keyless-signed, and **severity-gated** (fails ≥7.0) | `codeql-sast` severity gate *(CI)* |
 
 > **The trust anchor:** the seven gate reports are `sbom-present` (E1), `attestation-signature` (E5),
 > `sbom-binding` (E1↔E5 digest), `provenance-identity` (E2), `slsa-provenance` (E2, backed by the
@@ -79,7 +79,7 @@ enforced) — see the per-framework tables for the exact status of every cell.
 | **E5** Sig+ID | Prov-Authentic (L2) input | **PS.2.1** | SI-7(15)◐ | — | — | §II(7)◐, Annex VII 2(b) | §8.1.15 | §4.1.5◐ | RATS §4.1 (RP trust) |
 | **E6** VSA | VSA `verification_summary` | PO.4.2◐ | — | — | — | — | — | — | RATS §8.4 / RP-analog |
 | **E7** Build-tools SBOM | (isolation: SHA-pin) | PO.3.2◐ | CM-8 (tools) | INV-1◐ | — | — | §8.4.3 (Build SBOM) | — | — |
-| **E8** SAST | — | PW.7.1, PW.8 | SA-11(1) | — | — | §II(3)◐ | — | — | — |
+| **E8** SAST | — | **PW.7.1**, **PW.8** | **SA-11(1)** | — | — | §II(3)◐ | — | — | — |
 
 **Reading it:** E1, E2 and E5 are the load-bearing artifacts — each satisfies clauses in **five-plus**
 frameworks. Note how few cells are **bold**: most mapped controls are *satisfiable but not enforced*. That gap
@@ -127,9 +127,10 @@ Ranked by **controls-advanced per unit of effort**, using the overlap matrix.
    **golden RIM** (Reference Values) unlocks the *entire* SP 800-193 §4.3 Detection, RATS §8.x, TCG RIM, and
    800-155 set at once. High effort, new evidence class — the honest long-horizon item.
 
-**Analysis/test evidence — a new category (in progress).** The `codeql-sast` workflow now produces CodeQL SARIF
-(**E8**, green in CI) — our first *code-analysis* evidence, moving SSDF PW.7/PW.8 and 800-53 SA-11(1) from `N/A`
-to `EVIDENCE`. Attesting the SARIF + a `sast` verifier report (the rest of R2) makes them `ENFORCED`. **CHIPSEC**
+**Analysis/test evidence — a new category (now enforced).** The `codeql-sast` workflow produces CodeQL SARIF
+(**E8**), keyless-signs it, and **severity-gates** it (fails on high/critical ≥7.0) — our first *code-analysis*
+evidence, moving SSDF PW.7/PW.8 and 800-53 SA-11(1) from `N/A` to **`ENFORCED (CI)`**. (It is a hard CI gate on
+the SAST workflow; making it a required status check would also block merges/deploys on it.) **CHIPSEC**
 platform-security assessment (R3) and **fuzzing** (R8) extend this same category — see
 [`EVIDENCE-ROADMAP.md`](./EVIDENCE-ROADMAP.md).
 
@@ -170,8 +171,8 @@ edk2 firmware build. L3 is the honest remaining gap.
 | **PW.4.1 / PW.4.4** | acquire + continuously verify third-party components (vuln + integrity) | E4, E5, E1 | **PARTIAL** | E4/E5 cover the checks; capped by E1's missing third-party components. NIST maps PW.4.4 → SR-4(3)/SR-4(4). |
 | **RV.1.1** | ongoing vuln discovery across components | E4 | **ENFORCED** *(gate)* | `cve-triage` (grype over the SBOM). |
 | **RV.2.2** | plan + record risk response per vuln | E4 | **EVIDENCE** | OpenVEX `not_affected/affected/fixed` is a recorded response. |
-| **PW.7.1 / PW.7.2** | code review / **static code analysis** | E8 | **EVIDENCE** | CodeQL SARIF (`codeql-sast`) — SAST evidence produced; the `sast` gate report is the rest of R2. (grype/E4 is SCA, not SAST — do not map E4 here.) |
-| **PW.8 / RV.1.2** | code-level testing to find vulns | E8 | **EVIDENCE** | Same CodeQL SARIF; dynamic/fuzz testing is roadmap R8. |
+| **PW.7.1 / PW.7.2** | code review / **static code analysis** | E8 | **ENFORCED** *(CI)* | CodeQL SARIF, keyless-signed + severity-gated in `codeql-sast` (fails ≥7.0 high/critical). (grype/E4 is SCA, not SAST — do not map E4 here.) |
+| **PW.8 / RV.1.2** | code-level testing to find vulns | E8 | **ENFORCED** *(CI)* | Same CodeQL SAST gate; dynamic/fuzz testing is roadmap R8. |
 | **RV.1.3** | vulnerability-disclosure policy | — | **N/A (process)** | No artifact; a CVD/PSIRT policy. |
 
 ### NIST SP 800-53 Rev 5 / SP 800-161r1 (C-SCRM overlay; SR/SI/CM/RA)
@@ -188,7 +189,7 @@ edk2 firmware build. L3 is the honest remaining gap.
 | **SI-7(1)** Integrity Checks | integrity checks at defined events/frequency | E1, E3 | **PARTIAL** | Hashes + reconcile provide checks; cadence undefined; E3 membership-only. |
 | **CM-8** System Component Inventory | accurate, current component inventory | E1, E7 | **PARTIAL** | E1 is the inventory but incomplete (no licenses/PURLs/submodules); E7 tools direct-only. |
 | **RA-5** Vulnerability Monitoring & Scanning | scan for vulnerabilities; remediate per risk | E4 | **ENFORCED** *(gate)* | `cve-triage`; cadence to be documented. |
-| **SA-11 / SA-11(1)** Developer Testing & Evaluation / Static Analysis | run static code analysis during development | E8 | **EVIDENCE** | CodeQL SARIF (`codeql-sast`) is exactly SA-11(1) static analysis; `sast` gate report pending (R2). |
+| **SA-11 / SA-11(1)** Developer Testing & Evaluation / Static Analysis | run static code analysis during development | E8 | **ENFORCED** *(CI)* | CodeQL (`codeql-sast`) is exactly SA-11(1); keyless-signed + severity-gated. |
 | **SR-11** Component Authenticity | anti-counterfeit **policy** + detection | — | **N/A (process)** | E5/E3 give own-build authenticity but are **not** an anti-counterfeit program — do not claim. |
 | **SR-3 / SR-5** Processes / Acquisition | documented C-SCRM processes / acquisition strategy | — | **N/A (process)** | Evidence implements pieces; the documented *process* is out of scope. |
 
@@ -338,6 +339,8 @@ enforcement it asks for is still futuristic.)*
 - **TCG PC Client RIM exact §/Table numbers are unverified** (primary PDF was gated) — read them off the spec
   before publishing anything that cites a specific RIM subsection.
 - **E3 is membership-only** today — every "not altered / byte-integrity" claim is `PARTIAL` until Gap #2 lands.
+- **SAST is enforced by a separate CI gate** (`codeql-sast` fails on high/critical ≥7.0), not by the deploy
+  gate; make it a required status check to hard-block merges/deploys on it too.
 - **The gate's per-report `.controls` tags are a representative subset**, not the exhaustive mapping — this
   document is the authoritative control map.
 
