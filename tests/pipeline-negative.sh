@@ -14,7 +14,7 @@ export SOURCE_REPO="${SOURCE_REPO:-https://github.com/houdini91/firmware-sbom-su
 [ -f "$BUNDLE" ] || { echo "SKIP: no signed bundle (run attest first)"; exit 0; }
 [ -f "$IN/grype.json" ] || echo '{"matches":[]}' > "$IN/grype.json"
 # E7 build-tools SBOM: produce it so the build-tools-signed gate has a fact to consume; local run
-# can't verify its keyless signature, so DEV_ASSUME_BUILDTOOLS=1 (as in the offline demo).
+# can't verify its keyless signature, so DEV_ASSUME_BUILDTOOLS=1 DEV_ASSUME_CHAIN=1 (as in the offline demo).
 [ -f "$IN/build-tools.cdx.json" ] || "$ROOT/oss-lane/build-tools-sbom.sh" "$IN/build-tools.cdx.json" >/dev/null 2>&1
 fail=0
 

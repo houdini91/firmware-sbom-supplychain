@@ -9,7 +9,7 @@
 
 ## Posture in three tiers
 
-- **Enforced today** — the deploy pipeline **hard-blocks the release** on **thirteen OPA verifier reports** (SBOM
+- **Enforced today** — the deploy pipeline **hard-blocks the release** on **sixteen OPA verifier reports** (SBOM
   present · attestation signature · SBOM↔subject binding · provenance identity · **SLSA L2 provenance** ·
   reconcile · CVE/VEX · **CHIPSEC platform posture** · **reconcile membership** (SI-7/CM-8(3)) · **component
   integrity** (SI-7(1)) · **VEX adjudication** (RV.1.1, high+critical) · **third-party identity** (CISA
@@ -38,7 +38,7 @@ framework  →  §control (exact ref)  →  evidence that proves it  →  status
 
 | Status | Meaning |
 |---|---|
-| **`ENFORCED`** | The release is **hard-blocked if this fails** — by one of the thirteen OPA `verifier_reports` in [`firmware.rego`](./oss-lane/policy/firmware.rego) *(gate)*; the `slsa-provenance` report is additionally backed by a CI hard-gate step *(CI)*, `gh attestation verify`. The mechanism is named per row. |
+| **`ENFORCED`** | The release is **hard-blocked if this fails** — by one of the sixteen OPA `verifier_reports` in [`firmware.rego`](./oss-lane/policy/firmware.rego) *(gate)*; the `slsa-provenance` report is additionally backed by a CI hard-gate step *(CI)*, `gh attestation verify`. The mechanism is named per row. |
 | **`EVIDENCE`** | We produce the artifact/field, but no gate rule checks it yet — the control is *satisfiable from what we emit*, just not *enforced*. |
 | **`PARTIAL`** | The evidence meets the control only in part; the named shortfall is in the note. |
 | **`PLANNED`** | A concrete, near-term artifact change (mostly SBOM enrichment + byte-integrity reconcile) would satisfy it. |
@@ -63,7 +63,7 @@ not asserted.
 | **E9** | **OpenSSF Scorecard** | Scorecard SARIF (keyless-signed) | repo security-posture score | `scorecard-analysis` workflow — push + weekly; Security-tab uploaded, published to the OpenSSF API (badge), keyless-signed. Posture evidence (R5) | — (soft evidence, deliberately not a hard gate) |
 | **E10** | **CHIPSEC posture** | in-toto predicate | platform-firmware protections | `chipsec-lane` — CHIPSEC modules vs the OVMF/QEMU target → `critical_passed` (applicable critical modules PASS; `NOTAPPLICABLE` HW-root checks excluded). Config assessment, not runtime measured boot (R3) | `chipsec-posture` *(gate)* |
 
-> **The trust anchor:** the thirteen gate reports are `sbom-present` (E1), `attestation-signature` (E5),
+> **The trust anchor:** the sixteen gate reports are `sbom-present` (E1), `attestation-signature` (E5),
 > `sbom-binding` (E1↔E5 digest), `provenance-identity` (E2), `slsa-provenance` (E2, backed by the
 > `gh attestation verify` CI hard-gate), `reconcile` (E3), `cve-triage` (E4), `chipsec-posture` (E10),
 > `reconcile-membership` (E3, SI-7/CM-8(3)), `component-integrity` (E1, SI-7(1)), `vex-adjudicated` (E4, RV.1.1 —
@@ -193,11 +193,11 @@ edk2 firmware build. L3 is the honest remaining gap.
 
 | Control | Ask | Evidence | Status | Note |
 |---|---|---|:--:|---|
-| **SR-4** Provenance | document/monitor/maintain valid provenance of components & data | E2, E1, E7 | **EVIDENCE** | E2 is the anchor; component provenance (E1) incomplete. |
+| **SR-4 / SR-4(3)** Provenance / genuine-and-not-altered | valid provenance; validate not-altered | E2, E1, E3 | **ENFORCED** *(gate)* | `slsa-level-floor` (level ≥2) + `evidence-chain-bound` (SBOM↔attestation↔provenance one digest) + `reconcile-membership`. |
 | **SR-4(3)** Validate as Genuine and Not Altered | received components are genuine + unaltered | E5, E2, E3 | **PARTIAL** | E5/E2 validate the build output; **E3 is membership-only → "not altered" at byte level unproven.** |
 | **SR-4(4)** Supply Chain Integrity — Pedigree | validate internal composition + provenance of critical products | E1, E3 | **PARTIAL** | Composition touched; no critical-component pedigree; E1 omits submodules. |
 | **SI-7** Software/Firmware/Information Integrity | detect unauthorized changes to software/firmware | E1, E3, E5, E2 | **ENFORCED** *(gate)* | `reconcile-membership` (declared==observed, no undeclared artifact) + `component-integrity` (every hashable module hashed). Byte-level integrity of each region is R4. |
-| **SI-7(15)** Code Authentication | cryptographically authenticate firmware **prior to installation** | E5, E2 | **PARTIAL** | The signature/`sbom-binding` checks are gate-enforced, but the **signed subject is the SBOM/attestation, not the firmware image** — firmware-byte authentication rides on reconcile (membership-only) and completes with Gap #2. |
+| **SI-7(15) / CM-14** Code Authentication / Signed Components | authenticate the signed component by a trusted identity | E5 | **ENFORCED** *(gate)* | `signer-identity-pinned`: signature verified **and** cert SAN in `data.trusted_signer_identities`. (Signed subject is the SBOM/attestation; firmware-byte authentication is R4. OIDC-issuer pinning is a documented enhancement.) |
 | **SI-7(1)** Integrity Checks | integrity checks over components | E1 | **ENFORCED** *(gate)* | `component-integrity`: every hashable non-lib module carries a hash, or an explicit reviewed `data.hash_exempt` entry (ResetVector — a raw blob). No relaxed threshold; goes RED otherwise. |
 | **CM-8 / CM-8(3)** Component Inventory / Unauthorized Component Detection | accurate inventory; detect unauthorized components | E1, E3, E7 | **ENFORCED ◐** *(gate)* | CM-8(3) enforced via `reconcile-membership` (`undeclared_observed==0`). CM-8 base inventory: E1 (openssl identified; edk2 FFS N/A); E7 tools direct-only. |
 | **RA-5** Vulnerability Monitoring & Scanning | scan for vulnerabilities; remediate per risk | E4 | **ENFORCED** *(gate)* | `cve-triage`; cadence to be documented. |

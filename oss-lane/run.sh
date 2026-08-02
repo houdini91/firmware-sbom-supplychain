@@ -65,6 +65,7 @@ SBOM="$SBOM" BUNDLE="$IN/sbom.att.bundle" SIG="$SIG" \
   CHIPSEC_JSON="${CHIPSEC_JSON:-$IN/chipsec.json}" \
   BUILD_TOOLS_JSON="${BUILD_TOOLS_JSON:-$IN/build-tools.cdx.json}" \
   DEV_ASSUME_BUILDTOOLS="${DEV_ASSUME_BUILDTOOLS:-1}" \
+  DEV_ASSUME_CHAIN="${DEV_ASSUME_CHAIN:-1}" \
   bash "$HERE/assemble-gate-input.sh"
 
 echo "== 7. gate =="
