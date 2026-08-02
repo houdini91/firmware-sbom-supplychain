@@ -24,11 +24,13 @@ Those metadata and hash fields line the output up with the mandatory SBOM fields
 
 ## CycloneDX vs SPDX
 
-I know the thread cares about format, so to be clear about the stance:
+I know the thread cares about format, so to be clear about the stance: **CycloneDX is the canonical emit** (ECMA-424, JSON, no dependency), and SPDX can be had two ways. I'm proposing only the first upstream for now:
 
-CycloneDX is the canonical emit here (ECMA-424, JSON, no dependency). It converts cleanly to SPDX via OpenSSF **protobom** — I've done an SPDX-2.3 conversion and the per-component hashes survive the round trip. To be explicit: **protobom is a Go tool and is NOT something I'm proposing for BaseTools** — it's just how a *consumer* converts, entirely outside the build.
+1. **Downstream conversion (what I'm proposing).** CycloneDX converts cleanly to SPDX via OpenSSF **protobom**; I've run an SPDX-2.3 conversion and the per-component hashes survive. This keeps BaseTools to a single format. To be explicit: **protobom is a Go tool and is NOT proposed for BaseTools** — it's how a *consumer* converts, entirely outside the build.
 
-If the group would rather the generator emit both formats natively, **native SPDX emission is a small, dependency-free follow-up** (SPDX is also just JSON). I'd offer that as a separate change rather than bundle it into this one.
+2. **Native `-Y SPDX` (drafted, held in reserve).** If the group would rather the generator emit SPDX directly, that's a small, dependency-free addition (SPDX is also just JSON). I've already prototyped it as a `-Y SPDX` report type — a full OvmfPkgX64 build emits a valid SPDX 2.3 document (310 packages, SHA-256/512 checksums). It's kept on a separate branch (reference: https://github.com/houdini91/edk2/pull/5) and intentionally **not** bundled into this proposal, to avoid format proliferation in one PR; I'm happy to finish and send it if native emission is preferred over downstream conversion.
+
+So: canonical CycloneDX now, SPDX by conversion by default, and native SPDX ready if you want it — your call on which fits edk2 best.
 
 ## What is *not* being proposed here
 
