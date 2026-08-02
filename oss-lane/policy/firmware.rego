@@ -111,6 +111,31 @@ _build_tools_ok if {
 	count(input.build_tools.unpinned) == 0
 }
 
+# SR-4, SR-4(3): SLSA build-level floor — provenance level >= 2. E2 is L2
+# (hosted/platform-generated), never L3 (not hermetic/isolated).
+default _slsa_level_floor := false
+_slsa_level_floor if input.provenance.slsa_level >= 2
+
+# SLSA subject binding across the chain: the SBOM, the cosign attestation, and the
+# SLSA provenance all commit to one subject digest. (The VSA is THIS gate's output
+# and cannot be in the chain — that would be circular; see POLICY-EXPANSION.md.)
+default _evidence_chain_bound := false
+_evidence_chain_bound if {
+	input.attestation.subject_digest != ""
+	input.sbom.hash == input.attestation.subject_digest
+	input.provenance.subject_digest == input.attestation.subject_digest
+}
+
+# SI-7(15) Code Authentication, CM-14 Signed Components, SR-4(1): the signed
+# artifact's cryptographic identity (the keyless cert SAN) is in the trusted set
+# AND the signature verified — ties "a signature verified" to "signed by a trusted
+# identity" in one check. (OIDC-issuer pinning is a documented enhancement.)
+default _signer_pinned := false
+_signer_pinned if {
+	input.signature.verified
+	input.signature.identity in data.trusted_signer_identities
+}
+
 # ---------------------------------------------------------------------------
 # Normalized verifier reports — one per fact, tagged with the controls it
 # satisfies. The gate ANDs isSuccess across all of them.
@@ -180,6 +205,24 @@ verifier_reports := [
 		["SSDF-PO.3.2", "S2C2F-REB-3"],
 	),
 	_report(
+		"slsa-level-floor", _slsa_level_floor,
+		"SLSA build level >= 2 (platform-generated provenance; not L3)",
+		_slsa_level_msg,
+		["SR-4", "SR-4(3)"],
+	),
+	_report(
+		"evidence-chain-bound", _evidence_chain_bound,
+		"SBOM, attestation, and SLSA provenance all bound to one subject digest",
+		"evidence chain not bound: SBOM / attestation / provenance subject digests differ",
+		["SLSA-subject-binding", "SR-4(3)"],
+	),
+	_report(
+		"signer-identity-pinned", _signer_pinned,
+		"signed by a trusted keyless identity (cert SAN in the allowlist)",
+		_signer_msg,
+		["SI-7(15)", "CM-14", "SR-4(1)"],
+	),
+	_report(
 		"reconcile", _reconcile_clean,
 		"declared SBOM matches observed firmware bytes",
 		"reconcile failed: SBOM does not match firmware bytes",
@@ -221,6 +264,10 @@ _thirdparty_msg := sprintf(
 	"third-party identity incomplete: %d component(s) lack purl/license %v (total third-party=%v)",
 	[count(object.get(input, ["sbom", "thirdparty", "missing"], [])), object.get(input, ["sbom", "thirdparty", "missing"], []), object.get(input, ["sbom", "thirdparty", "total"], 0)],
 )
+
+_slsa_level_msg := sprintf("SLSA build level %v is below the required floor of 2", [object.get(input, ["provenance", "slsa_level"], 0)])
+
+_signer_msg := sprintf("signer identity %q not in data.trusted_signer_identities (or signature unverified)", [object.get(input, ["signature", "identity"], "")])
 
 _build_tools_msg := sprintf(
 	"build-tools SBOM not verified: present=%v signature_verified=%v unpinned=%v",
@@ -278,6 +325,12 @@ deny contains _integrity_msg if not _integrity_coverage
 deny contains _vex_msg if not _vex_adjudicated
 
 deny contains _thirdparty_msg if not _thirdparty_ok
+
+deny contains _slsa_level_msg if not _slsa_level_floor
+
+deny contains "evidence chain not bound: SBOM / attestation / provenance subject digests differ" if not _evidence_chain_bound
+
+deny contains _signer_msg if not _signer_pinned
 
 deny contains _build_tools_msg if not _build_tools_ok
 

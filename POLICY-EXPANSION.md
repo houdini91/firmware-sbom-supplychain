@@ -17,13 +17,13 @@ rubber-stamp; drop the clause and the rule is theater.
 | **`chipsec-posture`** | SP 800-193 §4.2.1/§4.2.2, SP 800-147/147B | CHIPSEC | `chipsec.critical_passed` | `NOTAPPLICABLE`≠fail, but ≥1 applicable critical must PASS | **implemented** |
 | **`reconcile-membership`** | SI-7, CM-8(3) | E3 | `declared==observed==matched ∧ undeclared_observed==0 ∧ missing==0` | `undeclared_observed==0` (real unauthorized-component detector) | **implemented** |
 | **`component-integrity`** | SI-7(1), CISA Hash | E1 | every hashable non-lib module has SHA-256/512 | **no "≥122" relaxation** — the 1 gap (ResetVector) needs a hash or a reviewed `data.hash_exempt[]` entry | **implemented** (verified RED without the exemption) |
-| **`signer-identity-pinned`** | SI-7(15), CM-14, SR-4(1) | E5, E2 | `sig.verified ∧ SAN==expected ∧ issuer==expected ∧ builder∈approved` | pin **issuer + SAN**, not just "a signature verified" | planned |
+| **`signer-identity-pinned`** | SI-7(15), CM-14, SR-4(1) | E5 | `sig.verified ∧ SAN ∈ trusted_signer_identities` | pin the cert SAN to a trusted set; OIDC-issuer pinning is the documented enhancement | **implemented** |
 | **`sast-gate`** | SA-11(1), PW.7.2 | E8 | `sast.sig_verified ∧ sast.commit==provenance.commit ∧ critical==0 ∧ high≤thr` | **`sast.commit == build commit`** — else an old passing scan satisfies it | planned |
 | **`vex-adjudicated`** | RV.1.1, RV.2.2, S2C2F SCA-1 | E4+VEX+CSAF | every high/critical finding has a **non-empty justification** | require the **justification string** — an unjustified/absent one fails; extends gating to HIGH | **implemented** |
 | **`thirdparty-identifiers`** | PW.4.4, CISA License/ID, S2C2F SCA-2 | E1 | every **third-party** component has purl+license | edk2 FFS **excluded by construction** (the `edk2:vendored` marker, not a loosened threshold); `thirdparty.total≥1` (non-vacuous) | **implemented** |
-| **`slsa-level-floor`** | SR-4, SR-4(3) | E2 | `slsa_verified ∧ slsa_level≥2 ∧ source_repo==expected` | floor **`≥2`, never L3** — E2 is L2 (hosted), not hermetic/isolated | planned (tighten `slsa-provenance`) |
+| **`slsa-level-floor`** | SR-4, SR-4(3) | E2 | `slsa_level ≥ 2` | floor **`≥2`, never L3** — E2 is L2 (hosted), not hermetic/isolated | **implemented** |
 | **`build-tools-signed`** | SSDF PO.3.2, S2C2F REB-3 | E7 | `build_tools.present ∧ signature_verified ∧ count(unpinned)==0` (direct only) | map to **PO.3.x, NOT PW.6.1** — this proves *which* tools, not hardening flags | **implemented** |
-| **`evidence-chain-bound`** | SLSA subject binding | E1/E2/E5/E6 | all subject digests equal one artifact digest | binds SBOM↔attestation↔provenance↔VSA↔signature into one chain | planned (extend `sbom-binding`) |
+| **`evidence-chain-bound`** | SLSA subject binding | E1/E2/E5 | SBOM↔attestation↔provenance one digest | the **VSA is excluded** (it is the gate's own output — circular) | **implemented** |
 
 ## Rules we deliberately do NOT write (refusing conformance theater)
 

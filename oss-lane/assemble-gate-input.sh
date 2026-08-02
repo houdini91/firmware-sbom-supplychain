@@ -21,6 +21,9 @@ SLSA_VERIFIED="${SLSA_VERIFIED:-false}"
 if [ "$SLSA_VERIFIED" != "true" ] && [ "${DEV_ASSUME_SLSA:-0}" = "1" ]; then
   SLSA_VERIFIED=true; SLSA_ASSUMED=1
 fi
+# SR-4/SR-4(3): SLSA build-level floor. E2 is L2 (hosted, platform-generated),
+# NOT hermetic/isolated (L3) — so the level is 2 when verified, 0 otherwise.
+SLSA_LEVEL=0; [ "$SLSA_VERIFIED" = "true" ] && SLSA_LEVEL=2
 # CHIPSEC platform posture (R3): read critical_passed from the CHIPSEC predicate.
 CHIPSEC_JSON="${CHIPSEC_JSON:-}"
 if [ -n "$CHIPSEC_JSON" ] && [ -f "$CHIPSEC_JSON" ]; then
@@ -90,6 +93,13 @@ INTEG="$(jq -c '[.components[]|select(.type!="library")] | {hashable_total:lengt
 # must carry purl + license. First-party edk2 FFS modules lack the marker and are
 # excluded by construction, not by a loosened threshold.
 THIRDPARTY="$(jq -c '[.components[]|select(any(.properties[]?; .name=="edk2:vendored" and .value=="true"))] | {total:length, missing:[.[]|select((.purl|not) or (.licenses|not))|.name]}' "$SBOM")"
+# evidence-chain-bound: the SLSA provenance subject. CI sets PROVENANCE_SUBJECT (the digest
+# gh attestation verify confirmed the provenance covers). The offline demo has no such
+# attestation; DEV_ASSUME_CHAIN=1 binds it to the SBOM digest (warned).
+PROVENANCE_SUBJECT="${PROVENANCE_SUBJECT:-}"
+if [ -z "$PROVENANCE_SUBJECT" ] && [ "${DEV_ASSUME_CHAIN:-0}" = "1" ]; then
+  PROVENANCE_SUBJECT="sha256:$SBOM_HASH"; CHAIN_ASSUMED=1
+fi
 if [ -n "$GRYPE_JSON" ] && [ -f "$GRYPE_JSON" ]; then
   CVE="$(jq '[.matches[]? | {id:.vulnerability.id, component:.artifact.name, severity:(.vulnerability.severity|ascii_upcase)}] | unique' "$GRYPE_JSON")"
 else
@@ -99,14 +109,14 @@ fi
 jq -n --arg sig "$SIG" --arg sh "$SBOM_HASH" --arg sd "$SUBJECT_DIGEST" \
       --arg b "$EFFECTIVE_BUILDER" --arg r "$REPO" --argjson present "$PRESENT" \
       --argjson clean "$CLEAN" --argjson pred "$PRED" --argjson cve "$CVE" \
-      --arg slsa "$SLSA_VERIFIED" --arg chipsec "$CHIPSEC_PASSED" \
+      --arg slsa "$SLSA_VERIFIED" --arg chipsec "$CHIPSEC_PASSED" --argjson slsa_level "$SLSA_LEVEL" \
       --argjson integ "$INTEG" --argjson declared "$DECLARED" --argjson matched "$MATCHED" \
       --argjson missing_n "$MISSING_N" --argjson undeclared "$UNDECLARED" --argjson thirdparty "$THIRDPARTY" \
-      --argjson buildtools "$BUILDTOOLS" '{
+      --argjson buildtools "$BUILDTOOLS" --arg provsub "$PROVENANCE_SUBJECT" '{
   sbom:        {present:$present, hash:("sha256:"+$sh), integrity:$integ, thirdparty:$thirdparty},
   attestation: {subject_digest:(if $sd=="" then "" else "sha256:"+$sd end)},
-  signature:   {verified:($sig=="true")},
-  provenance:  {builder_id:$b, source_repo:$r, slsa_verified:($slsa=="true")},
+  signature:   {verified:($sig=="true"), identity:$b},
+  provenance:  {builder_id:$b, source_repo:$r, slsa_verified:($slsa=="true"), slsa_level:$slsa_level, subject_digest:$provsub},
   reconcile:   {clean:$clean, missing:($pred.missing // []), added:($pred.added // []), modified:($pred.modified // []), declared:$declared, matched:$matched, missing_count:$missing_n, undeclared_observed:$undeclared},
   cve:         {findings:$cve},
   chipsec:     {critical_passed:($chipsec=="true")},
@@ -120,3 +130,5 @@ echo "   builder_id=$EFFECTIVE_BUILDER"
   echo "   ⚠ DEV_ASSUME_SLSA=1 — SLSA L2 provenance ASSUMED for local demo, not platform-verified (CI verifies it via gh attestation verify)"
 [ "${BUILDTOOLS_ASSUMED:-0}" != "1" ] || \
   echo "   ⚠ DEV_ASSUME_BUILDTOOLS=1 — build-tools signature ASSUMED for local demo, not verified (CI verifies it via cosign verify-blob of the build-tools bundle)"
+[ "${CHAIN_ASSUMED:-0}" != "1" ] || \
+  echo "   ⚠ DEV_ASSUME_CHAIN=1 — provenance subject ASSUMED = SBOM digest for local demo (CI extracts it from the verified attestation)"
