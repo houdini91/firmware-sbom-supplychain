@@ -109,6 +109,14 @@ def reconcile(sbom, fmmt_text):
         "missing": [{"guid": g, "name": declared_mod[g].get("name")} for g in missing],
         "added": added,
         "modified": [],
+        "modified_note": (
+            "byte-integrity not asserted. Feasibility-tested: extracting a module's in-FV PE32 and "
+            "rebasing it to 0 does NOT reproduce the declared build-.efi hash even for a DXE driver "
+            "(e.g. AmdSevDxe: in-image 50172c36... vs declared 5fe71c0c...), because the in-image PE "
+            "differs from the build output after FDF-assembly GenFw processing (stripped debug section, "
+            "zeroed timestamp/checksum, alignment). Real integrity needs the SAME canonicalization applied "
+            "to both the declared and observed sides; membership (above) IS checked."
+        ),
         "modified_skipped": modified_skipped,
         "libraries_transitive": len(declared_lib),
     }

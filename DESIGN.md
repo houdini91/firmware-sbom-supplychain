@@ -231,9 +231,9 @@ boundaries: generation + signing run inside an **isolated builder** with the bui
 identity** (not any human key), on a protected trigger; the CI actions are **SHA-pinned** and inventoried in a
 signed **build-tools SBOM** so the toolchain is evidence too. **Honest limitations:** the reconcile verdict is
 now *generated* by `reconcile/sbom-reconcile.py` from a real FMMT carve (membership: 123/123 modules
-validated, 0 missing) and committed as the example; wiring it into CI, and turning `modified` (byte-integrity)
-from deferred into real (observed-side PE32 extract + rebase + hash-compare against the declared SHA-256/512),
-are the remaining steps; reconcile is module-granular (libraries verified transitively); the build-tools SBOM
+validated, 0 missing) and committed as the example; wiring it into CI, and `modified` (byte-integrity) is deferred with a
+feasibility finding (in-image PE != build `.efi` after FDF-assembly GenFw processing, so it needs matched
+canonicalization on both sides), are the remaining steps; reconcile is module-granular (libraries verified transitively); the build-tools SBOM
 lists direct tools, not transitive deps; one lane runs compliance
 in report mode, not as a gate; and the measured-boot bind is aspirational. These are documented, not hidden.
 
