@@ -33,6 +33,11 @@ jobs:
       contents: read           # checkout this repo
       security-events: write   # upload SARIF to the Security tab
       actions: read            # read workflow run metadata (CodeQL best practice)
+      id-token: write          # keyless OIDC signing of the SARIF (cosign / Fulcio)
+      attestations: write      # emit the SARIF as signed evidence
+    env:
+      # cosign keyless cert identity = this workflow's ref (same shape as supply-chain.yml's BUILDER_ID).
+      WORKFLOW_REF: https://github.com/${{ github.repository }}/.github/workflows/codeql.yml@${{ github.ref }}
     steps:
       - name: Checkout (this repo)
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -60,13 +65,62 @@ jobs:
           path: sarif-results/*.sarif
           if-no-files-found: error
 
-      # ┌──────────────────────────────────────────────────────────────────────┐
-      # │ SARIF ATTESTATION SLOT (owned by a later task — DO NOT implement here) │
-      # │ A follow-up step keyless-attests sarif-results/*.sarif as an in-toto   │
-      # │ predicate (mirrors the cosign attest-blob pattern in supply-chain.yml) │
-      # │ and adds a `sast` verifier report ("no un-triaged high-severity        │
-      # │ finding"). Requires id-token: write + attestations: write on this job. │
-      # └──────────────────────────────────────────────────────────────────────┘
+      # ── SARIF as signed, gated evidence ─────────────────────────────────────
+      # Mirrors supply-chain.yml's keyless cosign pattern: sign-blob --yes --bundle
+      # over the produced SARIF, then verify-blob against this workflow's OIDC cert.
+      - name: Install cosign
+        uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac # v3
+
+      - name: Keyless-sign the SARIF as signed evidence
+        run: |
+          set -euo pipefail
+          for sarif in sarif-results/*.sarif; do
+            echo "--- signing $sarif ---"
+            # CodeQL names the file by language (e.g. python.sarif) -> bundle sits next to it.
+            cosign sign-blob --yes --bundle "${sarif}.sig.bundle" "$sarif"
+            cosign verify-blob \
+              --certificate-identity "$WORKFLOW_REF" \
+              --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+              --bundle "${sarif}.sig.bundle" "$sarif"
+            echo "✓ $sarif keyless-signed + verified -> ${sarif}.sig.bundle"
+          done
+
+      - name: SAST severity gate (fail on high/critical)
+        env:
+          # Tunable threshold on CodeQL's CVSS-style `security-severity` (0.0–10.0):
+          #   >= 7.0 = high, >= 9.0 = critical. Lower this to make the gate stricter.
+          SAST_FAIL_SEVERITY: "7.0"
+        run: |
+          set -euo pipefail
+          echo "SAST gate threshold: security-severity >= $SAST_FAIL_SEVERITY (7.0=high, 9.0=critical)"
+          # jq -s slurps every SARIF file into one array so we are robust to >1 file.
+          # Build ruleId -> security-severity (from tool.driver.rules AND tool.extensions[].rules),
+          # join onto each result; rules without a security-severity are treated as 0 (skip).
+          SUMMARY=$(jq -s --argjson thr "$SAST_FAIL_SEVERITY" '
+            ( [ .[].runs[]
+                | ( (.tool.driver.rules // []) + ( [ .tool.extensions[]?.rules[]? ] ) )
+                | .[]
+                | select(.id != null and (.properties["security-severity"] // "") != "")
+                | { key: .id, value: (.properties["security-severity"] | tonumber) }
+              ] | from_entries ) as $sev
+            | [ .[].runs[].results[]? | ( $sev[.ruleId] // 0 ) ] as $scores
+            | { total:              ($scores | length),
+                critical:           ([ $scores[] | select(. >= 9.0) ]            | length),
+                high:               ([ $scores[] | select(. >= 7.0 and . < 9.0) ]| length),
+                medium:             ([ $scores[] | select(. >= 4.0 and . < 7.0) ]| length),
+                low:                ([ $scores[] | select(. > 0   and . < 4.0) ] | length),
+                unscored:           ([ $scores[] | select(. == 0) ]              | length),
+                maxSeverity:        ($scores | max // 0),
+                atOrAboveThreshold: ([ $scores[] | select(. >= $thr) ]           | length) }
+          ' sarif-results/*.sarif)
+          echo "--- SAST finding summary ---"
+          echo "$SUMMARY" | jq .
+          OVER=$(echo "$SUMMARY" | jq '.atOrAboveThreshold')
+          if [ "$OVER" -gt 0 ]; then
+            echo "::error::SAST gate FAILED: $OVER finding(s) at/above security-severity $SAST_FAIL_SEVERITY"
+            exit 1
+          fi
+          echo "✓ SAST gate passed: no findings at/above security-severity $SAST_FAIL_SEVERITY"
 
   # 2) SAST the scoped edk2 firmware C. Checks out the pinned edk2 fork and runs
   #    CodeQL c-cpp with build-mode:none, scoped to NetworkPkg via the config file
@@ -80,7 +134,11 @@ jobs:
       contents: read
       security-events: write
       actions: read
+      id-token: write          # keyless OIDC signing of the SARIF (cosign / Fulcio)
+      attestations: write      # emit the SARIF as signed evidence
     env:
+      # cosign keyless cert identity = this workflow's ref (same shape as supply-chain.yml's BUILDER_ID).
+      WORKFLOW_REF: https://github.com/${{ github.repository }}/.github/workflows/codeql.yml@${{ github.ref }}
       # edk2 source under test. Owner confirmed from DESIGN.md / engagement notes
       # (fork: houdini91/edk2). Tag edk2-stable202402 resolves to commit
       # edc6681206c1a8791981a2f911d2fb8b3d2f5768 (immutable stable tag).
@@ -119,9 +177,59 @@ jobs:
           path: sarif-results/*.sarif
           if-no-files-found: error
 
-      # ┌──────────────────────────────────────────────────────────────────────┐
-      # │ SARIF ATTESTATION SLOT (owned by a later task — DO NOT implement here) │
-      # │ Same as the Python job: keyless-attest sarif-results/*.sarif as an     │
-      # │ in-toto predicate and feed the `sast` verifier report. Needs           │
-      # │ id-token: write + attestations: write on this job.                     │
-      # └──────────────────────────────────────────────────────────────────────┘
+      # ── SARIF as signed, gated evidence ─────────────────────────────────────
+      # Mirrors supply-chain.yml's keyless cosign pattern: sign-blob --yes --bundle
+      # over the produced SARIF, then verify-blob against this workflow's OIDC cert.
+      - name: Install cosign
+        uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac # v3
+
+      - name: Keyless-sign the SARIF as signed evidence
+        run: |
+          set -euo pipefail
+          for sarif in sarif-results/*.sarif; do
+            echo "--- signing $sarif ---"
+            # CodeQL names the file by language (e.g. cpp.sarif) -> bundle sits next to it.
+            cosign sign-blob --yes --bundle "${sarif}.sig.bundle" "$sarif"
+            cosign verify-blob \
+              --certificate-identity "$WORKFLOW_REF" \
+              --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+              --bundle "${sarif}.sig.bundle" "$sarif"
+            echo "✓ $sarif keyless-signed + verified -> ${sarif}.sig.bundle"
+          done
+
+      - name: SAST severity gate (fail on high/critical)
+        env:
+          # Tunable threshold on CodeQL's CVSS-style `security-severity` (0.0–10.0):
+          #   >= 7.0 = high, >= 9.0 = critical. Lower this to make the gate stricter.
+          SAST_FAIL_SEVERITY: "7.0"
+        run: |
+          set -euo pipefail
+          echo "SAST gate threshold: security-severity >= $SAST_FAIL_SEVERITY (7.0=high, 9.0=critical)"
+          # jq -s slurps every SARIF file into one array so we are robust to >1 file.
+          # Build ruleId -> security-severity (from tool.driver.rules AND tool.extensions[].rules),
+          # join onto each result; rules without a security-severity are treated as 0 (skip).
+          SUMMARY=$(jq -s --argjson thr "$SAST_FAIL_SEVERITY" '
+            ( [ .[].runs[]
+                | ( (.tool.driver.rules // []) + ( [ .tool.extensions[]?.rules[]? ] ) )
+                | .[]
+                | select(.id != null and (.properties["security-severity"] // "") != "")
+                | { key: .id, value: (.properties["security-severity"] | tonumber) }
+              ] | from_entries ) as $sev
+            | [ .[].runs[].results[]? | ( $sev[.ruleId] // 0 ) ] as $scores
+            | { total:              ($scores | length),
+                critical:           ([ $scores[] | select(. >= 9.0) ]            | length),
+                high:               ([ $scores[] | select(. >= 7.0 and . < 9.0) ]| length),
+                medium:             ([ $scores[] | select(. >= 4.0 and . < 7.0) ]| length),
+                low:                ([ $scores[] | select(. > 0   and . < 4.0) ] | length),
+                unscored:           ([ $scores[] | select(. == 0) ]              | length),
+                maxSeverity:        ($scores | max // 0),
+                atOrAboveThreshold: ([ $scores[] | select(. >= $thr) ]           | length) }
+          ' sarif-results/*.sarif)
+          echo "--- SAST finding summary ---"
+          echo "$SUMMARY" | jq .
+          OVER=$(echo "$SUMMARY" | jq '.atOrAboveThreshold')
+          if [ "$OVER" -gt 0 ]; then
+            echo "::error::SAST gate FAILED: $OVER finding(s) at/above security-severity $SAST_FAIL_SEVERITY"
+            exit 1
+          fi
+          echo "✓ SAST gate passed: no findings at/above security-severity $SAST_FAIL_SEVERITY"
