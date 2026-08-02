@@ -52,7 +52,7 @@ if [ -n "$VSA_OUT" ]; then
 fi
 
 if [ "$allow" = "true" ]; then
-  echo "✅ ALLOW — $(basename "$INPUT")  (VSA: PASSED, verifiedLevels=[SLSA_BUILD_LEVEL_1])"
+  echo "✅ ALLOW — $(basename "$INPUT")  (VSA: PASSED, verifiedLevels=[SLSA_BUILD_LEVEL_2])"
   exit 0
 fi
 

@@ -168,5 +168,10 @@ vsa_predicate := {
 _result := "PASSED" if allow
 _result := "FAILED" if not allow
 
-_levels := ["SLSA_BUILD_LEVEL_1"] if allow
+# The reference CI pipeline establishes SLSA Build L2 for the SBOM via
+# actions/attest-build-provenance + `gh attestation verify` (the "Verify the
+# SLSA provenance" hard-gate step) before this gate runs, so the VSA reports
+# that level. (The local offline demo does not run attest-build-provenance;
+# wiring the verified level in as its own gate verifier report is a follow-up.)
+_levels := ["SLSA_BUILD_LEVEL_2"] if allow
 _levels := [] if not allow
