@@ -60,7 +60,14 @@ the pipeline after `gh attestation verify`, a `slsa-provenance` verifier report 
 single source of truth. **Accept:** no contradictory statements across docs; a reader can tell the two lanes
 apart in one paragraph.
 
-### R1 — SBOM third-party dependency identity  *(highest compliance breadth)*
+### R1 — SBOM third-party dependency identity  *(DONE — in-image, per-artifact)*
+**Status:** the generator emits vendored submodules *actually linked into the image* (ancestor rule) with
+PURL/version/SPDX-license/CPE/supplier + `dependsOn`. Honest correction to the original framing: OVMF X64 links
+**only openssl** (openssl-3.5.7), so the SBOM lists one third-party component, not ~13 — the rest belong to other
+platforms. openssl's CPE enables real openssl CVE mapping. Generator on the fork branch `add-y-spdx-generator`
+(reviewed, not upstreamed); demo SBOM enriched; reconcile re-verified clean 123/123.
+
+*(original plan, kept for context)*
 **Why:** the 13 vendored submodules (openssl, brotli, oniguruma, mbedtls, libspdm…) are currently **invisible**
 in the SBOM (~0 submodule components). That is both the biggest SBOM-field-regulation gap *and* the reason the
 CVE gate can't map real CVEs. **Do:** enumerate the gitlink SHAs → emit each as a real component with
