@@ -57,6 +57,7 @@ not asserted.
 | **E6** | **VSA** | `slsa.dev/verification_summary/v1` | the gate's verdict, as portable signed evidence | `verifier.id`/`policy.uri`/`verificationResult:PASSED`/`verifiedLevels:[L2]` populated; `resourceUri` generic; no `dependencyLevels` | output artifact |
 | **E7** | **Build-tools SBOM** | CycloneDX + SHA-pins | the *build* toolchain is inventoried + signed | CI actions/tools, SHA-pinned + keyless-signed; **direct only, not transitive** | — (not gated) |
 | **E8** | **SAST report** | CodeQL SARIF (keyless-signed) | static code-analysis findings | `codeql-sast` workflow — `python` (this repo's tooling, **0 findings**) on push + scoped edk2 `c-cpp` (NetworkPkg) on dispatch; **green in CI**, Security-tab uploaded, keyless-signed, and **severity-gated** (fails ≥7.0) | `codeql-sast` severity gate *(CI)* |
+| **E9** | **OpenSSF Scorecard** | Scorecard SARIF (keyless-signed) | repo security-posture score | `scorecard-analysis` workflow — push + weekly; Security-tab uploaded, published to the OpenSSF API (badge), keyless-signed. Posture evidence (R5) | — (evidence, not gated) |
 
 > **The trust anchor:** the seven gate reports are `sbom-present` (E1), `attestation-signature` (E5),
 > `sbom-binding` (E1↔E5 digest), `provenance-identity` (E2), `slsa-provenance` (E2, backed by the
@@ -80,6 +81,7 @@ enforced) — see the per-framework tables for the exact status of every cell.
 | **E6** VSA | VSA `verification_summary` | PO.4.2◐ | — | — | — | — | — | — | RATS §8.4 / RP-analog |
 | **E7** Build-tools SBOM | (isolation: SHA-pin) | PO.3.2◐ | CM-8 (tools) | INV-1◐ | — | — | §8.4.3 (Build SBOM) | — | — |
 | **E8** SAST | — | **PW.7.1**, **PW.8** | **SA-11(1)** | — | — | §II(3)◐ | — | — | — |
+| **E9** Scorecard | — | PO.1◐ | — | posture◐ | — | — | — | — | — |
 
 **Reading it:** E1, E2 and E5 are the load-bearing artifacts — each satisfies clauses in **five-plus**
 frameworks. Note how few cells are **bold**: most mapped controls are *satisfiable but not enforced*. That gap
@@ -252,7 +254,7 @@ Tiers (§5.2): **Required** = always mandatory · **Additional** = mandatory *wh
 | **§5.2.2 / Table 3** | component creator / filename | Req | — | **PLANNED** | Not emitted (bom-ref is the GUID, not a filename). |
 | **§5.2.2 / Table 3** | executable / archive / structured properties | Req | — | **PLANNED** | BSI publishes a [CycloneDX property taxonomy](https://github.com/BSI-Bund/tr-03183-cyclonedx-property-taxonomy) for exactly these. |
 | **§5.2.4 / Table 5** | CPE / **PURL**, source/deployable URIs, original licences | Add | E1 | **PARTIAL** | Satisfied for the in-image third-party dep (openssl: PURL+CPE+Apache-2.0, R1); edk2 FFS modules have no sensible PURL (N/A by design). |
-| **§8.1.14** | vulnerability data → **CSAF (VEX profile)** | rec | E4 | **PARTIAL** | E4 is OpenVEX; BSI's named format is CSAF/VEX. |
+| **§8.1.14** | vulnerability data → **CSAF (VEX profile)** | rec | E4 | **EVIDENCE** | Triage authored as OpenVEX (`inputs/vex.openvex.json`), converted to BSI's named **CSAF 2.0 VEX** via `interop/to-csaf.py` → `inputs/vex.csaf.json` (R6). |
 | **§8.1.15** | SBOM ideally digitally signed | rec | E5 | **EVIDENCE** | cosign covers it. |
 | **§8.4.3** | Build SBOM | — | E7 | **EVIDENCE** | E7 aligns with the Build-SBOM concept. |
 

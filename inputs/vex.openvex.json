@@ -1,0 +1,26 @@
+{
+  "@context": "https://openvex.dev/ns/v0.2.0",
+  "@id": "https://github.com/houdini91/firmware-sbom-supplychain/vex/ovmf-firmware",
+  "author": "houdini91",
+  "role": "Firmware SBOM maintainer",
+  "timestamp": "2026-07-30T00:00:00Z",
+  "version": 1,
+  "statements": [
+    {
+      "vulnerability": { "name": "CVE-2021-38578" },
+      "products": [
+        {
+          "@id": "pkg:generic/ovmf@edk2-master",
+          "subcomponents": [
+            { "@id": "cpe:2.3:a:tianocore:edk2:*:*:*:*:*:*:*:*" }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_present",
+      "impact_statement": "grype matched the coarse cpe:2.3:a:tianocore:edk2 identifier, which matches every historical edk2 CVE regardless of commit. This OVMF image is built from edk2 master (2026), long past the 2021 SMM fix for CVE-2021-38578, so the vulnerable code is not present.",
+      "action_statement": "No action required; triaged not-affected on a version-imprecise CPE match.",
+      "timestamp": "2026-07-30T00:00:00Z"
+    }
+  ]
+}

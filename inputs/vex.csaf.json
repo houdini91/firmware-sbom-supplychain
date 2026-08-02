@@ -1,0 +1,82 @@
+{
+  "document": {
+    "category": "csaf_vex",
+    "csaf_version": "2.0",
+    "title": "OVMF firmware \u2014 vulnerability exploitability (VEX)",
+    "publisher": {
+      "category": "vendor",
+      "name": "houdini91",
+      "namespace": "https://github.com/houdini91/firmware-sbom-supplychain/vex/ovmf-firmware"
+    },
+    "tracking": {
+      "id": "ovmf-firmware",
+      "status": "final",
+      "version": "1",
+      "initial_release_date": "2026-07-30T00:00:00+00:00",
+      "current_release_date": "2026-07-30T00:00:00+00:00",
+      "revision_history": [
+        {
+          "number": "1",
+          "date": "2026-07-30T00:00:00+00:00",
+          "summary": "Converted from OpenVEX."
+        }
+      ],
+      "generator": {
+        "engine": {
+          "name": "to-csaf.py",
+          "version": "1.0"
+        }
+      }
+    }
+  },
+  "product_tree": {
+    "full_product_names": [
+      {
+        "product_id": "CSAFPID-0001",
+        "name": "pkg:generic/ovmf@edk2-master",
+        "product_identification_helper": {
+          "purl": "pkg:generic/ovmf@edk2-master"
+        }
+      }
+    ]
+  },
+  "vulnerabilities": [
+    {
+      "cve": "CVE-2021-38578",
+      "product_status": {
+        "known_not_affected": [
+          "CSAFPID-0001"
+        ]
+      },
+      "notes": [
+        {
+          "category": "description",
+          "title": "Impact",
+          "text": "grype matched the coarse cpe:2.3:a:tianocore:edk2 identifier, which matches every historical edk2 CVE regardless of commit. This OVMF image is built from edk2 master (2026), long past the 2021 SMM fix for CVE-2021-38578, so the vulnerable code is not present."
+        },
+        {
+          "category": "other",
+          "title": "Action",
+          "text": "No action required; triaged not-affected on a version-imprecise CPE match."
+        }
+      ],
+      "flags": [
+        {
+          "label": "vulnerable_code_not_present",
+          "product_ids": [
+            "CSAFPID-0001"
+          ]
+        }
+      ],
+      "remediations": [
+        {
+          "category": "no_fix_planned",
+          "details": "No action required; triaged not-affected on a version-imprecise CPE match.",
+          "product_ids": [
+            "CSAFPID-0001"
+          ]
+        }
+      ]
+    }
+  ]
+}

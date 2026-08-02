@@ -98,9 +98,11 @@ re-canonicalize (handle rebasing/relocation) and compare a per-region digest to 
 byte integrity; SR-4(3), SI-7, SI-7(1), S2C2F AUD-3 advance PARTIAL → strong; `ResetVector`-style no-reference
 cases documented, not faked.
 
-### R5 — OpenSSF Scorecard (attested)  ·  R6 — CSAF/VEX  *(quick wins)*
-R5: run Scorecard on the repo, attest the result → S2C2F/SSDF PO posture, recognized + signed. R6: convert the
-OpenVEX triage to CSAF (BSI's named format) → BSI §8.1.14 moves from PARTIAL toward met.
+### R5 — OpenSSF Scorecard (attested)  ·  R6 — CSAF/VEX  *(DONE)*
+R5: `scorecard.yml` runs Scorecard on push + weekly, uploads the SARIF, publishes to the OpenSSF API (badge),
+and keyless-signs the result (E9) → SSDF PO / S2C2F posture evidence. R6: triage authored as OpenVEX
+(`inputs/vex.openvex.json`) and converted to BSI's named CSAF 2.0 VEX by `interop/to-csaf.py`
+(`inputs/vex.csaf.json`) → BSI §8.1.14 met.
 
 ### R7 — Binary-hardening posture · R8 — Fuzzing · R9 — Runtime attestation  *(later / horizon)*
 R7: report PE hardening flags (`NX_COMPAT`, memory-protection attributes, stack protectors) on DXE drivers. R8:
