@@ -14,6 +14,13 @@ set -euo pipefail
 
 SBOM="${SBOM:?}"; BUNDLE="${BUNDLE:?}"; SIG="${SIG:?}"; OUT="${OUT:?}"
 BUILDER="${BUILDER_ID:-}"; REPO="${SOURCE_REPO:-}"; GRYPE_JSON="${GRYPE_JSON:-}"
+# SLSA L2 provenance is established in CI by attest-build-provenance + the
+# `gh attestation verify` hard-gate, which sets SLSA_VERIFIED=true here. The
+# offline demo cannot run it; DEV_ASSUME_SLSA=1 opts into an ASSUMED L2 (warned).
+SLSA_VERIFIED="${SLSA_VERIFIED:-false}"
+if [ "$SLSA_VERIFIED" != "true" ] && [ "${DEV_ASSUME_SLSA:-0}" = "1" ]; then
+  SLSA_VERIFIED=true; SLSA_ASSUMED=1
+fi
 
 if [ "$SIG" = "true" ]; then
   STMT="$(jq -r '.base64Signature' "$BUNDLE" | base64 -d | jq -r '.payload' | base64 -d)"
@@ -53,11 +60,12 @@ fi
 
 jq -n --arg sig "$SIG" --arg sh "$SBOM_HASH" --arg sd "$SUBJECT_DIGEST" \
       --arg b "$EFFECTIVE_BUILDER" --arg r "$REPO" --argjson present "$PRESENT" \
-      --argjson clean "$CLEAN" --argjson pred "$PRED" --argjson cve "$CVE" '{
+      --argjson clean "$CLEAN" --argjson pred "$PRED" --argjson cve "$CVE" \
+      --arg slsa "$SLSA_VERIFIED" '{
   sbom:        {present:$present, hash:("sha256:"+$sh)},
   attestation: {subject_digest:(if $sd=="" then "" else "sha256:"+$sd end)},
   signature:   {verified:($sig=="true")},
-  provenance:  {builder_id:$b, source_repo:$r},
+  provenance:  {builder_id:$b, source_repo:$r, slsa_verified:($slsa=="true")},
   reconcile:   {clean:$clean, missing:($pred.missing // []), added:($pred.added // []), modified:($pred.modified // [])},
   cve:         {findings:$cve}
 }' > "$OUT"
@@ -65,3 +73,5 @@ jq -n --arg sig "$SIG" --arg sh "$SBOM_HASH" --arg sd "$SUBJECT_DIGEST" \
 echo "   builder_id=$EFFECTIVE_BUILDER"
 [ -n "$SIGNER_ID" ] || [ "${DEV_ASSUME_IDENTITY:-0}" != "1" ] || \
   echo "   ⚠ DEV_ASSUME_IDENTITY=1 — builder identity ASSUMED, not cryptographically verified (CI keyless verifies it for real)"
+[ "${SLSA_ASSUMED:-0}" != "1" ] || \
+  echo "   ⚠ DEV_ASSUME_SLSA=1 — SLSA L2 provenance ASSUMED for local demo, not platform-verified (CI verifies it via gh attestation verify)"

@@ -9,10 +9,10 @@
 
 ## Posture in three tiers
 
-- **Enforced today** — the deploy pipeline **hard-blocks the release** on **six OPA verifier reports** (SBOM
-  present · attestation signature · SBOM↔subject binding · provenance identity · reconcile · CVE/VEX) **plus one
-  CI hard-gate step** (`gh attestation verify` for SLSA L2 provenance). These are the controls we can defend as
-  *actually enforced*, not merely mapped.
+- **Enforced today** — the deploy pipeline **hard-blocks the release** on **seven OPA verifier reports** (SBOM
+  present · attestation signature · SBOM↔subject binding · provenance identity · **SLSA L2 provenance** ·
+  reconcile · CVE/VEX), the SLSA-L2 one backed by the `gh attestation verify` CI hard-gate. These are the
+  controls we can defend as *actually enforced*, not merely mapped.
 - **Satisfiable from evidence we already emit** — many named controls across SLSA, NIST SSDF/800-53/800-161,
   OpenSSF S2C2F, the CISA/NTIA SBOM elements, EU CRA, BSI TR-03183-2, and NIST 800-190 are met or partly met by
   the seven evidence artifacts — but *not wired into a gate*. Marked `EVIDENCE` / `PARTIAL`.
@@ -35,7 +35,7 @@ framework  →  §control (exact ref)  →  evidence that proves it  →  status
 
 | Status | Meaning |
 |---|---|
-| **`ENFORCED`** | The release is **hard-blocked if this fails** — by one of the six OPA `verifier_reports` in [`firmware.rego`](./oss-lane/policy/firmware.rego) *(gate)*, or by a CI hard-gate step *(CI)* such as `gh attestation verify`. The mechanism is named per row. |
+| **`ENFORCED`** | The release is **hard-blocked if this fails** — by one of the seven OPA `verifier_reports` in [`firmware.rego`](./oss-lane/policy/firmware.rego) *(gate)*; the `slsa-provenance` report is additionally backed by a CI hard-gate step *(CI)*, `gh attestation verify`. The mechanism is named per row. |
 | **`EVIDENCE`** | We produce the artifact/field, but no gate rule checks it yet — the control is *satisfiable from what we emit*, just not *enforced*. |
 | **`PARTIAL`** | The evidence meets the control only in part; the named shortfall is in the note. |
 | **`PLANNED`** | A concrete, near-term artifact change (mostly SBOM enrichment + byte-integrity reconcile) would satisfy it. |
@@ -50,17 +50,17 @@ not asserted.
 | # | Evidence | Format / predicate | What it proves | Ground-truth today | Enforced by |
 |---|---|---|---|---|---|
 | **E1** | **CycloneDX 1.6 SBOM** | in-toto SBOM predicate | declared composition of the firmware | 310 components (3 app / 108 driver / 12 firmware / 187 lib); **SHA-256+512 on 122 of the 123 non-library modules** (`ResetVector`, a raw reset-vector blob not a PE image, is the one skip); `metadata` timestamp/authors/tools/`lifecycle:build` populated; **0 PURLs, 0 licenses, ~0 third-party/submodule components** | `sbom-present` *(gate)* — presence only |
-| **E2** | **SLSA Build L2 provenance** | `slsa.dev/provenance/v1` | build origin is authentic (platform-generated) | GitHub `attest-build-provenance`, **verified green in CI** with `gh attestation verify` | `gh attestation verify` *(CI)* + `provenance-identity` *(gate, identity only)* |
+| **E2** | **SLSA Build L2 provenance** | `slsa.dev/provenance/v1` | build origin is authentic (platform-generated) | GitHub `attest-build-provenance`, **verified green in CI** with `gh attestation verify` | `slsa-provenance` *(gate)* backed by `gh attestation verify` *(CI)*; `provenance-identity` *(gate, identity)* |
 | **E3** | **Reconcile verdict** | custom in-toto predicate | shipped bytes match the declared component set | FMMT-carved FFS vs SBOM by GUID, **123/123 module-granular; membership only** (no per-component byte hash yet) | `reconcile` *(gate)* |
 | **E4** | **CVE + VEX** | grype JSON + OpenVEX | no un-triaged critical vulnerability ships | scan over E1 + OpenVEX triage allowlist | `cve-triage` *(gate)* |
 | **E5** | **Signature + signer identity** | cosign keyless (Fulcio/Rekor) DSSE | the signed artifact came from the expected build identity | OIDC SAN extracted from the Fulcio cert and **checked**, not asserted; **signed subject is the SBOM/attestation, not the firmware image** | `attestation-signature` + `sbom-binding` *(gate)* |
 | **E6** | **VSA** | `slsa.dev/verification_summary/v1` | the gate's verdict, as portable signed evidence | `verifier.id`/`policy.uri`/`verificationResult:PASSED`/`verifiedLevels:[L2]` populated; `resourceUri` generic; no `dependencyLevels` | output artifact |
 | **E7** | **Build-tools SBOM** | CycloneDX + SHA-pins | the *build* toolchain is inventoried + signed | CI actions/tools, SHA-pinned + keyless-signed; **direct only, not transitive** | — (not gated) |
 
-> **The trust anchor:** the six gate reports are `sbom-present` (E1), `attestation-signature` (E5),
-> `sbom-binding` (E1↔E5 digest), `provenance-identity` (E2), `reconcile` (E3), `cve-triage` (E4) — the gate ANDs
-> them and emits E6. E1 and E5 each feed two reports, so seven evidence atoms → six gate reports + one CI
-> hard-gate (`gh attestation verify`, SLSA L2).
+> **The trust anchor:** the seven gate reports are `sbom-present` (E1), `attestation-signature` (E5),
+> `sbom-binding` (E1↔E5 digest), `provenance-identity` (E2), `slsa-provenance` (E2, backed by the
+> `gh attestation verify` CI hard-gate), `reconcile` (E3), `cve-triage` (E4) — the gate ANDs them and emits E6.
+> E1 and E5 each feed two reports.
 
 ## Cross-framework overlap — one evidence, many controls
 
@@ -72,7 +72,7 @@ enforced) — see the per-framework tables for the exact status of every cell.
 | Evidence | SLSA v1.0 | NIST SSDF 800-218 | 800-53 / 800-161 | S2C2F | CISA/NTIA elements | EU CRA | BSI TR-03183-2 | 800-190 | Runtime (futuristic) |
 |---|---|---|---|---|---|---|---|---|---|
 | **E1** SBOM | — | PS.3.2 | CM-8, SR-4◐ | INV-1 | name·ver·hash·ts·author·tool·context *(license,PURL,supplier: planned)* | **Annex I §II(1)** | §4, §5.2.1, §5.2.2 (name/ver/SHA-512) | — | RIM-analog◐ |
-| **E2** Provenance | Prov-Exists **(L1, gate)** · **Prov-Authentic (L2, CI)** · Distribute | PO.3.3, PS.3.1 | SR-4, SI-7(15)◐ | — | — | §II(7)◐ | §8.1.15◐ | §4.1.5◐ | RATS §8.4-analog |
+| **E2** Provenance | Prov-Exists **(L1, gate)** · **Prov-Authentic (L2, gate)** · Distribute | PO.3.3, PS.3.1 | SR-4, SI-7(15)◐ | — | — | §II(7)◐ | §8.1.15◐ | §4.1.5◐ | RATS §8.4-analog |
 | **E3** Reconcile | — | — | SR-4(3)◐, SR-4(4)◐, SI-7◐, SI-7(1)◐ | AUD-3◐ | dependency◐ | — | §5.2.2 deps◐ | §4.1.5◐ | 800-193 §4.3◐, RATS §4.1 (Verifier), 800-155 |
 | **E4** CVE+VEX | — | RV.1.1, RV.2.2, PW.4.4◐ | **RA-5** | **SCA-1** | — | §II(1) vuln, §II(3)◐ | §8.1.14 (CSAF-pref) | **§4.1.1** | — |
 | **E5** Sig+ID | Prov-Authentic (L2) input | **PS.2.1** | SI-7(15)◐ | — | — | §II(7)◐, Annex VII 2(b) | §8.1.15 | §4.1.5◐ | RATS §4.1 (RP trust) |
@@ -117,10 +117,9 @@ Ranked by **controls-advanced per unit of effort**, using the overlap matrix.
    shows `modified_skipped` for exactly this reason), and `ResetVector` has no reference hash at all. E1's
    GenFw-rebase-0 SHA-512 is the *starting* reference, not a drop-in — but it makes the digest **triply
    motivated** (reconcile + BSI + CISA).
-3. **Wire existing evidence into gate rules (`EVIDENCE` → `ENFORCED`).** Add a `slsa-provenance` verifier report
-   (so the *rego* gate — and therefore the VSA's report list — asserts the L2-verified fact, not just the CI
-   step), a per-component-hash-present check, and populate VSA `dependencyLevels`. Low effort; converts
-   satisfiable-but-unenforced controls into enforced ones.
+3. **Wire remaining evidence into gate rules (`EVIDENCE` → `ENFORCED`).** The `slsa-provenance` report now gates
+   the L2-verified fact so the VSA lists it (**done** — R0a). Next: a per-component-hash-present check and a
+   populated VSA `dependencyLevels`. Low effort; converts satisfiable-but-unenforced controls into enforced ones.
 4. **CSAF/VEX document (BSI §8.1.14).** Convert E4's OpenVEX to CSAF for the BSI-named format. Low effort.
 5. **Runtime attestation (the FUTURISTIC block).** A signed **TPM quote** (Attester/Evidence) + a signed
    **golden RIM** (Reference Values) unlocks the *entire* SP 800-193 §4.3 Detection, RATS §8.x, TCG RIM, and
@@ -142,7 +141,7 @@ control plane*, not merely "is it signed." Requirement names are verbatim from `
 |---|---|---|:--:|---|
 | L1 · **Provenance exists** | provenance generated for the artifact | E2 | **ENFORCED** *(gate)* | `provenance-identity` checks builder/source identity. |
 | L1 · **Distribute provenance** | make it available to consumers | E2, E6 | **EVIDENCE** | E6 VSA is the distributable summary. |
-| **L2 · Provenance is authentic** | signed by the build **control plane**, not the tenant job | E2 (+E5) | **ENFORCED** *(CI)* | Established + hard-gated by `attest-build-provenance` (platform-generated) + `gh attestation verify` in CI (green). **Not** a rego `verifier_report` yet — wiring it in is Gap #3; the offline demo, lacking `attest-build-provenance`, does not establish L2. |
+| **L2 · Provenance is authentic** | signed by the build **control plane**, not the tenant job | E2 (+E5) | **ENFORCED** *(gate + CI)* | Asserted by the `slsa-provenance` verifier report (so the VSA lists it), backed by `attest-build-provenance` (platform-generated) + the `gh attestation verify` CI hard-gate (green). The offline demo, lacking `attest-build-provenance`, does not establish L2 — opt-in `DEV_ASSUME_SLSA` for local runs, loudly warned. |
 | L2 · **Hosted** | build runs on a hosted platform, not a workstation | E2 | **EVIDENCE** | GitHub-hosted runner. |
 | L3 · **Provenance is unforgeable** | signing material unreachable by build steps | — | **FUTURISTIC** | Needs an isolated/hardened builder (e.g. `slsa-github-generator`). |
 | L3 · **Isolated** | builds cannot influence one another | — | **FUTURISTIC** | As above. |
@@ -323,8 +322,8 @@ enforcement it asks for is still futuristic.)*
 
 - **cosign keyless ≠ FIPS/CMVP.** 800-190 §4.1.5 (footnote 6 → CMVP) wants a NIST-validated crypto
   implementation; Sigstore is not CMVP-validated. State it if the audience is strict.
-- **SLSA L2 is scoped to the SBOM artifact** on this operator-side workflow, not the upstream firmware build, and
-  is enforced by the **CI hard-gate step** (`gh attestation verify`), not yet a rego `verifier_report`.
+- **SLSA L2 is scoped to the SBOM artifact** on this operator-side workflow, not the upstream firmware build. It
+  is enforced by the `slsa-provenance` verifier report, backed by the `gh attestation verify` CI hard-gate.
 - **CRA is field-light** — do not attribute the license/PURL asks to CRA; they are BSI/CISA.
 - **TCG PC Client RIM exact §/Table numbers are unverified** (primary PDF was gated) — read them off the spec
   before publishing anything that cites a specific RIM subsection.

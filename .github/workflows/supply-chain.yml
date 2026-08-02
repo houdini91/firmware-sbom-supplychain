@@ -90,6 +90,7 @@ jobs:
           BUNDLE=inputs/sbom.att.bundle \
           SIG=${{ steps.verify.outputs.sig }} \
           BUILDER_ID="$BUILDER_ID" SOURCE_REPO="$SOURCE_REPO" \
+          SLSA_VERIFIED=true \
           GRYPE_JSON=inputs/grype.json OUT=inputs/gate-input.json \
           bash oss-lane/assemble-gate-input.sh
           echo "--- gate input ---"; jq '{sbom,attestation,signature,provenance,reconcile:{clean:.reconcile.clean},cve:{n:(.cve.findings|length)}}' inputs/gate-input.json

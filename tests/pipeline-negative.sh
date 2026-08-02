@@ -17,7 +17,7 @@ fail=0
 
 run_case() { # <name> <sbom-file> <expect allow|deny>
   SBOM="$2" BUNDLE="$BUNDLE" SIG=true GRYPE_JSON="$IN/grype.json" \
-    OUT="/tmp/neg-gate.json" DEV_ASSUME_IDENTITY=1 \
+    OUT="/tmp/neg-gate.json" DEV_ASSUME_IDENTITY=1 DEV_ASSUME_SLSA=1 \
     bash "$ROOT/oss-lane/assemble-gate-input.sh" >/dev/null 2>&1
   OPA="$OPA" "$ROOT/oss-lane/gate.sh" /tmp/neg-gate.json >/dev/null 2>&1; rc=$?
   got=allow; [ "$rc" -ne 0 ] && got=deny
