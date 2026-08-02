@@ -268,11 +268,12 @@ Three self-contained PRs stage the *generation + embed* half. Each stands alone 
 the hub that explains how they connect. They currently live on personal forks for review and have **not** been
 sent upstream.
 
-| PR | Repo | Role |
-|---|---|---|
-| [edk2 PR #2] — `-Y SBOM` generator | edk2 / BaseTools | **The anchor.** Build-time CycloneDX from the `-Y COMPILE_INFO` AutoGen data. Directly answers [#10507]; ships a reference OvmfPkgX64 SBOM. |
-| [uSWID PR #1] — CDX 1.4+ component types | hughsie/python-uswid | **The embed bridge.** uSWID converts CDX→coSWID and embeds it so fwupd reads it on-device; the generator's output tripped uSWID's type parser — this fixes the round-trip. |
-| [edk2 PR #1] — libspdm 3.7.0→3.8.2 | edk2 / SecurityPkg | **Supply-chain hygiene, same theme.** Refreshes a third-party component and honestly scopes its exposure — exactly the stale-pin an SBOM surfaces. |
+| PR | Repo | Role | Upstream status |
+|---|---|---|---|
+| [edk2 PR #2] — `-Y SBOM` generator | edk2 / BaseTools | **The anchor.** Build-time CycloneDX from the `-Y COMPILE_INFO` AutoGen data. Directly answers [#10507]; example lives in this repo. | fork; via #10507 |
+| [uSWID PR #1] — CDX 1.4+ component types | hughsie/python-uswid | **The embed bridge.** uSWID converts CDX→coSWID and embeds it so fwupd reads it on-device; the generator's output tripped uSWID's type parser — this fixes the round-trip. | ✅ **upstreamed → [hughsie/python-uswid#98](https://github.com/hughsie/python-uswid/pull/98)** |
+| [edk2 PR #1] — libspdm 3.7.0→3.8.2 | edk2 / SecurityPkg | **Supply-chain hygiene, same theme.** Refreshes a third-party component and honestly scopes its exposure — exactly the stale-pin an SBOM surfaces. | greenlit; route TBD (list vs PR) |
+| [edk2 PR #5] — native `-Y SPDX` | edk2 / BaseTools | **Reserve.** Native SPDX emission if the format question calls for it; not bundled with the CycloneDX generator. | fork reserve (not proposed) |
 
 The *verification* half (reconcile + attest + OPA gate + provenance) is this repo, operator-side, and is
 deliberately **not** proposed upstream.
