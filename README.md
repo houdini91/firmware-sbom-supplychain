@@ -30,8 +30,8 @@ shape; this table says what exists. ✅ implemented · ⚠️ canned/stubbed · 
 | Stage | Designed | Status |
 |---|---|---|
 | 1 — Generate declared SBOM | edk2 `-Y SBOM` | ✅ implemented (edk2 PR #2; CycloneDX 1.6, per-module SHA-256/512, CISA/BSI Tier-1 metadata; 310-component example committed) |
-| 2 — Observed carve → observed SBOM | `build_sbom.py` | ❌ not built in this repo (planned) |
-| 3 — Reconcile declared vs observed | `sbom-reconcile` | ⚠️ **canned** — `inputs/reconcile-verdict.json` is a committed input, not generated (tooling planned; the "novel piece") |
+| 2 — Observed carve → observed FFS | edk2 FMMT | ✅ implemented (`reconcile/carve.sh` — FMMT decompresses the FVs and lists FFS `FILE_GUID`s) |
+| 3 — Reconcile declared vs observed | `reconcile/sbom-reconcile.py` | ✅ **generated** (not canned) — real carve → verdict: 123/123 modules validated, 0 missing, 0 suspicious. *Membership* is real; *byte-integrity* (`modified`) is honestly deferred (XIP/rebased PEIMs need canonicalization; declared hashes exist, observed-side extract is the next step) |
 | 4 — CDX → SPDX | protobom `sbom-convert` | ✅ implemented (`interop/to-spdx.sh` + `inputs/sbom.spdx.json`) |
 | 4b — CDX → coSWID + embed | uSWID | ❌ not built (only the uSWID CDX-type-fix PR exists) |
 | 5 — CVE map | grype | ✅ implemented (CI) |
@@ -40,8 +40,10 @@ shape; this table says what exists. ✅ implemented · ⚠️ canned/stubbed · 
 | 8 — Policy gate | OPA / Valint | ✅ implemented (verifier-reports + SLSA VSA) |
 | runtime — measured boot / RIM bind | TCG RIM / RATS | ⛔ aspirational, documented in DESIGN (not implemented) |
 
-The enforcing gate (stages 5–8) and the SPDX interop (4) run here; the generator (1) is edk2 PR #2. The two
-open build gaps are **2/3** (make reconcile real, not canned) and **4b** (the coSWID embed round-trip).
+The enforcing gate (stages 5–8), the SPDX interop (4), and now the real observed-carve + reconcile (2/3) run
+here; the generator (1) is edk2 PR #2. Remaining: **4b** (the coSWID embed round-trip), and turning
+reconcile's `modified` (byte-integrity) from deferred into real (observed-side PE32 extract + canonicalize +
+hash-compare against the declared SHA-256/512).
 
 ## The tools, in one line each
 

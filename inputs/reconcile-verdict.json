@@ -1,13 +1,18 @@
 {
+ "tool": "sbom-reconcile",
+ "clean": true,
+ "granularity": "module/FFS",
  "summary": {
-  "declared": 123,
-  "observed": 126,
+  "declared_modules": 123,
+  "declared_libraries": 187,
+  "observed_ffs": 126,
+  "firmware_volumes": 4,
   "validated": 123,
   "missing": 0,
   "added_structural": 3,
   "added_suspicious": 0,
   "modified": 0,
-  "modified_skipped": 12
+  "modified_skipped": 11
  },
  "validated": [
   "0167ccc4-d0f7-4f21-a3ef-9e64b7cdce8b",
@@ -138,69 +143,77 @@
  "added": [
   {
    "guid": "1b45cc0a-156a-428a-af62-49864da0e6e6",
-   "ffs_type": "freeform",
+   "ffs_type": "apriori / FV structure",
    "classification": "structural"
   },
   {
    "guid": "9e21fd93-9c72-4c15-8c4b-e77f1db2d792",
-   "ffs_type": "firmware volume image",
+   "ffs_type": "apriori / FV structure",
    "classification": "structural"
   },
   {
    "guid": "fc510ee7-ffdc-11d4-bd41-0080c73c8881",
-   "ffs_type": "freeform",
+   "ffs_type": "apriori / FV structure",
    "classification": "structural"
   }
  ],
  "modified": [],
  "modified_skipped": [
   {
-   "guid": "1ba0062e-c779-4582-8566-336ae8f78f09",
-   "reason": "no content hash (declared or observed side missing)"
-  },
-  {
    "guid": "222c386d-5abc-4fb4-b124-fbb82488acf4",
-   "reason": "XIP/rebased (PEIM is relocated in-FV)"
+   "name": "PlatformPei",
+   "reason": "XIP/rebased in FV (PEIM) \u2014 in-FV bytes need canonicalization before hash compare"
   },
   {
    "guid": "280251c4-1d09-4035-9062-839acb5f18c1",
-   "reason": "XIP/rebased (PEIM is relocated in-FV)"
+   "name": "CpuMpPei",
+   "reason": "XIP/rebased in FV (PEIM) \u2014 in-FV bytes need canonicalization before hash compare"
   },
   {
    "guid": "52c05b14-0b98-496c-bc3b-04b50211d680",
-   "reason": "XIP/rebased (PEI_CORE is relocated in-FV)"
+   "name": "PeiCore",
+   "reason": "XIP/rebased in FV (PEI_CORE) \u2014 in-FV bytes need canonicalization before hash compare"
   },
   {
    "guid": "86d70125-baa3-4296-a62f-602bebbb9081",
-   "reason": "XIP/rebased (PEIM is relocated in-FV)"
+   "name": "DxeIpl",
+   "reason": "XIP/rebased in FV (PEIM) \u2014 in-FV bytes need canonicalization before hash compare"
   },
   {
    "guid": "89e549b0-7cfe-449d-9ba3-10d8b2312d71",
-   "reason": "XIP/rebased (PEIM is relocated in-FV)"
+   "name": "S3Resume2Pei",
+   "reason": "XIP/rebased in FV (PEIM) \u2014 in-FV bytes need canonicalization before hash compare"
   },
   {
    "guid": "9b3ada4f-ae56-4c24-8dea-f03b7558ae50",
-   "reason": "XIP/rebased (PEIM is relocated in-FV)"
+   "name": "PcdPeim",
+   "reason": "XIP/rebased in FV (PEIM) \u2014 in-FV bytes need canonicalization before hash compare"
   },
   {
    "guid": "9d225237-fa01-464c-a949-baabc02d31d0",
-   "reason": "XIP/rebased (PEIM is relocated in-FV)"
+   "name": "StatusCodeHandlerPei",
+   "reason": "XIP/rebased in FV (PEIM) \u2014 in-FV bytes need canonicalization before hash compare"
   },
   {
    "guid": "a3610442-e69f-4df3-82ca-2360c4031a23",
-   "reason": "XIP/rebased (PEIM is relocated in-FV)"
+   "name": "ReportStatusCodeRouterPei",
+   "reason": "XIP/rebased in FV (PEIM) \u2014 in-FV bytes need canonicalization before hash compare"
   },
   {
    "guid": "df1ccef6-f301-4a63-9661-fc6030dcc880",
-   "reason": "XIP/rebased (SEC is relocated in-FV)"
+   "name": "SecMain",
+   "reason": "XIP/rebased in FV (SEC) \u2014 in-FV bytes need canonicalization before hash compare"
   },
   {
    "guid": "edadeb9d-ddba-48bd-9d22-c1c169c8c5c6",
-   "reason": "XIP/rebased (PEIM is relocated in-FV)"
+   "name": "CpuMpPei",
+   "reason": "XIP/rebased in FV (PEIM) \u2014 in-FV bytes need canonicalization before hash compare"
   },
   {
    "guid": "fcb3a3d6-6274-411c-a548-bd0e717d533a",
-   "reason": "XIP/rebased (PEIM is relocated in-FV)"
+   "name": "TdTcg2Pei",
+   "reason": "XIP/rebased in FV (PEIM) \u2014 in-FV bytes need canonicalization before hash compare"
   }
- ]
+ ],
+ "libraries_transitive": 187
 }
