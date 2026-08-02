@@ -42,6 +42,11 @@ _reconcile_clean if input.reconcile.clean
 default _no_critical := false
 _no_critical if count(critical_cves) == 0
 
+# SLSA L2: the pipeline verified platform-generated provenance (attest-build-
+# provenance + `gh attestation verify`) and the assembler surfaced it here.
+default _slsa_verified := false
+_slsa_verified if input.provenance.slsa_verified
+
 # ---------------------------------------------------------------------------
 # Normalized verifier reports — one per fact, tagged with the controls it
 # satisfies. The gate ANDs isSuccess across all of them.
@@ -67,6 +72,12 @@ verifier_reports := [
 		"provenance-identity", _provenance_ok,
 		"built by the expected builder and source", _provenance_msg,
 		["SLSA-provenance-L1", "SSDF-PS.3"],
+	),
+	_report(
+		"slsa-provenance", _slsa_verified,
+		"SLSA L2 provenance verified (platform-generated: attest-build-provenance + gh attestation verify)",
+		"SLSA L2 provenance not verified (needs attest-build-provenance + gh attestation verify)",
+		["SLSA-provenance-L2", "SSDF-PO.3.3"],
 	),
 	_report(
 		"reconcile", _reconcile_clean,
@@ -136,6 +147,8 @@ deny contains msg if {
 	msg := sprintf("unexpected source repo: %q", [input.provenance.source_repo])
 }
 
+deny contains "SLSA L2 provenance not verified (needs attest-build-provenance + gh attestation verify)" if not input.provenance.slsa_verified
+
 deny contains "reconcile failed: SBOM does not match firmware bytes" if not input.reconcile.clean
 
 deny contains "SBOM bytes do not match the signed attestation subject (possible swap after signing)" if {
@@ -170,10 +183,10 @@ vsa_predicate := {
 _result := "PASSED" if allow
 _result := "FAILED" if not allow
 
-# The reference CI pipeline establishes SLSA Build L2 for the SBOM via
-# actions/attest-build-provenance + `gh attestation verify` (the "Verify the
-# SLSA provenance" hard-gate step) before this gate runs, so the VSA reports
-# that level. (The local offline demo does not run attest-build-provenance;
-# wiring the verified level in as its own gate verifier report is a follow-up.)
+# The gate now includes a `slsa-provenance` verifier report, so `allow` implies
+# input.provenance.slsa_verified — i.e. SLSA L2 provenance was verified
+# (platform-generated via attest-build-provenance + `gh attestation verify`,
+# which the shared assembler surfaces as that fact). verifiedLevels is therefore
+# gate-backed, not merely asserted on the pass verdict.
 _levels := ["SLSA_BUILD_LEVEL_2"] if allow
 _levels := [] if not allow
