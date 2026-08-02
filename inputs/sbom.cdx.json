@@ -10559,6 +10559,40 @@
           "content": "2aa7e8a5e071741eeb40ccaa4db3b58379d56f91b6509e33d8b181b27d64774b31faea842c03d1bdada389b2efbc889dcbc4c8183911c1e08d0f78fc4126fa22"
         }
       ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:github/openssl/openssl@openssl-3.5.7",
+      "name": "openssl",
+      "version": "openssl-3.5.7",
+      "purl": "pkg:github/openssl/openssl@openssl-3.5.7",
+      "cpe": "cpe:2.3:a:openssl:openssl:3.5.7:*:*:*:*:*:*:*",
+      "supplier": {
+        "name": "openssl"
+      },
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/openssl/openssl"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "edk2:submodulePath",
+          "value": "CryptoPkg/Library/OpensslLib/openssl"
+        },
+        {
+          "name": "edk2:vendored",
+          "value": "true"
+        }
+      ]
     }
   ],
   "dependencies": [
@@ -14052,6 +14086,12 @@
         "f6ef2763-ca3b-4c6f-a931-2a48de3ce352",
         "fa177ff7-1fc7-458d-a358-d9d62ae61cec",
         "fd565572-5195-4113-9018-113b33939e91"
+      ]
+    },
+    {
+      "ref": "E29FC209-8B64-4500-BD20-AF4EAE47EA0E",
+      "dependsOn": [
+        "pkg:github/openssl/openssl@openssl-3.5.7"
       ]
     }
   ]
