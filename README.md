@@ -22,8 +22,26 @@ tool, not a second enforcement point. Honest scope, stated up front.
 generate → verify(sig+provenance) → reconcile(bytes==SBOM) → CVE map → attest → OPA/compliance gate → deploy
 ```
 
-Stages 1–3 (generate the CycloneDX SBOM from the edk2 build, reconcile it against the actual firmware bytes)
-come from the companion `edk2-sbom` tooling. **This repo is stages 4–6: attest, and gate.**
+### Implementation status
+
+The honest source of truth for what is actually built vs. designed. `DESIGN.md` describes the full intended
+shape; this table says what exists. ✅ implemented · ⚠️ canned/stubbed · ❌ not built · ⛔ aspirational.
+
+| Stage | Designed | Status |
+|---|---|---|
+| 1 — Generate declared SBOM | edk2 `-Y SBOM` | ✅ implemented (edk2 PR #2; CycloneDX 1.6, per-module SHA-256/512, CISA/BSI Tier-1 metadata; 310-component example committed) |
+| 2 — Observed carve → observed SBOM | `build_sbom.py` | ❌ not built in this repo (planned) |
+| 3 — Reconcile declared vs observed | `sbom-reconcile` | ⚠️ **canned** — `inputs/reconcile-verdict.json` is a committed input, not generated (tooling planned; the "novel piece") |
+| 4 — CDX → SPDX | protobom `sbom-convert` | ✅ implemented (`interop/to-spdx.sh` + `inputs/sbom.spdx.json`) |
+| 4b — CDX → coSWID + embed | uSWID | ❌ not built (only the uSWID CDX-type-fix PR exists) |
+| 5 — CVE map | grype | ✅ implemented (CI) |
+| 6 — Attest + sign | cosign / Valint | ✅ implemented |
+| 7 — Store to OCI | cosign | ✅ implemented (CI) |
+| 8 — Policy gate | OPA / Valint | ✅ implemented (verifier-reports + SLSA VSA) |
+| runtime — measured boot / RIM bind | TCG RIM / RATS | ⛔ aspirational, documented in DESIGN (not implemented) |
+
+The enforcing gate (stages 5–8) and the SPDX interop (4) run here; the generator (1) is edk2 PR #2. The two
+open build gaps are **2/3** (make reconcile real, not canned) and **4b** (the coSWID embed round-trip).
 
 ## The tools, in one line each
 
