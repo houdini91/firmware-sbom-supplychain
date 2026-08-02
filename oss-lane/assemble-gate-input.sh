@@ -66,6 +66,10 @@ MISSING_N="$(printf '%s' "$PRED" | jq '.summary.missing // 0')"
 UNDECLARED="$(printf '%s' "$PRED" | jq '.summary.added_suspicious // 0')"
 # SI-7(1): per-component hash coverage — non-library modules and which lack a hash.
 INTEG="$(jq -c '[.components[]|select(.type!="library")] | {hashable_total:length, hashed:([.[]|select(.hashes)]|length), unhashed:[.[]|select(.hashes|not)|.name]}' "$SBOM")"
+# CISA License/Software-ID, S2C2F SCA-2: third-party components (marked edk2:vendored)
+# must carry purl + license. First-party edk2 FFS modules lack the marker and are
+# excluded by construction, not by a loosened threshold.
+THIRDPARTY="$(jq -c '[.components[]|select(any(.properties[]?; .name=="edk2:vendored" and .value=="true"))] | {total:length, missing:[.[]|select((.purl|not) or (.licenses|not))|.name]}' "$SBOM")"
 if [ -n "$GRYPE_JSON" ] && [ -f "$GRYPE_JSON" ]; then
   CVE="$(jq '[.matches[]? | {id:.vulnerability.id, component:.artifact.name, severity:(.vulnerability.severity|ascii_upcase)}] | unique' "$GRYPE_JSON")"
 else
@@ -77,8 +81,8 @@ jq -n --arg sig "$SIG" --arg sh "$SBOM_HASH" --arg sd "$SUBJECT_DIGEST" \
       --argjson clean "$CLEAN" --argjson pred "$PRED" --argjson cve "$CVE" \
       --arg slsa "$SLSA_VERIFIED" --arg chipsec "$CHIPSEC_PASSED" \
       --argjson integ "$INTEG" --argjson declared "$DECLARED" --argjson matched "$MATCHED" \
-      --argjson missing_n "$MISSING_N" --argjson undeclared "$UNDECLARED" '{
-  sbom:        {present:$present, hash:("sha256:"+$sh), integrity:$integ},
+      --argjson missing_n "$MISSING_N" --argjson undeclared "$UNDECLARED" --argjson thirdparty "$THIRDPARTY" '{
+  sbom:        {present:$present, hash:("sha256:"+$sh), integrity:$integ, thirdparty:$thirdparty},
   attestation: {subject_digest:(if $sd=="" then "" else "sha256:"+$sd end)},
   signature:   {verified:($sig=="true")},
   provenance:  {builder_id:$b, source_repo:$r, slsa_verified:($slsa=="true")},

@@ -2,19 +2,43 @@
   "sbom": {
     "present": true,
     "hash": "sha256:3b1f0a9c8e2d4b6a7c5e9f01234567890abcdef1122334455667788990011aabb",
-    "integrity": { "hashable_total": 123, "hashed": 122, "unhashed": ["ResetVector"] }
+    "integrity": {
+      "hashable_total": 123,
+      "hashed": 122,
+      "unhashed": [
+        "ResetVector"
+      ]
+    },
+    "thirdparty": {
+      "total": 1,
+      "missing": []
+    }
   },
-  "attestation": { "subject_digest": "sha256:3b1f0a9c8e2d4b6a7c5e9f01234567890abcdef1122334455667788990011aabb" },
-  "signature": { "verified": true },
+  "attestation": {
+    "subject_digest": "sha256:3b1f0a9c8e2d4b6a7c5e9f01234567890abcdef1122334455667788990011aabb"
+  },
+  "signature": {
+    "verified": true
+  },
   "provenance": {
     "builder_id": "https://github.com/houdini91/firmware-sbom-supplychain/.github/workflows/supply-chain.yml@refs/heads/main",
     "source_repo": "https://github.com/houdini91/firmware-sbom-supplychain",
     "slsa_verified": true
   },
   "reconcile": {
-    "clean": true, "missing": [], "added": [], "modified": [],
-    "declared": 123, "matched": 120, "missing_count": 3, "undeclared_observed": 0
+    "clean": true,
+    "missing": [],
+    "added": [],
+    "modified": [],
+    "declared": 123,
+    "matched": 120,
+    "missing_count": 3,
+    "undeclared_observed": 0
   },
-  "cve": { "findings": [] },
-  "chipsec": { "critical_passed": true }
+  "cve": {
+    "findings": []
+  },
+  "chipsec": {
+    "critical_passed": true
+  }
 }

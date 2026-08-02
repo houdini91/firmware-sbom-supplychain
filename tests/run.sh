@@ -29,6 +29,7 @@ expect chipsec-fail.json    deny
 expect reconcile-mismatch.json deny
 expect unhashed-module.json deny
 expect high-unadjudicated.json deny
+expect thirdparty-missing.json deny
 echo "================================"
 [ "$fail" -eq 0 ] && echo "ALL PASS" || echo "FAILURES"
 exit $fail

@@ -86,6 +86,16 @@ _unadjudicated contains c if {
 default _vex_adjudicated := false
 _vex_adjudicated if count(_unadjudicated) == 0
 
+# CISA License + Software-Identifiers, S2C2F SCA-2, SSDF PW.4.4: every third-party
+# component carries a purl + license. edk2 FFS modules are excluded by
+# construction (not marked edk2:vendored); total>=1 stops an empty third-party
+# set from passing vacuously.
+default _thirdparty_ok := false
+_thirdparty_ok if {
+	input.sbom.thirdparty.total >= 1
+	count(input.sbom.thirdparty.missing) == 0
+}
+
 # ---------------------------------------------------------------------------
 # Normalized verifier reports — one per fact, tagged with the controls it
 # satisfies. The gate ANDs isSuccess across all of them.
@@ -143,6 +153,12 @@ verifier_reports := [
 		["SSDF-RV.1.1", "SSDF-RV.1.2", "S2C2F-SCA-1"],
 	),
 	_report(
+		"thirdparty-identifiers", _thirdparty_ok,
+		"every third-party component carries a purl + license",
+		_thirdparty_msg,
+		["CISA-2026-license", "CISA-2026-software-id", "S2C2F-SCA-2", "SSDF-PW.4.4"],
+	),
+	_report(
 		"reconcile", _reconcile_clean,
 		"declared SBOM matches observed firmware bytes",
 		"reconcile failed: SBOM does not match firmware bytes",
@@ -179,6 +195,11 @@ _reconcile_membership_msg := sprintf(
 _integrity_msg := sprintf("%d module(s) lack a hash and are not in data.hash_exempt: %v", [count(_integrity_unresolved), _integrity_unresolved])
 
 _vex_msg := sprintf("%d high/critical CVE(s) lack a non-empty VEX justification: %v", [count(_unadjudicated), {c.id | some c in _unadjudicated}])
+
+_thirdparty_msg := sprintf(
+	"third-party identity incomplete: %d component(s) lack purl/license %v (total third-party=%v)",
+	[count(object.get(input, ["sbom", "thirdparty", "missing"], [])), object.get(input, ["sbom", "thirdparty", "missing"], []), object.get(input, ["sbom", "thirdparty", "total"], 0)],
+)
 
 # ---------------------------------------------------------------------------
 # Decision: allow iff every verifier report succeeded.
@@ -229,6 +250,8 @@ deny contains _reconcile_membership_msg if not _reconcile_membership
 deny contains _integrity_msg if not _integrity_coverage
 
 deny contains _vex_msg if not _vex_adjudicated
+
+deny contains _thirdparty_msg if not _thirdparty_ok
 
 deny contains "reconcile failed: SBOM does not match firmware bytes" if not input.reconcile.clean
 
