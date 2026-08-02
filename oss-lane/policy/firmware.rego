@@ -47,6 +47,13 @@ _no_critical if count(critical_cves) == 0
 default _slsa_verified := false
 _slsa_verified if input.provenance.slsa_verified
 
+# CHIPSEC platform posture (R3): the applicable critical protection modules
+# PASSED against the target. NOTAPPLICABLE HW-root checks on OVMF/QEMU are not
+# failures (see chipsec-lane/to-predicate.py). Platform-config assessment, not
+# runtime measured boot.
+default _chipsec_posture := false
+_chipsec_posture if input.chipsec.critical_passed
+
 # ---------------------------------------------------------------------------
 # Normalized verifier reports — one per fact, tagged with the controls it
 # satisfies. The gate ANDs isSuccess across all of them.
@@ -78,6 +85,12 @@ verifier_reports := [
 		"SLSA L2 provenance verified (platform-generated: attest-build-provenance + gh attestation verify)",
 		"SLSA L2 provenance not verified (needs attest-build-provenance + gh attestation verify)",
 		["SLSA-provenance-L2", "SSDF-PO.3.3"],
+	),
+	_report(
+		"chipsec-posture", _chipsec_posture,
+		"platform protections verified (CHIPSEC: applicable critical modules passed)",
+		"platform protections not verified (CHIPSEC: a critical module failed, or none ran)",
+		["SP800-193-4.2", "SP800-147"],
 	),
 	_report(
 		"reconcile", _reconcile_clean,
@@ -148,6 +161,8 @@ deny contains msg if {
 }
 
 deny contains "SLSA L2 provenance not verified (needs attest-build-provenance + gh attestation verify)" if not input.provenance.slsa_verified
+
+deny contains "platform protections not verified (CHIPSEC critical module failed or none ran)" if not input.chipsec.critical_passed
 
 deny contains "reconcile failed: SBOM does not match firmware bytes" if not input.reconcile.clean
 

@@ -56,6 +56,7 @@ SBOM="$SBOM" BUNDLE="$IN/sbom.att.bundle" SIG="$SIG" \
   GRYPE_JSON="$IN/grype.json" OUT="$IN/gate-input.json" \
   DEV_ASSUME_IDENTITY="${DEV_ASSUME_IDENTITY:-1}" \
   DEV_ASSUME_SLSA="${DEV_ASSUME_SLSA:-1}" \
+  CHIPSEC_JSON="${CHIPSEC_JSON:-$IN/chipsec.json}" \
   bash "$HERE/assemble-gate-input.sh"
 
 echo "== 6. gate =="
