@@ -1,0 +1,19 @@
+# CodeQL configuration for the scoped edk2 firmware C/C++ scan.
+#
+# edk2 is enormous; scanning the whole tree with build-mode:none would be slow
+# and noisy. We deliberately narrow the analysis to a single firmware package so
+# the run finishes fast and produces focused, reviewable SARIF. NetworkPkg is a
+# self-contained network stack (DHCP/TCP/TLS/iSCSI) — a meaningful attack surface
+# and the package called out in EVIDENCE-ROADMAP.md (R2, SAST).
+#
+# `paths:` is evaluated relative to the source checkout root (the edk2 fork is
+# checked out at the workspace root in the sast-edk2-c job).
+name: "edk2 scoped C/C++ SAST"
+
+# security-extended adds the broader security query set on top of the default
+# suite — appropriate for a portfolio SAST-evidence demo.
+queries:
+  - uses: security-extended
+
+paths:
+  - NetworkPkg
