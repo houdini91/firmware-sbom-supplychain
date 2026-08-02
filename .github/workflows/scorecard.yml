@@ -1,0 +1,84 @@
+name: scorecard-supply-chain
+
+# OpenSSF Scorecard posture evidence (EVIDENCE-ROADMAP.md, mirrors codeql.yml).
+# Runs the Scorecard probes against this repo and produces real SARIF:
+#   * uploaded to the repository Security tab (upload-sarif), and
+#   * written to a known path (results.sarif) + published as an artifact + keyless-
+#     signed, so a LATER pipeline step can attest the SARIF as signed evidence.
+#
+# IMPORTANT: Scorecard here is *posture evidence*, not a hard gate. There is
+# deliberately NO score-threshold check — a low Scorecard score must never fail
+# CI. The job just produces, signs, and publishes the result.
+#
+# The weekly schedule matters: several Scorecard probes (e.g. Branch-Protection,
+# and the publish_results signal) expect scheduled runs to work correctly.
+#
+# All actions are pinned by commit SHA with a version comment (see supply-chain.yml).
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    # Weekly, Mondays at 07:17 UTC. Scheduled runs feed branch_protection & other checks.
+    - cron: "17 7 * * 1"
+
+permissions:
+  contents: read   # least-privilege default; the job opts into exactly what it needs
+
+jobs:
+  scorecard-analysis:
+    name: OpenSSF Scorecard — supply-chain posture evidence
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write   # upload SARIF to the Security tab
+      id-token: write          # OIDC: Scorecard publish_results + keyless cosign signing
+      contents: read           # checkout this repo
+      actions: read            # read workflow run metadata (Scorecard best practice)
+    env:
+      # cosign keyless cert identity = this workflow's ref (same shape as codeql.yml).
+      WORKFLOW_REF: https://github.com/${{ github.repository }}/.github/workflows/scorecard.yml@${{ github.ref }}
+    steps:
+      - name: Checkout (this repo)
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Run OpenSSF Scorecard
+        uses: ossf/scorecard-action@55891bbd73f2425e97637d96e306fc9d491d0b21 # v2.4.4
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          # Publish the (non-secret) result to the OpenSSF API so the repo earns a
+          # public Scorecard badge. Needs id-token: write (OIDC).
+          publish_results: true
+
+      # Upload the SARIF to the repository Security tab (code scanning alerts).
+      - name: Upload SARIF to the Security tab
+        uses: github/codeql-action/upload-sarif@a2983b8bed1923f44751c5c43237f479442827b3 # v3.37.4
+        with:
+          sarif_file: results.sarif
+
+      - name: Publish Scorecard SARIF artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: scorecard-sarif
+          path: results.sarif
+          if-no-files-found: error
+
+      # ── SARIF as signed evidence ────────────────────────────────────────────
+      # Mirrors codeql.yml's keyless cosign pattern: sign-blob --yes --bundle over
+      # the produced SARIF, then verify-blob against this workflow's OIDC cert.
+      - name: Install cosign
+        uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac # v3
+
+      - name: Keyless-sign the Scorecard SARIF as signed evidence
+        run: |
+          set -euo pipefail
+          echo "--- signing results.sarif ---"
+          cosign sign-blob --yes --bundle results.sarif.sig.bundle results.sarif
+          cosign verify-blob \
+            --certificate-identity "$WORKFLOW_REF" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            --bundle results.sarif.sig.bundle results.sarif
+          echo "✓ results.sarif keyless-signed + verified -> results.sarif.sig.bundle"
