@@ -89,9 +89,26 @@ Pin = the exact commit edk2 vendors. "CI pinning" = does the *upstream* SHA-pin 
 | cmocka | 2019-12 `1cc9cde` | cryptomilk solo + tianocore mirror | mirror current, **pin 2019** | none | mutable-tag sync | **test-only** | LOW (dev) |
 | subhook | 2022-03 `83d4e1e` | **Zeex — upstream GONE**, tianocore mirror | **ORPHANED / frozen** | none | no CI | **test-only** | LOW–MED (dev) |
 
-**What is *not* externally verifiable** (org-private settings): required 2FA, required signed commits/tags,
-and exact per-OEM DSC enablement of Redfish / SYS-T / fTPM. Where these matter (the worst case), they are
-called out as honest unknowns, not assumed.
+### Verified repo security posture (public GitHub API + Scorecard)
+
+Signing/protection posture, pulled from public endpoints (`.commit.verification`, tag objects, the `protected`
+boolean, Scorecard). The finding is stark: **commit streams are almost entirely unsigned**, so integrity of
+the whole set rests on edk2's **SHA-pinning** plus a **handful of signed tags** — not on cryptographic commit
+provenance.
+
+| Repo | Commit signing (last 10) | Tag / release signing | `protected` bool | Code-Review (SC) | Push surface |
+|---|---|---|---|---|---|
+| kkos/oniguruma | **1/10** signed | **none** (lightweight → unsigned) | true *(moot — archived R/O)* | 0 | archived; owner-only |
+| akheron/jansson | mixed (maintainer signs) | **signed + verified** (Lehtinen) | false | 6 | user; 91 contrib |
+| devicetree-org/pylibfdt | **0/10** | recent tags **signed + verified** (Herring) | false | — | devicetree-org write |
+| dgibson/dtc | **0/10** | signed but **`unknown_key`** (unverifiable) | false | — | user; 127 contrib |
+| tianocore/edk2-cmocka | mostly unsigned | **upstream signed tags preserved** (Schneider) | false | — | **tianocore write (39 pub members)** |
+| tianocore/edk2-subhook | mixed | **no tags** → pinned by raw SHA | false | — | **tianocore write (39 pub members)** |
+| DMTF/libspdm | **0/10** | **weak** (lightweight/unsigned) | true | 9 | DMTF write |
+
+**Still not externally verifiable** (honestly): exact **branch-protection rules** (required reviews, who-can-push,
+force-push) return 404 for all seven without admin; **org 2FA enforcement** is `null` for tianocore/DMTF/
+devicetree-org; and per-OEM DSC enablement of Redfish/SYS-T/fTPM. These are stated as unknowns, not assumed.
 
 ## The worst case — pinned
 
@@ -160,6 +177,18 @@ backdoors everyone" (SHA-pinning stops that) — it is that **abandonment, stale
 pin-bump path put a memory-unsafe, unmaintained parser (oniguruma) into shipping server firmware, and leave a
 human-review-only gate between a poisoned dependency commit and every downstream UEFI vendor.**
 
+**Verified refinement (Aug 2026 posture check):** the data sharpens both ends. For **oniguruma**, the archived
+(read-only) status is a real platform-level brake — no new commit/PR/tag can land without the sole owner
+un-archiving — *but* the pin-bump path is **integrity-blind**: 1/10 recent commits signed, tags lightweight
+and unsigned, so an owner-account compromise (un-archive → retag) would be **cryptographically undetectable**
+to a consumer. For the **tianocore mirrors**, the push surface is *wider* than the personal upstreams (any of
+the org's 39+ writers, `protected: false`), making tampering more credible — but two verified brakes hold:
+**subhook has no tags so edk2 pins it by raw SHA** (a changed mirror commit = changed SHA = pin mismatch), and
+**edk2-cmocka preserves upstream's signed+verified tags** (a malicious retag would fail GPG against Andreas
+Schneider's key) — *provided edk2's consumption actually validates them*. The systemic finding: **commit
+streams are essentially unsigned across the set** (0/10 on pylibfdt, dtc, libspdm), so the only integrity
+anchors are edk2's SHA-pins plus a few signed tags.
+
 ## What defends against it (ties back to the design)
 
 - **SHA-pinning** — the structural block on silent propagation (edk2 already does this; the demo enforces the
@@ -170,6 +199,16 @@ human-review-only gate between a poisoned dependency commit and every downstream
   that gap is the *ingest* problem (S2C2F) this map documents.
 - **Posture monitoring** — Scorecard + staleness + EOL tracking of the dependency set as a standing signal, so
   a bump toward an abandoned or freshly-compromised upstream is flagged before review.
+
+## Concrete hardening actions (verified build-safe)
+
+| Action | Status | Note |
+|---|---|---|
+| **jansson 2.13.1 → v2.15.1** | **PR-ready** | 6-yr-stale pin; all 11 `JsonLib.inf` sources present at target, new `dtoa.c` optional (edk2 leaves `DTOA_ENABLED` unset), INF unchanged. Fork PR for review; RedfishPkg test-build is the pre-upstream gate. |
+| **oniguruma** | **no bump** | fork gitlink already == final EOL tag `v6.9.10`; the action is *document EOL / plan replacement of `RegularExpressionDxe`*, not a pin change. |
+| **libfdt → v1.8.x** | **blocked** | the `pylibfdt` mirror edk2 consumes tops out at v1.7.2; can't pin v1.8.x until the mirror syncs — itself a mirror-lag finding. |
+| **cmocka 2019 → 1.1.8** | optional | test-only (not shipped); 1.1.8 clean, 2.0.x is breaking. Low priority. |
+| **verify signed tags where they exist** | recommendation | edk2 could validate the signed+verified tags on jansson / cmocka-upstream / pylibfdt; SHA-pin remains the anchor where tags are unsigned (oniguruma, libspdm, subhook). |
 
 ## Honest limitations
 
