@@ -1,0 +1,127 @@
+name: codeql-sast
+
+# CodeQL SAST evidence (EVIDENCE-ROADMAP.md R2). Produces real SARIF:
+#   * uploaded to the repository Security tab (the analyze step does this), and
+#   * written to a known path + published as an artifact, so a LATER pipeline
+#     step can attest the SARIF as a signed in-toto predicate.
+#
+# Two independent scan targets:
+#   1. sast-python  — this repo's own Python supply-chain tooling (reconcile/).
+#                     No external checkout; runs on every push for a fast, always-
+#                     green "we SAST our own tools" signal.
+#   2. sast-edk2-c  — the pinned edk2 fork's firmware C, scoped to NetworkPkg via
+#                     .github/codeql/codeql-config.yml. Heavier, so it is gated to
+#                     workflow_dispatch and never blocks the quick Python result.
+#
+# All actions are pinned by commit SHA with a version comment (see supply-chain.yml).
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read   # least-privilege default; each job opts into exactly what it needs
+
+jobs:
+  # 1) SAST our own Python tooling. No external checkout -> immediate, reliable
+  #    real evidence. build-mode:none (interpreted language, no build needed).
+  sast-python:
+    name: CodeQL — this repo's Python tooling
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read           # checkout this repo
+      security-events: write   # upload SARIF to the Security tab
+      actions: read            # read workflow run metadata (CodeQL best practice)
+    steps:
+      - name: Checkout (this repo)
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Initialize CodeQL (python)
+        uses: github/codeql-action/init@a2983b8bed1923f44751c5c43237f479442827b3 # v3.37.4
+        with:
+          languages: python
+          build-mode: none
+          queries: security-extended
+
+      - name: Analyze (python)
+        uses: github/codeql-action/analyze@a2983b8bed1923f44751c5c43237f479442827b3 # v3.37.4
+        with:
+          category: "/language:python"
+          # Write the SARIF to a known path (in addition to the Security-tab upload)
+          # so the attestation step below can consume it.
+          output: sarif-results
+          upload: always
+
+      - name: Publish Python SARIF artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: codeql-sarif-python
+          path: sarif-results/*.sarif
+          if-no-files-found: error
+
+      # ┌──────────────────────────────────────────────────────────────────────┐
+      # │ SARIF ATTESTATION SLOT (owned by a later task — DO NOT implement here) │
+      # │ A follow-up step keyless-attests sarif-results/*.sarif as an in-toto   │
+      # │ predicate (mirrors the cosign attest-blob pattern in supply-chain.yml) │
+      # │ and adds a `sast` verifier report ("no un-triaged high-severity        │
+      # │ finding"). Requires id-token: write + attestations: write on this job. │
+      # └──────────────────────────────────────────────────────────────────────┘
+
+  # 2) SAST the scoped edk2 firmware C. Checks out the pinned edk2 fork and runs
+  #    CodeQL c-cpp with build-mode:none, scoped to NetworkPkg via the config file
+  #    so it does not scan (or time out on) all of edk2. Gated to workflow_dispatch
+  #    so the Python job above is always the fast, green quick result on push.
+  sast-edk2-c:
+    name: CodeQL — scoped edk2 firmware C (NetworkPkg)
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    env:
+      # edk2 source under test. Owner confirmed from DESIGN.md / engagement notes
+      # (fork: houdini91/edk2). Tag edk2-stable202402 resolves to commit
+      # edc6681206c1a8791981a2f911d2fb8b3d2f5768 (immutable stable tag).
+      EDK2_REPO: houdini91/edk2
+      EDK2_REF: edk2-stable202402
+    steps:
+      - name: Checkout the pinned edk2 fork (source under test)
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          repository: ${{ env.EDK2_REPO }}
+          ref: ${{ env.EDK2_REF }}
+          # NetworkPkg has no submodules of its own, so a shallow, submodule-free
+          # checkout is enough and keeps the job fast.
+          submodules: false
+          persist-credentials: false
+
+      - name: Initialize CodeQL (c-cpp, scoped via config)
+        uses: github/codeql-action/init@a2983b8bed1923f44751c5c43237f479442827b3 # v3.37.4
+        with:
+          languages: c-cpp
+          build-mode: none
+          # paths: NetworkPkg + security-extended queries live in the config file.
+          config-file: ./.github/codeql/codeql-config.yml
+
+      - name: Analyze (c-cpp)
+        uses: github/codeql-action/analyze@a2983b8bed1923f44751c5c43237f479442827b3 # v3.37.4
+        with:
+          category: "/language:c-cpp"
+          output: sarif-results
+          upload: always
+
+      - name: Publish edk2 C SARIF artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: codeql-sarif-edk2-cpp
+          path: sarif-results/*.sarif
+          if-no-files-found: error
+
+      # ┌──────────────────────────────────────────────────────────────────────┐
+      # │ SARIF ATTESTATION SLOT (owned by a later task — DO NOT implement here) │
+      # │ Same as the Python job: keyless-attest sarif-results/*.sarif as an     │
+      # │ in-toto predicate and feed the `sast` verifier report. Needs           │
+      # │ id-token: write + attestations: write on this job.                     │
+      # └──────────────────────────────────────────────────────────────────────┘
