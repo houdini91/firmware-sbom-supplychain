@@ -49,7 +49,7 @@ not asserted.
 
 | # | Evidence | Format / predicate | What it proves | Ground-truth today | Enforced by |
 |---|---|---|---|---|---|
-| **E1** | **CycloneDX 1.6 SBOM** | in-toto SBOM predicate | declared composition of the firmware | 310 components (3 app / 108 driver / 12 firmware / 187 lib); **SHA-256+512 on 122 of the 123 non-library modules** (`ResetVector`, a raw reset-vector blob not a PE image, is the one skip); `metadata` timestamp/authors/tools/`lifecycle:build` populated; **0 PURLs, 0 licenses, ~0 third-party/submodule components** | `sbom-present` *(gate)* — presence only |
+| **E1** | **CycloneDX 1.6 SBOM** | in-toto SBOM predicate | declared composition of the firmware | 311 components (3 app / 108 driver / 12 firmware / 188 lib **incl. `openssl` as an in-image third-party dep with PURL/CPE/Apache-2.0**, R1); **SHA-256+512 on 122 of the 123 non-library modules** (`ResetVector`, a raw blob, is the one skip); `metadata` timestamp/authors/tools/`lifecycle:build` populated; edk2 FFS modules carry no PURL/license (no sensible PURL — N/A by design) | `sbom-present` *(gate)* — presence only |
 | **E2** | **SLSA Build L2 provenance** | `slsa.dev/provenance/v1` | build origin is authentic (platform-generated) | GitHub `attest-build-provenance`, **verified green in CI** with `gh attestation verify` | `slsa-provenance` *(gate)* backed by `gh attestation verify` *(CI)*; `provenance-identity` *(gate, identity)* |
 | **E3** | **Reconcile verdict** | custom in-toto predicate | shipped bytes match the declared component set | FMMT-carved FFS vs SBOM by GUID, **123/123 module-granular; membership only** (no per-component byte hash yet) | `reconcile` *(gate)* |
 | **E4** | **CVE + VEX** | grype JSON + OpenVEX | no un-triaged critical vulnerability ships | scan over E1 + OpenVEX triage allowlist | `cve-triage` *(gate)* |
@@ -106,13 +106,15 @@ integrity is *Gap → value* item #2.
 
 Ranked by **controls-advanced per unit of effort**, using the overlap matrix.
 
-1. **Enrich the SBOM (E1): add PURLs + licenses + third-party/submodule components.** *One artifact change*
-   advances: BSI §5.2.2 licenses/deps, §5.2.4 CPE/PURL/URIs; CISA'26 License + Software-Identifiers + Supplier +
-   completeness; CRA Annex I §II(1) component identification; S2C2F SCA-2 + INV-1; SSDF PS.3.2 / PW.4.1;
-   800-53 SR-4 / SR-4(4) / CM-8 — **~10 controls across 5 frameworks.** *New tooling:* a license/PURL emitter +
-   submodule enumeration (from the 13 gitlinks). **Honest limit:** PURL/CPE/license are real for the vendored
-   submodules (openssl, brotli…), **not** for edk2 FFS modules — so most components stay identifier-less and
-   several cells move *toward* `PARTIAL`, not fully satisfied. Emit where real, mark N/A where not.
+1. **In-image third-party identity — DONE (R1).** The generator now emits the vendored submodules *actually
+   linked into the image* with PURL/version/SPDX-license/CPE/supplier + a `dependsOn` edge from the consuming
+   library. For OVMF X64 that is **openssl (openssl-3.5.7)** — the one in-image submodule — advancing (for that
+   component): BSI §5.2.4 CPE/PURL, CISA'26 License + Software-Identifiers + Supplier, CRA Annex I §II(1)
+   identification, S2C2F SCA-2; and its CPE lets the CVE gate map real openssl CVEs. **Honest scope correction:**
+   it is *one* component, **not ~13** — this image only links openssl (mbedtls/oniguruma/jansson/libspdm/… belong
+   to other platforms), and PURL/license are N/A for edk2 FFS modules by design. So these cells move to `PARTIAL`
+   (satisfied for the in-image third-party dep), not fully. The generator generalizes per-artifact — a Redfish or
+   ARM build would emit jansson/libfdt/etc.
 2. **Byte-integrity reconcile (E3): compare a canonicalized per-region digest, not just membership.** Advances
    SR-4(3) "not altered", SI-7 / SI-7(1), S2C2F AUD-3 from `PARTIAL` toward strong. **Not** a naive digest match:
    in-FV modules are rebased/relocated, so it needs re-canonicalization image-side (the reconcile verdict already
@@ -249,7 +251,7 @@ Tiers (§5.2): **Required** = always mandatory · **Additional** = mandatory *wh
 | **§5.2.2 / Table 3** | distribution licences (SPDX IDs) | Req | — | **PLANNED** | E1 has no licenses. |
 | **§5.2.2 / Table 3** | component creator / filename | Req | — | **PLANNED** | Not emitted (bom-ref is the GUID, not a filename). |
 | **§5.2.2 / Table 3** | executable / archive / structured properties | Req | — | **PLANNED** | BSI publishes a [CycloneDX property taxonomy](https://github.com/BSI-Bund/tr-03183-cyclonedx-property-taxonomy) for exactly these. |
-| **§5.2.4 / Table 5** | CPE / **PURL**, source/deployable URIs, original licences | Add | — | **PLANNED** | "Additional" = mandatory when computable; PURLs are computable → real gap. |
+| **§5.2.4 / Table 5** | CPE / **PURL**, source/deployable URIs, original licences | Add | E1 | **PARTIAL** | Satisfied for the in-image third-party dep (openssl: PURL+CPE+Apache-2.0, R1); edk2 FFS modules have no sensible PURL (N/A by design). |
 | **§8.1.14** | vulnerability data → **CSAF (VEX profile)** | rec | E4 | **PARTIAL** | E4 is OpenVEX; BSI's named format is CSAF/VEX. |
 | **§8.1.15** | SBOM ideally digitally signed | rec | E5 | **EVIDENCE** | cosign covers it. |
 | **§8.4.3** | Build SBOM | — | E7 | **EVIDENCE** | E7 aligns with the Build-SBOM concept. |
@@ -264,8 +266,8 @@ The **CISA 2026 Minimum Elements** (finalized ~July 2026, superseding the NTIA 2
 | Component name / version | NTIA'21 | E1 | **EVIDENCE** | Present. |
 | **Supplier name** | NTIA'21 (retained '26) | E1 | **PARTIAL** | Only via `metadata.authors` (SBOM author ≠ per-component supplier); per-component supplier is `PLANNED`. |
 | **Component Hash** | CISA'26 new | E1 | **EVIDENCE** | Per-module SHA-256/512 — meets the new integrity field on 122 of 123 modules. |
-| **License** | CISA'26 new | — | **PLANNED** | Missing. |
-| Software Identifiers (PURL/CPE) | NTIA'21 "other IDs" | — | **PLANNED** | No PURLs. |
+| **License** | CISA'26 new | E1 | **PARTIAL** | Present for the in-image third-party dep (openssl: Apache-2.0, R1); edk2 FFS modules N/A. |
+| Software Identifiers (PURL/CPE) | NTIA'21 "other IDs" | E1 | **PARTIAL** | openssl carries PURL+CPE (R1); edk2 FFS modules N/A. |
 | Dependency relationship | NTIA'21 | E1, E3 | **PARTIAL** | Internal edges only; no transitive/submodule graph. |
 | Author of SBOM data | NTIA'21 | E1 | **EVIDENCE** | `metadata.authors` populated. |
 | Timestamp | NTIA'21 | E1 | **EVIDENCE** | `metadata.timestamp` populated. |
