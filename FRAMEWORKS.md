@@ -9,12 +9,12 @@
 
 ## Posture in three tiers
 
-- **Enforced today** — the deploy pipeline **hard-blocks the release** on **ten OPA verifier reports** (SBOM
+- **Enforced today** — the deploy pipeline **hard-blocks the release** on **eleven OPA verifier reports** (SBOM
   present · attestation signature · SBOM↔subject binding · provenance identity · **SLSA L2 provenance** ·
   reconcile · CVE/VEX · **CHIPSEC platform posture** · **reconcile membership** (SI-7/CM-8(3)) · **component
-  integrity** (SI-7(1))), the SLSA-L2 one backed by the `gh attestation verify` CI hard-gate. These are the
-  controls we can defend as *actually enforced*, not merely mapped. The remaining planned rules are tracked in
-  [`POLICY-EXPANSION.md`](./POLICY-EXPANSION.md).
+  integrity** (SI-7(1)) · **VEX adjudication** (RV.1.1, high+critical)), the SLSA-L2 one backed by the
+  `gh attestation verify` CI hard-gate. These are the controls we can defend as *actually enforced*, not merely
+  mapped. The remaining planned rules are tracked in [`POLICY-EXPANSION.md`](./POLICY-EXPANSION.md).
 - **Satisfiable from evidence we already emit** — many named controls across SLSA, NIST SSDF/800-53/800-161,
   OpenSSF S2C2F, the CISA/NTIA SBOM elements, EU CRA, BSI TR-03183-2, and NIST 800-190 are met or partly met by
   the seven evidence artifacts — but *not wired into a gate*. Marked `EVIDENCE` / `PARTIAL`.
@@ -37,7 +37,7 @@ framework  →  §control (exact ref)  →  evidence that proves it  →  status
 
 | Status | Meaning |
 |---|---|
-| **`ENFORCED`** | The release is **hard-blocked if this fails** — by one of the ten OPA `verifier_reports` in [`firmware.rego`](./oss-lane/policy/firmware.rego) *(gate)*; the `slsa-provenance` report is additionally backed by a CI hard-gate step *(CI)*, `gh attestation verify`. The mechanism is named per row. |
+| **`ENFORCED`** | The release is **hard-blocked if this fails** — by one of the eleven OPA `verifier_reports` in [`firmware.rego`](./oss-lane/policy/firmware.rego) *(gate)*; the `slsa-provenance` report is additionally backed by a CI hard-gate step *(CI)*, `gh attestation verify`. The mechanism is named per row. |
 | **`EVIDENCE`** | We produce the artifact/field, but no gate rule checks it yet — the control is *satisfiable from what we emit*, just not *enforced*. |
 | **`PARTIAL`** | The evidence meets the control only in part; the named shortfall is in the note. |
 | **`PLANNED`** | A concrete, near-term artifact change (mostly SBOM enrichment + byte-integrity reconcile) would satisfy it. |
@@ -65,9 +65,10 @@ not asserted.
 > **The trust anchor:** the ten gate reports are `sbom-present` (E1), `attestation-signature` (E5),
 > `sbom-binding` (E1↔E5 digest), `provenance-identity` (E2), `slsa-provenance` (E2, backed by the
 > `gh attestation verify` CI hard-gate), `reconcile` (E3), `cve-triage` (E4), `chipsec-posture` (E10),
-> `reconcile-membership` (E3, SI-7/CM-8(3)), `component-integrity` (E1, SI-7(1)) — the gate ANDs them and emits
-> E6. The `component-integrity` rule passes only with an explicit reviewed `data.hash_exempt` entry (ResetVector),
-> never a relaxed threshold.
+> `reconcile-membership` (E3, SI-7/CM-8(3)), `component-integrity` (E1, SI-7(1)), `vex-adjudicated` (E4, RV.1.1 —
+> every high/critical CVE needs a non-empty justification) — the gate ANDs them and emits E6. The
+> `component-integrity` rule passes only with an explicit reviewed `data.hash_exempt` entry (ResetVector), never a
+> relaxed threshold.
 
 ## Cross-framework overlap — one evidence, many controls
 
@@ -179,7 +180,7 @@ edk2 firmware build. L3 is the honest remaining gap.
 | **PO.4.2** | automate collection/enforcement of security-check results | E6, E4 | **PARTIAL** | E6 VSA is the signed gate verdict; defining the criteria (PO.4.1) is process. |
 | **PW.4.1 / PW.4.4** | acquire + continuously verify third-party components (vuln + integrity) | E4, E5, E1 | **PARTIAL** | E4/E5 cover the checks; capped by E1's missing third-party components. NIST maps PW.4.4 → SR-4(3)/SR-4(4). |
 | **RV.1.1** | ongoing vuln discovery across components | E4 | **ENFORCED** *(gate)* | `cve-triage` (grype over the SBOM). |
-| **RV.2.2** | plan + record risk response per vuln | E4 | **EVIDENCE** | OpenVEX `not_affected/affected/fixed` is a recorded response. |
+| **RV.2.2** | plan + record risk response per vuln | E4 | **ENFORCED** *(gate)* | `vex-adjudicated`: every high/critical CVE must carry a non-empty VEX justification (a recorded, reviewed risk response) — not just allowlist membership. |
 | **PW.7.1 / PW.7.2** | code review / **static code analysis** | E8 | **ENFORCED** *(CI)* | CodeQL SARIF, keyless-signed + severity-gated in `codeql-sast` (fails ≥7.0 high/critical). (grype/E4 is SCA, not SAST — do not map E4 here.) |
 | **PW.8 / RV.1.2** | code-level testing to find vulns | E8 | **ENFORCED** *(CI)* | Same CodeQL SAST gate; dynamic/fuzz testing is roadmap R8. |
 | **RV.1.3** | vulnerability-disclosure policy | — | **N/A (process)** | No artifact; a CVD/PSIRT policy. |
