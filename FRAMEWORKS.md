@@ -1,256 +1,344 @@
-# Frameworks & standards evaluation — an attestation-evidence policy map
+# Compliance map — evidence to specific controls, honestly
 
-> **Status: a working evaluation, not a compliance claim.** This document catalogs the security
-> frameworks/standards relevant to firmware supply chain, maps them to the evidence this project actually
-> produces, and is deliberately honest about partial and zero coverage. Where a framework is only partially
-> met, it says so; where a control cannot be proven by any evidence we collect, it is listed as a *required
-> evidence gap*, not hidden. Companion to [`DESIGN.md`](./DESIGN.md).
+> **This is not a "we comply with SLSA / SSDF / CRA" document.** Each framework has hundreds of
+> controls, most irrelevant to a firmware SBOM pipeline. Claiming whole-framework compliance would be
+> meaningless. Instead this maps the **specific evidence we produce** to the **specific control (with its exact
+> section/subsection number)** it satisfies, states honestly *how far* it satisfies it, and builds the case for
+> the next evidence worth producing. Companion to [`DESIGN.md`](./DESIGN.md); the enforced subset lives in
+> [`oss-lane/compliance-map.md`](./oss-lane/compliance-map.md).
+
+## Posture in three tiers
+
+- **Enforced today** — the deploy pipeline **hard-blocks the release** on **six OPA verifier reports** (SBOM
+  present · attestation signature · SBOM↔subject binding · provenance identity · reconcile · CVE/VEX) **plus one
+  CI hard-gate step** (`gh attestation verify` for SLSA L2 provenance). These are the controls we can defend as
+  *actually enforced*, not merely mapped.
+- **Satisfiable from evidence we already emit** — many named controls across SLSA, NIST SSDF/800-53/800-161,
+  OpenSSF S2C2F, the CISA/NTIA SBOM elements, EU CRA, BSI TR-03183-2, and NIST 800-190 are met or partly met by
+  the seven evidence artifacts — but *not wired into a gate*. Marked `EVIDENCE` / `PARTIAL`.
+- **Not yet, and honestly named** — SBOM enrichment work (`PLANNED`) and the entire runtime/attestation stack
+  (SP 800-193, TCG RIM, IETF RATS — `FUTURISTIC`), which needs a class of evidence we do not produce: a signed
+  **TPM quote** and a signed **golden RIM**.
+
+The single highest-value next step is enriching **one artifact** (the SBOM — add PURLs, licenses, and
+third-party/submodule components), which advances ~10 controls across five frameworks at once.
 
 ## How to read this
 
-The design is, at its core, an **attestation / evidence-based policy** system:
+Every row below is one link in this chain:
 
 ```
-framework  →  control  →  required evidence  →  OPA rule  →  gate verdict (VSA)
+framework  →  §control (exact ref)  →  evidence that proves it  →  status  →  (if enforced) how
 ```
 
-- A **framework** groups **controls** (SLSA, CRA/BSI, SSDF, TCG RIM …).
-- A **control** is one checkable assertion ("provenance is authentic", "SBOM lists component hashes",
-  "running firmware matches its golden RIM").
-- Each control names the **evidence** that could prove it. If we produce that evidence, an **OPA rule**
-  evaluates it. **If we do not, the control is a declared gap** ("required evidence: not collected") — this is
-  the Valint pattern: a framework can *require* evidence we don't yet emit, which surfaces the hole instead of
-  papering over it.
-- The gate's overall decision is itself emitted as a signed **SLSA VSA** (Verification Summary Attestation).
+**Status legend** — the honest axis is *how real is it*, not *does it tick*:
 
-We pick **high-value, artifact-provable slices** of each framework for the first proposal rather than
-attempting full coverage — see [First-proposal focus](#first-proposal-focus).
+| Status | Meaning |
+|---|---|
+| **`ENFORCED`** | The release is **hard-blocked if this fails** — by one of the six OPA `verifier_reports` in [`firmware.rego`](./oss-lane/policy/firmware.rego) *(gate)*, or by a CI hard-gate step *(CI)* such as `gh attestation verify`. The mechanism is named per row. |
+| **`EVIDENCE`** | We produce the artifact/field, but no gate rule checks it yet — the control is *satisfiable from what we emit*, just not *enforced*. |
+| **`PARTIAL`** | The evidence meets the control only in part; the named shortfall is in the note. |
+| **`PLANNED`** | A concrete, near-term artifact change (mostly SBOM enrichment + byte-integrity reconcile) would satisfy it. |
+| **`FUTURISTIC`** | Needs a new *class* of evidence we do not produce (runtime attestation: TPM quote + golden RIM). |
+| **`N/A (process)`** | An organizational/process obligation (a policy, an SLA, an acquisition process) that **no build artifact can satisfy** — listed so it is visibly out of scope, not silently dropped. |
 
-## The evidence we actually collect today
+## Evidence inventory — what we actually produce (E1–E7)
 
-These are the atoms every table below refers to.
+Every table references these seven atoms. The ground-truth column is read from the real artifacts in this repo,
+not asserted.
 
-| # | Evidence | Form | Notes / honest limits |
-|---|---|---|---|
-| ① | **CycloneDX 1.6 SBOM** | in-toto SBOM predicate | build-time, from edk2 `-Y COMPILE_INFO` data; per-component **SHA-256/512 hashes** on modules (PR #2); **licenses/PURLs + submodule components still pending** (Tier-2) |
-| ② | **SLSA provenance** | `slsa.dev/provenance/v1` predicate | **platform-generated by GitHub's attestation store (`attest-build-provenance`) → SLSA L2**; verified in CI with `gh attestation verify` |
-| ③ | **Reconcile verdict** | (custom) in-toto predicate | declared SBOM vs bytes carved from the image; **module/FFS-granular**; a *committed* input in the demo |
-| ④ | **CVE + VEX** | scan report + allowlist | raw scan over coarse firmware CPEs → VEX triage required |
-| ⑤ | **Signature + signer identity** | cosign keyless (Fulcio/Rekor) | OIDC workload identity, SAN extracted at verify |
-| ⑥ | **Build-tools SBOM** | CycloneDX + SHA-pins | **direct** CI actions/tools only, not transitive |
-
----
-
-## Master framework catalog
-
-Stance legend: **CITE** = standardized elsewhere, reference don't reinvent · **GAP** = weakly/​un-covered, our differentiator · **NORMALIZE** = adopt its vocabulary/format.
-
-| Framework | What it is | Status / version | Design part | Firmware-specific | Stance |
+| # | Evidence | Format / predicate | What it proves | Ground-truth today | Enforced by |
 |---|---|---|---|---|---|
-| **SLSA v1.0** | build provenance levels L1–L3 | v1.0 (2023), v1.1+ | ② provenance | no | CITE + gap-to-L3 |
-| **in-toto Attestation** | Statement+predicate, DSSE | CNCF graduated | carrier for ①②③④ | no | NORMALIZE |
-| **SLSA VSA** | signed verification-summary | v1 | gate verdict | no | NORMALIZE (adopt) |
-| **NIST SSDF SP 800-218** | secure-dev practices | v1.1, Feb 2022 | governance (all) | no | partial map |
-| **NIST SP 800-161r1** | C-SCRM (org risk) | r1, May 2022 | ④ gate governance | no | partial map |
-| **OpenSSF S2C2F** | consumer/ingestion practices | 8 practices × 4 levels | ③④ | no | partial map |
-| **SCITT (IETF)** | append-only evidence transparency | draft-22 (~WGLC) | evidence store | no | NORMALIZE (target) |
-| **NTIA 2021 min elements** | baseline SBOM fields | Jul 2021 | ① | no | CITE (superseded) |
-| **CISA 2026 min elements** | updated SBOM fields (hash+license+context) | Jul 2026 | ① | no | **comply (gap)** |
-| **CycloneDX 1.6 / ECMA-424** | SBOM format, native `firmware` type, CDXA | Apr 2024 | ① (+②③) | **yes** | CITE (our format) |
-| **SPDX 3.0** | alt SBOM format | Apr 2024 | ① | no | interop |
-| **CoSWID (RFC 9393)** | concise SWID id tags | Mar 2023 | ① → ⑤runtime | **yes-ish (uSWID)** | CITE (embed) |
-| **EU CRA** | regulation; SBOM obligation | in force Dec 2024; SBOM Dec 2027 | ① | **yes (names firmware)** | driver |
-| **BSI TR-03183-2** | operational SBOM field spec for CRA | v2.1.0, Aug 2025 | ① | generic (applies) | **comply (gap)** |
-| **NIST SP 800-193** | platform firmware resiliency (Protect/Detect/Recover) | May 2018 | ⑤ posture | **yes** | CITE (context) |
-| **NIST SP 800-147/147B** | BIOS update protection | 2011 / 2014 | ⑤ update-signing | **yes** | CITE (context) |
-| **NIST SP 800-155** | BIOS integrity measurement (RIM ancestor) | **draft only, ~2011, never finalized → folded into TCG** | ③⑤ origin | **yes** | cite as origin |
-| **TCG RIM / PC Client RIM** | golden reference measurements | Info Model v1.1 & PC-Client RIM v1.1 r11, Apr 2024 | ⑤ golden RIM | **yes** | CITE (don't invent) |
-| **TCG PC Client Firmware Profile** | measured boot → PCRs / event log | active | ⑤ observed side | **yes** | CITE |
-| **IETF RATS (RFC 9334)** | Attester/Verifier/Relying-Party roles | Jan 2023 | ⑤ (roles) | no | NORMALIZE (roles) |
-| **IETF CoRIM** | concise reference-value transport | draft-ietf-rats-corim-11 | ⑤ ref values | no | CITE (emerging) |
-| **TCG DICE** | RoT/identity without full TPM | active | ⑤ alt RoT | **yes (embedded)** | note |
-| **CNCF Ratify + Gatekeeper** | verifier→verifierReport→ExternalData→Rego | active (notaryproject) | ④ gate | no | **NORMALIZE (mirror)** |
-| **in-toto Witness / Archivista** | attestation capture + evidence graph + signed policy | CNCF in-toto | evidence store + ④ | no | model to cite |
-| **Scribe Valint** | evidence create/sign/store/verify --rule | product | our Valint lane | no | our own lane |
-| **JFrog Evidence** | in-toto+DSSE evidence over subjects | GA | evidence model | no | confirms norm |
-| **Anchore VIPERR / policy** | 6-fn framework + policy gates | active | ④ CVE gate | no | vocab to cite |
-| **Chainguard policy-catalog** | ready `ClusterImagePolicy` (Rego/CUE) | active | ④ | no | reusable bundle |
-| **Kusari / GUAC** | attestation/​SBOM graph | OpenSSF incubating | evidence graph | no | optional |
-| **Venafi / CyberArk CodeSign Protect** | machine-identity + only-signed-code-runs | Jan 2024 (acquired) | ⑤ signing identity | firmware-relevant | analog |
-| **CycloneDX Attestations (CDXA)** | claims/evidence/conformance declarations | CDX 1.6 | control claims | no | NORMALIZE (optional) |
-| **OpenVEX** | exploitability statements (in-toto predicate) | active | ④ CVE fact | no | NORMALIZE (adopt) |
-| **NIST OSCAL** | machine-readable control↔framework mapping | active | the control layer itself | no | NORMALIZE (shape) |
+| **E1** | **CycloneDX 1.6 SBOM** | in-toto SBOM predicate | declared composition of the firmware | 310 components (3 app / 108 driver / 12 firmware / 187 lib); **SHA-256+512 on 122 of the 123 non-library modules** (`ResetVector`, a raw reset-vector blob not a PE image, is the one skip); `metadata` timestamp/authors/tools/`lifecycle:build` populated; **0 PURLs, 0 licenses, ~0 third-party/submodule components** | `sbom-present` *(gate)* — presence only |
+| **E2** | **SLSA Build L2 provenance** | `slsa.dev/provenance/v1` | build origin is authentic (platform-generated) | GitHub `attest-build-provenance`, **verified green in CI** with `gh attestation verify` | `gh attestation verify` *(CI)* + `provenance-identity` *(gate, identity only)* |
+| **E3** | **Reconcile verdict** | custom in-toto predicate | shipped bytes match the declared component set | FMMT-carved FFS vs SBOM by GUID, **123/123 module-granular; membership only** (no per-component byte hash yet) | `reconcile` *(gate)* |
+| **E4** | **CVE + VEX** | grype JSON + OpenVEX | no un-triaged critical vulnerability ships | scan over E1 + OpenVEX triage allowlist | `cve-triage` *(gate)* |
+| **E5** | **Signature + signer identity** | cosign keyless (Fulcio/Rekor) DSSE | the signed artifact came from the expected build identity | OIDC SAN extracted from the Fulcio cert and **checked**, not asserted; **signed subject is the SBOM/attestation, not the firmware image** | `attestation-signature` + `sbom-binding` *(gate)* |
+| **E6** | **VSA** | `slsa.dev/verification_summary/v1` | the gate's verdict, as portable signed evidence | `verifier.id`/`policy.uri`/`verificationResult:PASSED`/`verifiedLevels:[L2]` populated; `resourceUri` generic; no `dependencyLevels` | output artifact |
+| **E7** | **Build-tools SBOM** | CycloneDX + SHA-pins | the *build* toolchain is inventoried + signed | CI actions/tools, SHA-pinned + keyless-signed; **direct only, not transitive** | — (not gated) |
 
----
+> **The trust anchor:** the six gate reports are `sbom-present` (E1), `attestation-signature` (E5),
+> `sbom-binding` (E1↔E5 digest), `provenance-identity` (E2), `reconcile` (E3), `cve-triage` (E4) — the gate ANDs
+> them and emits E6. E1 and E5 each feed two reports, so seven evidence atoms → six gate reports + one CI
+> hard-gate (`gh attestation verify`, SLSA L2).
 
-## The three buckets
+## Cross-framework overlap — one evidence, many controls
 
-**CITE (standardized — reference, don't imply it's ours).**
-The entire **runtime leg (⑤)** is defined by TCG (RIM, PC Client RIM, Firmware Profile), IETF RATS (RFC 9334) + CoRIM/CoSWID, and framed by NIST SP 800-193. **Provenance (②)** is SLSA + in-toto. **SBOM format (①)** is CycloneDX 1.6 / CoSWID. Say "we use X", cite it.
+The honest payoff of a control-level map: a single artifact satisfies clauses in several frameworks at once, so
+effort spent on it is *reused*. Cells hold the **exact control ref** each evidence ticks.
+**Bold** = enforced today (gate report or CI hard-gate) · `◐` = partial · plain = `EVIDENCE` (satisfiable, not
+enforced) — see the per-framework tables for the exact status of every cell.
 
-**GAP (our differentiators — state precisely).**
-- **Reconcile (③): declared build-SBOM vs observed firmware bytes, as a policy gate.** *No* framework or regulation requires this — they all produce+sign an SBOM and then **trust the declaration**. Adjacent prior art exists, so the novelty must be worded carefully — see [Reconcile: the gap, honestly](#reconcile-the-gap-honestly).
-- **Build-time SBOM generation for edk2 specifically (①).** Recognized-hard (the UEFI Forum proposal exists for it); coreboot/fwupd solved theirs, edk2 is the open case.
+| Evidence | SLSA v1.0 | NIST SSDF 800-218 | 800-53 / 800-161 | S2C2F | CISA/NTIA elements | EU CRA | BSI TR-03183-2 | 800-190 | Runtime (futuristic) |
+|---|---|---|---|---|---|---|---|---|---|
+| **E1** SBOM | — | PS.3.2 | CM-8, SR-4◐ | INV-1 | name·ver·hash·ts·author·tool·context *(license,PURL,supplier: planned)* | **Annex I §II(1)** | §4, §5.2.1, §5.2.2 (name/ver/SHA-512) | — | RIM-analog◐ |
+| **E2** Provenance | Prov-Exists **(L1, gate)** · **Prov-Authentic (L2, CI)** · Distribute | PO.3.3, PS.3.1 | SR-4, SI-7(15)◐ | — | — | §II(7)◐ | §8.1.15◐ | §4.1.5◐ | RATS §8.4-analog |
+| **E3** Reconcile | — | — | SR-4(3)◐, SR-4(4)◐, SI-7◐, SI-7(1)◐ | AUD-3◐ | dependency◐ | — | §5.2.2 deps◐ | §4.1.5◐ | 800-193 §4.3◐, RATS §4.1 (Verifier), 800-155 |
+| **E4** CVE+VEX | — | RV.1.1, RV.2.2, PW.4.4◐ | **RA-5** | **SCA-1** | — | §II(1) vuln, §II(3)◐ | §8.1.14 (CSAF-pref) | **§4.1.1** | — |
+| **E5** Sig+ID | Prov-Authentic (L2) input | **PS.2.1** | SI-7(15)◐ | — | — | §II(7)◐, Annex VII 2(b) | §8.1.15 | §4.1.5◐ | RATS §4.1 (RP trust) |
+| **E6** VSA | VSA `verification_summary` | PO.4.2◐ | — | — | — | — | — | — | RATS §8.4 / RP-analog |
+| **E7** Build-tools SBOM | (isolation: SHA-pin) | PO.3.2◐ | CM-8 (tools) | INV-1◐ | — | — | §8.4.3 (Build SBOM) | — | — |
 
-**NORMALIZE (adopt the shared vocabulary).**
-Emit each fact as an **in-toto predicate**; emit the **gate verdict as a SLSA VSA**; structure the gate as **Ratify-style verifier reports**; describe runtime in **RATS roles**; shape the control layer like **OSCAL**; use **OpenVEX** for the CVE fact. See [Normalization vocabulary](#normalization-vocabulary).
+**Reading it:** E1, E2 and E5 are the load-bearing artifacts — each satisfies clauses in **five-plus**
+frameworks. Note how few cells are **bold**: most mapped controls are *satisfiable but not enforced*. That gap
+between "we emit the evidence" and "the gate blocks on it" is honest, and is what the *Gap → value* ranking
+prioritizes closing.
 
----
+## Reconcile: the novel control (positioning)
 
-## Framework × evidence coverage (honest, not forced)
-
-✅ full · ◐ partial · ⭘ none/declared-gap.
-
-| Framework | ① SBOM | ② Prov | ③ Reconcile | ④ CVE/VEX | ⑤ Sig/ID | ⑥ Tools | Honest coverage |
-|---|:--:|:--:|:--:|:--:|:--:|:--:|---|
-| SLSA Build track | | ✅ | | | ◐ | ◐ | **L2** (platform-generated provenance); L3 unproven |
-| NTIA 2021 min elements | ◐ | | | | | | mostly (weak on identifiers) |
-| CISA 2026 min elements | ◐ | | | | | | **partial** — no hash/license/identifiers |
-| CRA (legal floor) | ✅ | | | | | | **meets** (existence + machine-readable + top-level deps) |
-| BSI TR-03183-2 v2.1.0 | ◐ | | | | | | **fails required tier** (hash/license/props) |
-| SSDF 800-218 | ◐ | ◐ | | | ◐ | ◐ | sliver (PS.2/PS.3/PW.4); rest is org process |
-| SP 800-161r1 C-SCRM | ⭘ | ◐ | ◐ | ◐ | | | governance overlay only |
-| OpenSSF S2C2F | ◐ | | ◐ | | | ◐ | Inventory/Audit/Enforce partial |
-| SP 800-193 / TCG RIM / RATS | ⭘ | ⭘ | ⭘ | ⭘ | ⭘ | ⭘ | **none — declared gap** (runtime evidence not collected) |
-| CycloneDX 1.6 / CDXA | ✅ | | | | | | format yes; CDXA claims not emitted |
-
-The honest shape: **strong** on SBOM-format + SLSA-L2 + the novel reconcile control; **partial** on the process frameworks; **transparently zero** on the runtime/attestation frameworks (declared as required-but-unsatisfied, not hidden).
-
----
-
-## SLSA — L1/L2/L3 mapped, and the gap to L3
-
-SLSA is the load-bearing framework, so it gets a full map. The distinguishing axis is the **trust boundary**:
-*who generates and signs the provenance relative to the build's control plane* — not merely "is it signed."
-
-| Level | Requirement (verified against spec) | Us | Evidence needed to advance |
-|---|---|:--:|---|
-| **L1** | provenance *exists* and is distributed | ✅ **here** | — (we emit ②) |
-| **L2** | provenance *authentic*: generated by the build platform **control plane**, signed by a key only the platform holds, **not by the tenant build steps** | ✅ **here** | `attest-build-provenance` (platform-generated), verified in CI with `gh attestation verify` |
-| **L3** | **isolated, hardened** builder; steps cannot influence provenance or reach signing material; non-forgeable | ❌ | isolated-build attestation (e.g. `slsa-github-generator` reusable workflow, or a hosted build service) |
-
-We are **L2**: the public repo lets `actions/attest-build-provenance` generate the SBOM's provenance from GitHub's attestation store (platform-generated, so the tenant workflow can't forge the predicate content), and the pipeline verifies it with `gh attestation verify`. Scope note: this is L2 provenance for the SBOM artifact as handled by this operator-side workflow, not a claim about the upstream edk2 firmware build. **L3** (isolated/hardened builder, e.g. `slsa-github-generator`) remains the required-evidence gap.
-
----
-
-## SBOM field compliance — does our generator abide by CRA/BSI/CISA?
-
-**The nuance first: CRA-the-law is field-light; the teeth are in BSI/CISA.** CRA (Annex I, Part II §1) requires only that an SBOM *exists*, is *"commonly used and machine-readable,"* and covers *"at the very least the top-level dependencies"* — **no fields named, no format named**. Against that legal floor **we pass**. The operational bar regulators audit against is **BSI TR-03183-2 v2.1.0** (CRA's harmonized-standard-in-waiting) and **CISA 2026** — and there we **do not yet comply**.
-
-Field-by-field (current generator output: `type, bom-ref=GUID, name, supplier=TianoCore, version?, edk2:* properties, externalReference=.inf, dependencies`):
-
-| Mandatory field | BSI v2.1.0 | CISA 2026 | NTIA 2021 | CRA | Our generator | CycloneDX 1.6 path | Gap |
-|---|:--:|:--:|:--:|:--:|---|---|---|
-| Component **name** | ✅ | ✅ | ✅ | — | ✅ | `component.name` | ok |
-| Component **version** | ✅ | ✅ | ✅ | — | ◐ only when known | `component.version` | partial |
-| **Dependencies** | ✅ | ✅ | ✅ (top-lvl) | ✅ (top-lvl) | ✅ 122 edges | `dependencies` | ok (BSI wants completeness flag) |
-| Component **hash** | ✅ **SHA-512** | ✅ **value+alg** | — | — | ✅ SHA-256+SHA-512 (modules; libs N/A) | `component.hashes` | **done (PR #2)** |
-| Component **license** | ✅ | ✅ | — | — | ❌ | `component.licenses` | **miss** |
-| **Unique identifiers** CPE/PURL | ◐ Additional | ✅ | ◐ | — | ❌ (only internal GUID) | `component.purl`/`.cpe` | **miss** |
-| Component **producer/creator** | ✅ | ✅ | ✅ | — | ◐ hardcoded `TianoCore` | `component.supplier` | partial/inaccurate |
-| **Filename** | ✅ | — | — | — | ❌ | `component.properties` (BSI taxonomy) | miss (BSI) |
-| **Executable/archive/structured** | ✅ | — | — | — | ❌ (`edk2:*` instead) | `component.properties` (BSI taxonomy) | miss (BSI) |
-| Source / deployable **URI** | ◐ Additional | — | — | — | ◐ `.inf` as `type:other` | `externalReferences` (`vcs`/`distribution`) | partial |
-| SBOM **timestamp** | ✅ | ✅ | ✅ | — | ✅ | `metadata.timestamp` | ok |
-| SBOM **author** | ✅ | ✅ | ✅ | — | ✅ `metadata.authors` | `metadata.authors` | **done (PR #2)** |
-| SBOM **tool name / version** | — | ✅ both | — | — | ✅ name + version | `metadata.tools` | **done (PR #2)** |
-| SBOM **generation context** (lifecycle phase) | — | ✅ **new** | — | — | ✅ `[{phase: build}]` | `metadata.lifecycles` | **done (PR #2)** |
-| **Format name + version** | ✅ (CDX≥1.6) | ✅ | — | ◐ | ✅ | `bomFormat`/`specVersion` | ok |
-
-**Verdicts (after PR #2 Tier-1):** CRA (law) ✅ pass · NTIA 2021 ✅ · **CISA 2026 ◐** (hash/author/tool/context now met; still missing **license** + **identifiers**) · **BSI v2.1.0 ◐** (hash now met; still missing **license**, **filename**, **executable/archive/structured** props). The remaining gaps are all Tier-2.
-
-**Why the gaps converge (good news):**
-1. The now-mandatory **`component.hashes` (SHA-512) is exactly what reconcile (③) needs** to check *integrity* not just membership. So per-component digests are **triply motivated**: reconcile + BSI + CISA.
-2. Most gaps are additive, low-risk CycloneDX fields; **BSI publishes a CycloneDX property taxonomy**
-   (`BSI-Bund/tr-03183-cyclonedx-property-taxonomy`) defining exactly how to emit filename/executable/archive/structured.
-
-**Honest caution (don't force it):** `license` and `PURL/CPE` are clean for the **third-party submodules** (openssl, brotli … — where they also feed CVE mapping) but **not meaningful per edk2 FFS module** — there is no sensible PURL type for "an edk2 module." Fabricating one everywhere would be the trap. Emit them where real; mark N/A where not.
-
-### Generator backlog (derived from the gaps)
-- **Tier 1 — ✅ done ([edk2 PR #2]):** `component.hashes` SHA-256+SHA-512 (GenFw rebase-to-0 canonicalization, modules only) · `metadata.lifecycles=build` · tool version · `metadata.authors`.
-- **Tier 2** (compliance, moderate): emit **third-party submodule components** with `purl`/`cpe`/`licenses`/real `supplier` (also fixes the hardcoded-TianoCore inaccuracy + feeds CVE mapping — and would finally make the 13 vendored submodules *visible* in the SBOM) · BSI property taxonomy for filename/exec/archive/structured.
-- **Tier 3** (honest non-goals): per-edk2-module PURL/CPE where meaningless → document N/A, don't fabricate.
-
----
-
-## Reconcile: the gap, honestly
-
-No regulation or firmware-SBOM effort requires verifying a declared SBOM against the shipped bytes. But there
-*is* adjacent prior art, so the claim must be precise:
-- **Binary-analysis SBOM tools** (Syft, EMBA, ONEKEY, binwalk) produce an *observed* SBOM but never diff it against a *declared build* SBOM.
+No regulation or firmware-SBOM effort requires verifying a declared SBOM against the shipped bytes — this is the
+project's differentiator — but there *is* adjacent prior art, so the claim must be precise:
+- **Binary-analysis SBOM tools** (Syft, EMBA, ONEKEY, binwalk) produce an *observed* SBOM but never diff it
+  against a *declared build* SBOM.
 - **Harness "SBOM Drift"** compares SBOMs across builds — not against bytes.
-- **Academic (on-point):** a 2026 paper on *consumer-side reproducibility* of SBOMs argues exactly our thesis (a provenance-embedded SBOM digest is insufficient; the consumer should re-derive and compare). **UVSCAN** (academic) detects third-party-component violations in IoT firmware — nearest conceptual prior art.
+- **Academic (on-point):** a 2026 consumer-side-reproducibility paper argues the same thesis (a
+  provenance-embedded SBOM digest is insufficient; the consumer should re-derive and compare). **UVSCAN**
+  detects third-party-component violations in IoT firmware — nearest conceptual prior art.
 
-**Precise claim:** *reconciliation of a declared **build** SBOM against the **observed firmware bytes**, gated by policy* — ahead of vendor practice, matching cutting-edge research. **Not** "we analyze firmware bytes" (many do) and **not** "first firmware SBOM."
+**Precise claim:** *reconciliation of a declared **build** SBOM against the **observed firmware bytes**, gated by
+policy* — ahead of vendor practice, matching cutting-edge research. **Not** "we analyze firmware bytes" (many do),
+**not** "first firmware SBOM." Today it is **membership-granular** (all 123 modules present by GUID); byte-level
+integrity is *Gap → value* item #2.
+
+## Gap → value: the case for the next evidence to produce
+
+Ranked by **controls-advanced per unit of effort**, using the overlap matrix.
+
+1. **Enrich the SBOM (E1): add PURLs + licenses + third-party/submodule components.** *One artifact change*
+   advances: BSI §5.2.2 licenses/deps, §5.2.4 CPE/PURL/URIs; CISA'26 License + Software-Identifiers + Supplier +
+   completeness; CRA Annex I §II(1) component identification; S2C2F SCA-2 + INV-1; SSDF PS.3.2 / PW.4.1;
+   800-53 SR-4 / SR-4(4) / CM-8 — **~10 controls across 5 frameworks.** *New tooling:* a license/PURL emitter +
+   submodule enumeration (from the 13 gitlinks). **Honest limit:** PURL/CPE/license are real for the vendored
+   submodules (openssl, brotli…), **not** for edk2 FFS modules — so most components stay identifier-less and
+   several cells move *toward* `PARTIAL`, not fully satisfied. Emit where real, mark N/A where not.
+2. **Byte-integrity reconcile (E3): compare a canonicalized per-region digest, not just membership.** Advances
+   SR-4(3) "not altered", SI-7 / SI-7(1), S2C2F AUD-3 from `PARTIAL` toward strong. **Not** a naive digest match:
+   in-FV modules are rebased/relocated, so it needs re-canonicalization image-side (the reconcile verdict already
+   shows `modified_skipped` for exactly this reason), and `ResetVector` has no reference hash at all. E1's
+   GenFw-rebase-0 SHA-512 is the *starting* reference, not a drop-in — but it makes the digest **triply
+   motivated** (reconcile + BSI + CISA).
+3. **Wire existing evidence into gate rules (`EVIDENCE` → `ENFORCED`).** Add a `slsa-provenance` verifier report
+   (so the *rego* gate — and therefore the VSA's report list — asserts the L2-verified fact, not just the CI
+   step), a per-component-hash-present check, and populate VSA `dependencyLevels`. Low effort; converts
+   satisfiable-but-unenforced controls into enforced ones.
+4. **CSAF/VEX document (BSI §8.1.14).** Convert E4's OpenVEX to CSAF for the BSI-named format. Low effort.
+5. **Runtime attestation (the FUTURISTIC block).** A signed **TPM quote** (Attester/Evidence) + a signed
+   **golden RIM** (Reference Values) unlocks the *entire* SP 800-193 §4.3 Detection, RATS §8.x, TCG RIM, and
+   800-155 set at once. High effort, new evidence class — the honest long-horizon item.
 
 ---
 
-## Normalization vocabulary
+# Detailed control tables (reference)
 
-| Our term (today) | Normalize to | Standard |
-|---|---|---|
-| the SBOM | CycloneDX SBOM as an **in-toto predicate** | in-toto / CycloneDX 1.6 |
-| provenance | **SLSA Provenance** predicate | `slsa.dev/provenance/v1` |
-| reconcile verdict | custom **in-toto predicate** (reconcile) | in-toto |
-| "no critical CVE" | **OpenVEX** statement (affected/not-affected) | OpenVEX |
-| gate verdict | **SLSA VSA** (Verification Summary Attestation) | SLSA VSA |
-| per-fact check | **Ratify-style `verifierReport {name,isSuccess,message}`** | Ratify/Gatekeeper |
-| evidence store | in-toto attestations in OCI + transparency log | Rekor / **SCITT** |
-| roles (runtime) | **Attester / Verifier / Relying Party** | IETF RATS RFC 9334 |
-| control↔framework map | **OSCAL**-shaped | NIST OSCAL |
+## A. Build & supply-chain frameworks (real coverage)
 
-**Highest-ROI single change:** emit the gate verdict as a **VSA** — turns a boolean AND into a signed,
-portable "passed policy at level X" artifact others consume without re-verifying.
+### SLSA v1.0 — Build track
 
----
+The distinguishing axis is the **trust boundary**: *who generates/signs provenance relative to the build's
+control plane*, not merely "is it signed." Requirement names are verbatim from `slsa.dev/spec/v1.0/requirements`.
+(v0.1 terms — "Scripted build", "Hermetic", "Parameterless" — are **not** v1.0 controls and are not cited.)
 
-## The framework → control → evidence → OPA-rule spine
-
-High-value slices fully expressed; the rest **stubbed as declared required-evidence gaps** (the honest move —
-a framework can require evidence we don't emit yet).
-
-| Framework | Control | Required evidence | Provable now | OPA rule (intent) |
+| Level · Requirement | Ask | Evidence | Status | Note |
 |---|---|---|:--:|---|
-| **SLSA** | Build L1 — provenance exists | ② | ✅ | `provenance_present` |
-| **SLSA** | Build L2 — provenance authentic (platform-generated) | `attest-build-provenance` + `gh attestation verify` | ✅ | verified in CI |
-| **SLSA** | Build L3 — isolated builder | isolated-build attestation | ⭘ **gap** | *(stub)* |
-| **CRA** | Annex I §1 — SBOM exists, machine-readable, top-level deps | ① | ✅ | `bomFormat ∧ specVersion ∧ dependencies` |
-| **BSI v2.1.0** | required SBOM fields present | ① (enriched) | ◐ **fails now** | `∀ c: c.hashes ∧ c.licenses ∧ c.name ∧ c.version` |
-| **CISA 2026** | hash + license + generation context | ① (enriched) | ◐ hash+context ✅ (PR #2), license pending | `metadata.lifecycles ∧ ∀ c: c.hashes` |
-| **(novel)** | declared SBOM matches observed bytes | ③ | ✅ (module-granular) | `reconcile.verdict = "match"` |
-| **NIST 800-161 / general** | no known-critical exploitable CVE | ④ + OpenVEX | ✅ | `¬∃ cve: critical ∧ ¬vex_not_affected` |
-| **SSDF PS.2 / general** | artifact signed by expected identity | ⑤ | ✅ | `sig_valid ∧ signer = expected` |
-| **SLSA / S2C2F** | toolchain inventoried, actions pinned | ⑥ | ✅ | `all_actions_sha_pinned ∧ tools_sbom_present` |
-| **SP 800-193 / TCG RIM / RATS** | running firmware matches golden RIM | TPM quote + CoRIM/RIM | ⭘ **gap** | *(stub)* `rim_appraisal = pass` |
+| L1 · **Provenance exists** | provenance generated for the artifact | E2 | **ENFORCED** *(gate)* | `provenance-identity` checks builder/source identity. |
+| L1 · **Distribute provenance** | make it available to consumers | E2, E6 | **EVIDENCE** | E6 VSA is the distributable summary. |
+| **L2 · Provenance is authentic** | signed by the build **control plane**, not the tenant job | E2 (+E5) | **ENFORCED** *(CI)* | Established + hard-gated by `attest-build-provenance` (platform-generated) + `gh attestation verify` in CI (green). **Not** a rego `verifier_report` yet — wiring it in is Gap #3; the offline demo, lacking `attest-build-provenance`, does not establish L2. |
+| L2 · **Hosted** | build runs on a hosted platform, not a workstation | E2 | **EVIDENCE** | GitHub-hosted runner. |
+| L3 · **Provenance is unforgeable** | signing material unreachable by build steps | — | **FUTURISTIC** | Needs an isolated/hardened builder (e.g. `slsa-github-generator`). |
+| L3 · **Isolated** | builds cannot influence one another | — | **FUTURISTIC** | As above. |
 
-Rules are **tagged** with the control(s) they satisfy; the gate emits a **VSA** listing which controls
-passed / failed / were unprovable. This gives Valint-style explainability and gap-exposure **without** building
-a full GRC engine — the enforced rule set stays lean.
+**We are L2** for the SBOM artifact as handled by this operator-side workflow — *not* a claim about the upstream
+edk2 firmware build. L3 is the honest remaining gap.
+
+### NIST SSDF — SP 800-218 v1.1 (task text verbatim from the standard)
+
+| Task | Ask | Evidence | Status | Note |
+|---|---|---|:--:|---|
+| **PS.2.1** | make software-integrity verification info available to acquirers | E5, E1 | **ENFORCED** *(gate)* | `attestation-signature`; keyless sig + extracted signer identity. |
+| **PS.3.1** | archive integrity + provenance data per release | E2, E1, E5 | **PARTIAL** | Artifacts produced/stored (E2 as attestation); a retention *policy* is the missing process half. |
+| **PS.3.2** | collect + share provenance for **all** components (e.g. an SBOM) | E1, E2 | **PARTIAL** | E1 exists but omits PURLs/licenses/**submodule components** → "all components" not yet met. |
+| **PO.3.2** | deploy/operate tools securely; verify tool integrity & provenance | E7, E2 | **PARTIAL** | E7 SHA-pins CI tools (direct only). |
+| **PO.3.3** | configure tools to emit artifacts evidencing secure practices | E2, E6, E1, E7 | **EVIDENCE** | Provenance + VSA + SBOMs are exactly these artifacts. |
+| **PO.4.2** | automate collection/enforcement of security-check results | E6, E4 | **PARTIAL** | E6 VSA is the signed gate verdict; defining the criteria (PO.4.1) is process. |
+| **PW.4.1 / PW.4.4** | acquire + continuously verify third-party components (vuln + integrity) | E4, E5, E1 | **PARTIAL** | E4/E5 cover the checks; capped by E1's missing third-party components. NIST maps PW.4.4 → SR-4(3)/SR-4(4). |
+| **RV.1.1** | ongoing vuln discovery across components | E4 | **ENFORCED** *(gate)* | `cve-triage` (grype over the SBOM). |
+| **RV.2.2** | plan + record risk response per vuln | E4 | **EVIDENCE** | OpenVEX `not_affected/affected/fixed` is a recorded response. |
+| **PW.7 / RV.1.2** | code review / code-level vuln testing | — | **N/A (process)** | grype is SCA, not SAST — do **not** map E4 here. |
+| **RV.1.3** | vulnerability-disclosure policy | — | **N/A (process)** | No artifact; a CVD/PSIRT policy. |
+
+### NIST SP 800-53 Rev 5 / SP 800-161r1 (C-SCRM overlay; SR/SI/CM/RA)
+
+800-161r1 uses the 800-53 SR-family catalog; IDs are identical. Control statements verified for SR-4/SR-11.
+
+| Control | Ask | Evidence | Status | Note |
+|---|---|---|:--:|---|
+| **SR-4** Provenance | document/monitor/maintain valid provenance of components & data | E2, E1, E7 | **EVIDENCE** | E2 is the anchor; component provenance (E1) incomplete. |
+| **SR-4(3)** Validate as Genuine and Not Altered | received components are genuine + unaltered | E5, E2, E3 | **PARTIAL** | E5/E2 validate the build output; **E3 is membership-only → "not altered" at byte level unproven.** |
+| **SR-4(4)** Supply Chain Integrity — Pedigree | validate internal composition + provenance of critical products | E1, E3 | **PARTIAL** | Composition touched; no critical-component pedigree; E1 omits submodules. |
+| **SI-7** Software/Firmware/Information Integrity | detect unauthorized changes to software/firmware | E5, E2, E1, E3 | **PARTIAL** | Strong on build-output integrity; runtime/byte firmware integrity (E3) not complete. |
+| **SI-7(15)** Code Authentication | cryptographically authenticate firmware **prior to installation** | E5, E2 | **PARTIAL** | The signature/`sbom-binding` checks are gate-enforced, but the **signed subject is the SBOM/attestation, not the firmware image** — firmware-byte authentication rides on reconcile (membership-only) and completes with Gap #2. |
+| **SI-7(1)** Integrity Checks | integrity checks at defined events/frequency | E1, E3 | **PARTIAL** | Hashes + reconcile provide checks; cadence undefined; E3 membership-only. |
+| **CM-8** System Component Inventory | accurate, current component inventory | E1, E7 | **PARTIAL** | E1 is the inventory but incomplete (no licenses/PURLs/submodules); E7 tools direct-only. |
+| **RA-5** Vulnerability Monitoring & Scanning | scan for vulnerabilities; remediate per risk | E4 | **ENFORCED** *(gate)* | `cve-triage`; cadence to be documented. |
+| **SR-11** Component Authenticity | anti-counterfeit **policy** + detection | — | **N/A (process)** | E5/E3 give own-build authenticity but are **not** an anti-counterfeit program — do not claim. |
+| **SR-3 / SR-5** Processes / Acquisition | documented C-SCRM processes / acquisition strategy | — | **N/A (process)** | Evidence implements pieces; the documented *process* is out of scope. |
+
+### OpenSSF S2C2F v2 (practice IDs verbatim)
+
+| Practice | Ask | Evidence | Status | Note |
+|---|---|---|:--:|---|
+| **INV-1** | automated inventory of all OSS used | E1, E7 | **PARTIAL** | E1 build-generated but no submodules; E7 direct-only. |
+| **SCA-1** | scan OSS for known vulnerabilities | E4 | **ENFORCED** *(gate)* | Direct hit (`cve-triage`). |
+| **AUD-3** | validate integrity of OSS consumed into the build | E3 | **PARTIAL** | Reconcile is membership-only — partial integrity signal. |
+| **SCA-2** | scan OSS for licenses | — | **PLANNED** | Same missing-license data as CISA/BSI below. |
+| **SCA-3** | scan OSS for end-of-life | — | **PLANNED** | Needs an EOL feed. |
+| **AUD-1** | verify provenance of **ingested** OSS | — | **N/A / not-forced** | E2/E5 is provenance of *our own output*, a different subject — do not map. |
+
+### in-toto attestation + SLSA VSA (evidence-format controls)
+
+| Control | Ask | Evidence | Status | Note |
+|---|---|---|:--:|---|
+| in-toto **Statement `_type` v1** | standard statement envelope | E2, E6 | **EVIDENCE** | Both use the v1 Statement wrapper. |
+| **subject→digest binding** | attestation bound to a specific artifact digest | E1, E5, E6 | **ENFORCED** *(gate)* | `sbom-binding`: SBOM digest == signed subject. |
+| **DSSE signing** | attestation wrapped in a signed DSSE envelope | E5 | **ENFORCED** *(gate)* | Cosign keyless DSSE; OIDC identity. |
+| VSA **`verifiedLevels`** | machine-readable level asserted | E6 | **EVIDENCE** | Reads `SLSA_BUILD_LEVEL_2` on allow; note it is *asserted on the pass verdict*, and gate-verified for real only in CI where `gh attestation verify` runs. |
+| VSA **`dependencyLevels`** | SLSA levels of transitive deps | — | **PLANNED** | Empty today — ties to the E1/E3 transitive-coverage gap. |
+
+## B. SBOM-content regulation (CRA / BSI / CISA / NTIA)
+
+**The nuance first: CRA-the-law is field-light; the teeth are in BSI/CISA.** CRA requires an SBOM to *exist*,
+be machine-readable, and cover *at least top-level dependencies* — **it names no fields and no format**. The
+operational bar auditors use is **BSI TR-03183-2 v2.1.0** (CRA's harmonized-standard-in-waiting) and the
+**CISA 2026 Minimum Elements**. So E1's missing licenses/PURLs are **not CRA gaps** — they are BSI/CISA gaps.
+
+### EU CRA — Regulation (EU) 2024/2847 (Annex I **Part II** = vulnerability handling; text quoted)
+
+| Ref | Ask (quoted) | Evidence | Status | Note |
+|---|---|---|:--:|---|
+| **Annex I, Part II(1)** | "…draw up a **SBOM in a commonly used and machine-readable format covering at the very least the top-level dependencies**" | E1, E4 | **ENFORCED ◐** *(gate: `sbom-present`)* | Existence + format are gate-enforced (CycloneDX 1.6). The component leg is thin: no identifiers/submodules to *demonstrate* the dependency set. E4 documents the "vulnerabilities" clause. |
+| **Annex I, Part II(2)** | "address and remediate vulnerabilities without delay…" | E4 | **N/A (process)** | VEX feeds the decision; the remediation act/SLA is process. |
+| **Annex I, Part II(3)** | "apply effective and regular tests and reviews…" | E4 | **PARTIAL** | Recurring CVE scan is one review type. |
+| **Annex I, Part II(7)** | "mechanisms to **securely distribute updates**…" | E5, E2 | **PARTIAL** | Signing + provenance give the integrity primitives; the distribution channel isn't evidenced. |
+| **Annex VII, 2(b)** | tech-doc must include the **SBOM**, CVD policy, contact address, secure-update solution | E1, E5, E2 | **PARTIAL** | SBOM + secure-update solution present; CVD policy + contact address are process artifacts. |
+
+*Legal precision:* CRA does **not** name CycloneDX/SPDX and does **not** require licenses/PURLs/nested deps
+(Recital 77; Annex I Part II(1)). It must be kept current across patches and retained as technical documentation
+(Art. 31 / Annex VII).
+
+### BSI TR-03183-2 v2.1.0 — SBOM data fields as discrete controls
+
+Tiers (§5.2): **Required** = always mandatory · **Additional** = mandatory *when the data exists*.
+
+| Ref | Field | Tier | Evidence | Status | Note |
+|---|---|:--:|---|:--:|---|
+| **§4** | format = CycloneDX **≥1.6** (or SPDX) | Req | E1 | **EVIDENCE** | E1 is CDX 1.6 — meets the floor exactly. |
+| **§5.2.1 / Table 2** | SBOM creator + timestamp | Req | E1 metadata | **EVIDENCE** | `metadata.authors`=TianoCore + `metadata.timestamp` populated (verified). |
+| **§5.2.2 / Table 3** | component name + version | Req | E1 | **PARTIAL** | Names present; ~291/310 versions default to `1.0` (weak). |
+| **§5.2.2 / Table 3** | **hash of deployable component — SHA-512** | Req | E1 | **EVIDENCE** | Strong match: SHA-512 on 122 of the 123 modules (GenFw rebase-0 canonical, deployable form). |
+| **§5.2.2 / Table 3** | dependencies (with completeness flag) | Req | E1, E3 | **PARTIAL** | Module→library edges exist; **submodule dependency graph absent**; no completeness flag. |
+| **§5.2.2 / Table 3** | distribution licences (SPDX IDs) | Req | — | **PLANNED** | E1 has no licenses. |
+| **§5.2.2 / Table 3** | component creator / filename | Req | — | **PLANNED** | Not emitted (bom-ref is the GUID, not a filename). |
+| **§5.2.2 / Table 3** | executable / archive / structured properties | Req | — | **PLANNED** | BSI publishes a [CycloneDX property taxonomy](https://github.com/BSI-Bund/tr-03183-cyclonedx-property-taxonomy) for exactly these. |
+| **§5.2.4 / Table 5** | CPE / **PURL**, source/deployable URIs, original licences | Add | — | **PLANNED** | "Additional" = mandatory when computable; PURLs are computable → real gap. |
+| **§8.1.14** | vulnerability data → **CSAF (VEX profile)** | rec | E4 | **PARTIAL** | E4 is OpenVEX; BSI's named format is CSAF/VEX. |
+| **§8.1.15** | SBOM ideally digitally signed | rec | E5 | **EVIDENCE** | cosign covers it. |
+| **§8.4.3** | Build SBOM | — | E7 | **EVIDENCE** | E7 aligns with the Build-SBOM concept. |
+
+### CISA 2026 Minimum Elements (finalized ~July 2026) + NTIA 2021
+
+The **CISA 2026 Minimum Elements** (finalized ~July 2026, superseding the NTIA 2021 baseline) add four fields:
+**Component Hash, License, Generation Tool, Generation Context**.
+
+| Element | Source | Evidence | Status | Note |
+|---|---|---|:--:|---|
+| Component name / version | NTIA'21 | E1 | **EVIDENCE** | Present. |
+| **Supplier name** | NTIA'21 (retained '26) | E1 | **PARTIAL** | Only via `metadata.authors` (SBOM author ≠ per-component supplier); per-component supplier is `PLANNED`. |
+| **Component Hash** | CISA'26 new | E1 | **EVIDENCE** | Per-module SHA-256/512 — meets the new integrity field on 122 of 123 modules. |
+| **License** | CISA'26 new | — | **PLANNED** | Missing. |
+| Software Identifiers (PURL/CPE) | NTIA'21 "other IDs" | — | **PLANNED** | No PURLs. |
+| Dependency relationship | NTIA'21 | E1, E3 | **PARTIAL** | Internal edges only; no transitive/submodule graph. |
+| Author of SBOM data | NTIA'21 | E1 | **EVIDENCE** | `metadata.authors` populated. |
+| Timestamp | NTIA'21 | E1 | **EVIDENCE** | `metadata.timestamp` populated. |
+| **Generation Tool** | CISA'26 new | E1 | **EVIDENCE** | `metadata.tools` = the `-Y SBOM` generator (name+version). |
+| **Generation Context** | CISA'26 new | E1 | **EVIDENCE** | `metadata.lifecycles:[{phase:build}]` — build-time is the gold-standard context. |
+| Automation support (format) | NTIA'21 | E1 | **EVIDENCE** | CycloneDX 1.6. |
+| Completeness (transitive) | CISA'26 | E1 | **PARTIAL** | No submodule components. |
+
+**Verdict:** CRA (law) **passes** (existence + machine-readable, gate-enforced); NTIA 2021 **mostly** (weak
+supplier/identifiers); **CISA 2026** and **BSI v2.1.0** **do not yet pass** — both blocked on the same
+fields: **licenses, PURLs, supplier, submodule components**.
+
+## C. Container-analog — NIST SP 800-190 (Sept 2017; §4 read directly)
+
+800-190 predates SBOMs and has no SBOM control; the firmware image maps as the "image."
+
+| Ref | Ask | Evidence | Status | Note |
+|---|---|---|:--:|---|
+| **§4.1.1** Image vulnerabilities | pipeline vuln scan + "quality gate" above a CVSS threshold | E4, E3 | **ENFORCED** *(gate)* | `cve-triage` at severity=critical is exactly the quality gate. |
+| **§4.1.5** Use of untrusted images | discrete signature identity + **validate signature before execution** | E5, E2, E6, E3 | **PARTIAL** | E5/E2/E6/E3 give sign+identify+verify+tamper-detect. **Caveat:** §4.1.5 (footnote 6 → CMVP) wants a **NIST-validated (FIPS 140)** crypto implementation — Sigstore/cosign keyless is **not** CMVP-validated. |
+| **§4.2.3** Registry auth/authz | signed + scanned before promotion to a registry | E5, E4 | **PARTIAL** | Pattern supported; registry admission enforcement not shown. |
+| **§4.1.2** Image config defects | secure config / minimal base | — | **N/A** | Not addressed by E1–E7. |
+
+## D. Firmware-runtime frameworks — FUTURISTIC (the honest zero)
+
+Everything below needs a **new class of evidence we do not produce**: a signed **TPM quote** (the "Attester's
+Evidence") and a signed **golden RIM** (the "Reference Values"). Where our build-time evidence is a genuine
+*structural analog* (same compare-artifact-to-reference logic), it is marked `◐ analog`, never covered. *(One
+`PARTIAL` row below — §4.2.1 — is met only **pre-deployment**, via the signed update image; the on-device
+enforcement it asks for is still futuristic.)*
+
+### NIST SP 800-193 (Platform Firmware Resiliency — §4; subsection numbers verified against the primary PDF)
+
+> The principles are **not** §4/§5/§6. They are subsections of §4 — Protection **§4.2.x**, Detection **§4.3.x**,
+> Recovery **§4.4.x**, with roots of trust in **§4.1.x**.
+
+| Ref | Ask | New evidence required | Status | Note |
+|---|---|---|:--:|---|
+| **§4.2.1** Protection and Update of Mutable Code | only authenticated firmware updates apply | on-device Root of Trust for Update (RTU) | **PARTIAL** *(pre-deployment)* | E5+E2 prove the *update image* is authentic before deployment; the on-device RTU that *refuses* unsigned images is futuristic. |
+| **§4.3.1** Detection of Corrupted Code | detect corruption vs an authorized reference | measured-boot measurement + golden RIM, on-device | **FUTURISTIC ◐ analog** | Runtime twin of E3 reconcile — E3 compares *build outputs to SBOM*, not *running firmware to a reference*. |
+| **§4.3.2** Detection of Corrupted Critical Data | detect critical-data corruption vs reference | as above | **FUTURISTIC** | — |
+| **§4.4.1 / §4.4.2** Recovery of Mutable Code / of Critical Data | auto-recover to a known-good state | golden recovery image + on-device RTRec | **FUTURISTIC** | We can *supply* a signed known-good image (E2/E5); the recovery mechanism is runtime-only. |
+| **§4.2.2 / §4.2.3 / §4.2.4** Protection of immutable code / runtime / critical data | hardware-enforced integrity | hardware protection mechanism | **FUTURISTIC** | No E1–E7 touch. |
+
+### IETF RATS — RFC 9334 (roles §4.1; conceptual messages §8.x; topological models §5.x)
+
+| Ref | Role / message | Evidence | Status | Note |
+|---|---|---|:--:|---|
+| **§4.1** Relying Party | consumes a verdict, gates an action | E6 + gate | **EVIDENCE (analog)** | Our VSA + deploy gate *are* the Relying-Party shape — only the input differs (build verdict vs runtime AR). |
+| **§4.1** Verifier | appraises Evidence against Reference Values → result | E3 | **PARTIAL (analog)** | E3 reconcile is Verifier-shaped but appraises *build* evidence, not TPM Evidence. |
+| **§8.3** Reference Values | golden values Evidence is compared to | golden RIM (below) | **FUTURISTIC** | E1/E7 SBOMs are the build-plane analog; runtime needs the RIM. |
+| **§8.1** Evidence | device signs claims about its running state | **TPM quote + event log** | **FUTURISTIC** | The hard gap — no Attester, no quote. Every runtime row blocks on this. |
+| **§8.4** Attestation Result | Verifier's signed verdict for the RP | signed EAT/AR4SI | **FUTURISTIC** | E6 VSA is the structural sibling, over build Evidence. |
+
+### TCG PC Client RIM · NIST SP 800-155
+
+| Ref | Ask | New evidence required | Status | Note |
+|---|---|---|:--:|---|
+| TCG PC Client RIM (exact §/Table **unverified** — primary PDF Cloudflare-gated) | publish the golden set of expected boot/firmware measurements as a **signed** manifest | a **signed golden RIM** (RIM Info Model mandates W3C XML-Signature) | **FUTURISTIC** | The Reference Values that 800-193 §4.3 and RATS §8.3 both consume. E1/E7 are component-enumeration cousins, not PCR golden hashes. |
+| NIST SP 800-155 (IPD, Dec 2011; historical → folded into TCG) | measure BIOS at boot into TPM PCRs, compare to reference | measured-boot log + PCR values + reference set | **FUTURISTIC ◐ analog** | Explicit runtime ancestor of E3's "measure vs known-good" pattern; cite as lineage, not an active target. |
 
 ---
 
-## First-proposal focus
+## Honest caveats (read before citing)
 
-Do **not** attempt full framework coverage. Focus the first proposal on the three slices that are
-artifact-provable *and* externally driven:
-
-1. **SLSA** — L2 (platform-generated provenance, verified in CI); name the L3 path.
-2. **CRA / BSI TR-03183-2 SBOM fields** — the generator backlog above (a real regulatory driver; and CRA names firmware).
-3. **Reconcile** — the differentiator.
-
-Lead the *regulatory* justification with **EU CRA + BSI TR-03183-2** (firmware-inclusive, still hardening),
-**not** EO 14028 — **OMB M-26-05 (Jan 2026) rescinded** the US self-attestation mandate (M-22-18/M-23-16).
+- **cosign keyless ≠ FIPS/CMVP.** 800-190 §4.1.5 (footnote 6 → CMVP) wants a NIST-validated crypto
+  implementation; Sigstore is not CMVP-validated. State it if the audience is strict.
+- **SLSA L2 is scoped to the SBOM artifact** on this operator-side workflow, not the upstream firmware build, and
+  is enforced by the **CI hard-gate step** (`gh attestation verify`), not yet a rego `verifier_report`.
+- **CRA is field-light** — do not attribute the license/PURL asks to CRA; they are BSI/CISA.
+- **TCG PC Client RIM exact §/Table numbers are unverified** (primary PDF was gated) — read them off the spec
+  before publishing anything that cites a specific RIM subsection.
+- **E3 is membership-only** today — every "not altered / byte-integrity" claim is `PARTIAL` until Gap #2 lands.
+- **The gate's per-report `.controls` tags are a representative subset**, not the exhaustive mapping — this
+  document is the authoritative control map.
 
 ## Sources
 
-SLSA: https://slsa.dev/spec/v1.0/levels · https://slsa.dev/spec/v1.0/requirements · VSA https://slsa.dev/spec/v0.1/verification_summary
-in-toto: https://github.com/in-toto/attestation · Ratify: https://ratify.dev/docs/1.0/reference/rego-templates/ · Gatekeeper ExternalData: https://open-policy-agent.github.io/gatekeeper/website/docs/externaldata/
-Witness/Archivista: https://github.com/in-toto/witness/blob/main/docs/concepts/policy.md · Valint: https://github.com/scribe-security/gatekeeper-valint · JFrog Evidence: https://docs.jfrog.com/governance/docs/evidence-management
-Anchore VIPERR: https://anchore.com/blog/introducing-viperr-the-first-software-supply-chain-security-framework-for-all/ · Chainguard: https://github.com/chainguard-dev/policy-catalog · GUAC: https://guac.sh/guac/ · Venafi/CyberArk: https://www.cyberark.com/venafi-and-cyberark-machine-identity-security/
-SSDF: https://csrc.nist.gov/pubs/sp/800/218/final · 800-161r1: https://csrc.nist.gov/pubs/sp/800/161/r1/upd1/final · S2C2F: https://github.com/ossf/s2c2f/blob/main/specification/framework.md · SCITT: https://datatracker.ietf.org/doc/draft-ietf-scitt-architecture/
-NTIA 2021: https://www.ntia.gov/report/2021/minimum-elements-software-bill-materials-sbom · CISA 2026: https://www.cisa.gov/resources-tools/resources/2026-minimum-elements-software-bill-materials-sbom
-CycloneDX 1.6: https://cyclonedx.org/news/cyclonedx-v1.6-released/ · CDXA: https://cyclonedx.org/capabilities/attestations/ · CoSWID: https://www.rfc-editor.org/rfc/rfc9393.html · OpenVEX: https://github.com/openvex
-CRA: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R2847 · BSI TR-03183-2 v2.1.0: https://www.bsi.bund.de/SharedDocs/Downloads/EN/BSI/Publications/TechGuidelines/TR03183/BSI-TR-03183-2_v2_1_0.html · BSI CDX taxonomy: https://github.com/BSI-Bund/tr-03183-cyclonedx-property-taxonomy · OMB M-26-05: https://www.dwt.com/blogs/privacy--security-law-blog/2026/02/omb-changes-course-on-software-security
-SP 800-193: https://csrc.nist.gov/pubs/sp/800/193/final · SP 800-155 (draft): https://csrc.nist.gov/pubs/sp/800/155/ipd · TCG RIM: https://trustedcomputinggroup.org/resource/tcg-pc-client-reference-integrity-manifest-specification/ · RATS RFC 9334: https://www.rfc-editor.org/rfc/rfc9334.html · CoRIM: https://datatracker.ietf.org/doc/draft-ietf-rats-corim/
+SLSA: https://slsa.dev/spec/v1.0/requirements · VSA https://slsa.dev/spec/v1.0/verification_summary
+SSDF 800-218: https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-218.pdf · 800-53r5 SR-4: https://csf.tools/reference/nist-sp-800-53/r5/sr/sr-4/ · SR-11: https://csf.tools/reference/nist-sp-800-53/r5/sr/sr-11/ · 800-161r1: https://csrc.nist.gov/pubs/sp/800/161/r1/upd1/final
+S2C2F: https://github.com/ossf/s2c2f/blob/main/specification/framework.md · in-toto: https://github.com/in-toto/attestation
+NTIA 2021: https://www.ntia.gov/report/2021/minimum-elements-software-bill-materials-sbom · CISA 2026 Minimum Elements: https://www.cisa.gov/resources-tools/resources/2026-minimum-elements-software-bill-materials-sbom
+CRA Reg (EU) 2024/2847: https://eur-lex.europa.eu/eli/reg/2024/2847/oj · BSI TR-03183-2 v2.1.0: https://www.bsi.bund.de/SharedDocs/Downloads/EN/BSI/Publications/TechGuidelines/TR03183/BSI-TR-03183-2_v2_1_0.pdf · BSI CDX taxonomy: https://github.com/BSI-Bund/tr-03183-cyclonedx-property-taxonomy
+SP 800-190: https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-190.pdf · SP 800-193: https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-193.pdf · SP 800-155 (IPD): https://csrc.nist.gov/pubs/sp/800/155/ipd
+RATS RFC 9334: https://www.rfc-editor.org/rfc/rfc9334.html · TCG PC Client RIM: https://trustedcomputinggroup.org/resource/tcg-pc-client-reference-integrity-manifest-specification/ · OSCAL: https://pages.nist.gov/OSCAL/
 Reconcile prior art: https://developer.harness.io/docs/software-supply-chain-assurance/sbom/sbom-drift/ · https://www.sciencedirect.com/science/article/pii/S2405959526001086
-OSCAL: https://pages.nist.gov/OSCAL/

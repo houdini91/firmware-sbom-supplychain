@@ -153,7 +153,9 @@ deny contains msg if {
 # SLSA Verification Summary Attestation (VSA) predicate.
 # The gate's verdict as portable evidence: gate.sh wraps this in an in-toto
 # Statement (subject = firmware digest) and stamps timeVerified.
-# verifiedLevels is honest — we self-sign provenance, so the ceiling is L1.
+# verifiedLevels reports SLSA_BUILD_LEVEL_2: in CI the SBOM's provenance is
+# platform-generated (attest-build-provenance) and hard-gated by
+# `gh attestation verify` before this gate runs (see the _levels note below).
 # ---------------------------------------------------------------------------
 vsa_predicate := {
 	"verifier": {"id": "https://github.com/houdini91/firmware-sbom-supplychain/oss-lane"},
