@@ -1,11 +1,29 @@
 {
-  "sbom": { "present": true, "hash": "sha256:3b1f0a9c8e2d4b6a7c5e9f01234567890abcdef1122334455667788990011aabb" },
-  "attestation": { "subject_digest": "sha256:3b1f0a9c8e2d4b6a7c5e9f01234567890abcdef1122334455667788990011aabb" },
-  "signature": { "verified": true },
+  "sbom": {
+    "present": true,
+    "hash": "sha256:3b1f0a9c8e2d4b6a7c5e9f01234567890abcdef1122334455667788990011aabb",
+    "thirdparty": {
+      "total": 1,
+      "missing": []
+    }
+  },
+  "attestation": {
+    "subject_digest": "sha256:3b1f0a9c8e2d4b6a7c5e9f01234567890abcdef1122334455667788990011aabb"
+  },
+  "signature": {
+    "verified": true
+  },
   "provenance": {
     "builder_id": "https://github.com/attacker/rogue-fork/.github/workflows/build.yml@refs/heads/main",
     "source_repo": "https://github.com/houdini91/firmware-sbom-supplychain"
   },
-  "reconcile": { "clean": true, "missing": [], "added": [], "modified": [] },
-  "cve": { "findings": [] }
+  "reconcile": {
+    "clean": true,
+    "missing": [],
+    "added": [],
+    "modified": []
+  },
+  "cve": {
+    "findings": []
+  }
 }

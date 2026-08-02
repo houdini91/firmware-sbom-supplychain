@@ -12,7 +12,8 @@
 - **Enforced today** — the deploy pipeline **hard-blocks the release** on **eleven OPA verifier reports** (SBOM
   present · attestation signature · SBOM↔subject binding · provenance identity · **SLSA L2 provenance** ·
   reconcile · CVE/VEX · **CHIPSEC platform posture** · **reconcile membership** (SI-7/CM-8(3)) · **component
-  integrity** (SI-7(1)) · **VEX adjudication** (RV.1.1, high+critical)), the SLSA-L2 one backed by the
+  integrity** (SI-7(1)) · **VEX adjudication** (RV.1.1, high+critical) · **third-party identity** (CISA
+  License/PURL, S2C2F SCA-2)). The count is **twelve**; the SLSA-L2 one is additionally backed by the
   `gh attestation verify` CI hard-gate. These are the controls we can defend as *actually enforced*, not merely
   mapped. The remaining planned rules are tracked in [`POLICY-EXPANSION.md`](./POLICY-EXPANSION.md).
 - **Satisfiable from evidence we already emit** — many named controls across SLSA, NIST SSDF/800-53/800-161,
@@ -37,7 +38,7 @@ framework  →  §control (exact ref)  →  evidence that proves it  →  status
 
 | Status | Meaning |
 |---|---|
-| **`ENFORCED`** | The release is **hard-blocked if this fails** — by one of the eleven OPA `verifier_reports` in [`firmware.rego`](./oss-lane/policy/firmware.rego) *(gate)*; the `slsa-provenance` report is additionally backed by a CI hard-gate step *(CI)*, `gh attestation verify`. The mechanism is named per row. |
+| **`ENFORCED`** | The release is **hard-blocked if this fails** — by one of the twelve OPA `verifier_reports` in [`firmware.rego`](./oss-lane/policy/firmware.rego) *(gate)*; the `slsa-provenance` report is additionally backed by a CI hard-gate step *(CI)*, `gh attestation verify`. The mechanism is named per row. |
 | **`EVIDENCE`** | We produce the artifact/field, but no gate rule checks it yet — the control is *satisfiable from what we emit*, just not *enforced*. |
 | **`PARTIAL`** | The evidence meets the control only in part; the named shortfall is in the note. |
 | **`PLANNED`** | A concrete, near-term artifact change (mostly SBOM enrichment + byte-integrity reconcile) would satisfy it. |
@@ -66,7 +67,7 @@ not asserted.
 > `sbom-binding` (E1↔E5 digest), `provenance-identity` (E2), `slsa-provenance` (E2, backed by the
 > `gh attestation verify` CI hard-gate), `reconcile` (E3), `cve-triage` (E4), `chipsec-posture` (E10),
 > `reconcile-membership` (E3, SI-7/CM-8(3)), `component-integrity` (E1, SI-7(1)), `vex-adjudicated` (E4, RV.1.1 —
-> every high/critical CVE needs a non-empty justification) — the gate ANDs them and emits E6. The
+> every high/critical CVE needs a non-empty justification), `thirdparty-identifiers` (E1, CISA License/PURL) — the gate ANDs them and emits E6. The
 > `component-integrity` rule passes only with an explicit reviewed `data.hash_exempt` entry (ResetVector), never a
 > relaxed threshold.
 
@@ -210,7 +211,7 @@ edk2 firmware build. L3 is the honest remaining gap.
 | **INV-1** | automated inventory of all OSS used | E1, E7 | **PARTIAL** | E1 build-generated but no submodules; E7 direct-only. |
 | **SCA-1** | scan OSS for known vulnerabilities | E4 | **ENFORCED** *(gate)* | Direct hit (`cve-triage`). |
 | **AUD-3** | validate integrity of OSS consumed into the build | E3 | **PARTIAL** | Reconcile is membership-only — partial integrity signal. |
-| **SCA-2** | scan OSS for licenses | — | **PLANNED** | Same missing-license data as CISA/BSI below. |
+| **SCA-2** | scan OSS for licenses | E1 | **ENFORCED** *(gate)* | `thirdparty-identifiers` requires a license on every third-party component. |
 | **SCA-3** | scan OSS for end-of-life | — | **PLANNED** | Needs an EOL feed. |
 | **AUD-1** | verify provenance of **ingested** OSS | — | **N/A / not-forced** | E2/E5 is provenance of *our own output*, a different subject — do not map. |
 
@@ -274,8 +275,8 @@ The **CISA 2026 Minimum Elements** (finalized ~July 2026, superseding the NTIA 2
 | Component name / version | NTIA'21 | E1 | **EVIDENCE** | Present. |
 | **Supplier name** | NTIA'21 (retained '26) | E1 | **PARTIAL** | Only via `metadata.authors` (SBOM author ≠ per-component supplier); per-component supplier is `PLANNED`. |
 | **Component Hash** | CISA'26 new | E1 | **EVIDENCE** | Per-module SHA-256/512 — meets the new integrity field on 122 of 123 modules. |
-| **License** | CISA'26 new | E1 | **PARTIAL** | Present for the in-image third-party dep (openssl: Apache-2.0, R1); edk2 FFS modules N/A. |
-| Software Identifiers (PURL/CPE) | NTIA'21 "other IDs" | E1 | **PARTIAL** | openssl carries PURL+CPE (R1); edk2 FFS modules N/A. |
+| **License** | CISA'26 new | E1 | **ENFORCED** *(gate)* | `thirdparty-identifiers`: every third-party component (openssl: Apache-2.0) must carry a license; edk2 FFS excluded by construction. |
+| Software Identifiers (PURL/CPE) | NTIA'21 "other IDs" | E1 | **ENFORCED** *(gate)* | `thirdparty-identifiers`: purl (+CPE) required on every third-party component; edk2 FFS N/A by construction. |
 | Dependency relationship | NTIA'21 | E1, E3 | **PARTIAL** | Internal edges only; no transitive/submodule graph. |
 | Author of SBOM data | NTIA'21 | E1 | **EVIDENCE** | `metadata.authors` populated. |
 | Timestamp | NTIA'21 | E1 | **EVIDENCE** | `metadata.timestamp` populated. |
