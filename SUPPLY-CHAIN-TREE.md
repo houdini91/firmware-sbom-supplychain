@@ -204,7 +204,7 @@ anchors are edk2's SHA-pins plus a few signed tags.
 
 | Action | Status | Note |
 |---|---|---|
-| **jansson 2.13.1 → v2.15.1** | **PR-ready** | 6-yr-stale pin; all 11 `JsonLib.inf` sources present at target, new `dtoa.c` optional (edk2 leaves `DTOA_ENABLED` unset), INF unchanged. Fork PR for review; RedfishPkg test-build is the pre-upstream gate. |
+| **jansson 2.13.1 → v2.15.1** | **blocked (build fails)** | Fork PR [houdini91/edk2#3] opens the change, but the **RedfishPkg test-build FAILS**: jansson **v2.14+** added `sprintf(buf, "%#.0f", 1.0)` in `strconv.c` `get_decimal_point()` (commit "Use sprintf() to determine locale's decimal point"), and edk2's freestanding `Crt/stdio.h` provides no `sprintf` → `-Werror=implicit-function-declaration`. No clean intermediate version exists (v2.14 onward all affected). Bumping past 2.13.1 requires an edk2 `sprintf` shim in JsonLib — a real port task. **This compat drift is itself likely why the pin is 6 years stale.** |
 | **oniguruma** | **no bump — issue filed** | fork gitlink already == final EOL tag `v6.9.10`; the action is *document EOL / plan replacement of `RegularExpressionDxe`*, not a pin change. Tracked as a draft edk2 issue for review: [houdini91/edk2#4](https://github.com/houdini91/edk2/issues/4) (not posted upstream). |
 | **libfdt → v1.8.x** | **blocked** | the `pylibfdt` mirror edk2 consumes tops out at v1.7.2; can't pin v1.8.x until the mirror syncs — itself a mirror-lag finding. |
 | **cmocka 2019 → 1.1.8** | optional | test-only (not shipped); 1.1.8 clean, 2.0.x is breaking. Low priority. |
