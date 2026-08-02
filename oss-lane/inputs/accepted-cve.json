@@ -1,5 +1,9 @@
 {
-  "sbom": { "present": true, "hash": "sha256:3b1f0a9c8e2d4b6a7c5e9f01234567890abcdef1122334455667788990011aabb" },
+  "sbom": {
+    "present": true,
+    "hash": "sha256:3b1f0a9c8e2d4b6a7c5e9f01234567890abcdef1122334455667788990011aabb",
+    "integrity": { "hashable_total": 123, "hashed": 122, "unhashed": ["ResetVector"] }
+  },
   "attestation": { "subject_digest": "sha256:3b1f0a9c8e2d4b6a7c5e9f01234567890abcdef1122334455667788990011aabb" },
   "signature": { "verified": true },
   "provenance": {
@@ -7,7 +11,10 @@
     "source_repo": "https://github.com/houdini91/firmware-sbom-supplychain",
     "slsa_verified": true
   },
-  "reconcile": { "clean": true, "missing": [], "added": [], "modified": [] },
+  "reconcile": {
+    "clean": true, "missing": [], "added": [], "modified": [],
+    "declared": 123, "matched": 123, "missing_count": 0, "undeclared_observed": 0
+  },
   "cve": { "findings": [
     { "id": "CVE-2021-38578", "component": "edk2", "severity": "CRITICAL" }
   ] },

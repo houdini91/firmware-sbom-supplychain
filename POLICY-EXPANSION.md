@@ -15,8 +15,8 @@ rubber-stamp; drop the clause and the rule is theater.
 | Rule | Control(s) | Evidence | Pass condition (essence) | Honesty clause | Status |
 |---|---|---|---|---|:--:|
 | **`chipsec-posture`** | SP 800-193 §4.2.1/§4.2.2, SP 800-147/147B | CHIPSEC | `chipsec.critical_passed` | `NOTAPPLICABLE`≠fail, but ≥1 applicable critical must PASS | **implemented** |
-| **`reconcile-membership`** | SI-7, CM-8(3) | E3 | `declared==observed==matched ∧ undeclared_observed==0 ∧ missing==0` | `undeclared_observed==0` (real unauthorized-component detector) | planned |
-| **`component-integrity-coverage`** | SI-7(1), CISA Hash | E1 | every hashable non-lib module has SHA-256/512 | **no "≥122" relaxation** — the 1 gap (ResetVector) needs a hash or a reviewed `data.hash_exempt[]` entry | planned (**RED today**) |
+| **`reconcile-membership`** | SI-7, CM-8(3) | E3 | `declared==observed==matched ∧ undeclared_observed==0 ∧ missing==0` | `undeclared_observed==0` (real unauthorized-component detector) | **implemented** |
+| **`component-integrity`** | SI-7(1), CISA Hash | E1 | every hashable non-lib module has SHA-256/512 | **no "≥122" relaxation** — the 1 gap (ResetVector) needs a hash or a reviewed `data.hash_exempt[]` entry | **implemented** (verified RED without the exemption) |
 | **`signer-identity-pinned`** | SI-7(15), CM-14, SR-4(1) | E5, E2 | `sig.verified ∧ SAN==expected ∧ issuer==expected ∧ builder∈approved` | pin **issuer + SAN**, not just "a signature verified" | planned |
 | **`sast-gate`** | SA-11(1), PW.7.2 | E8 | `sast.sig_verified ∧ sast.commit==provenance.commit ∧ critical==0 ∧ high≤thr` | **`sast.commit == build commit`** — else an old passing scan satisfies it | planned |
 | **`vex-adjudicated`** | RV.1.1/1.2, S2C2F SCA-1 | E4+VEX+CSAF | every high/critical finding has `status∈{not_affected,fixed}` **with non-empty justification** | require the **justification string** — an unjustified `not_affected` launders findings | planned (tighten `cve-triage`) |

@@ -54,6 +54,26 @@ _slsa_verified if input.provenance.slsa_verified
 default _chipsec_posture := false
 _chipsec_posture if input.chipsec.critical_passed
 
+# SI-7, CM-8(3): reconcile membership — every declared module was observed in the
+# image and no undeclared (suspicious) artifact was present.
+default _reconcile_membership := false
+_reconcile_membership if {
+	input.reconcile.matched == input.reconcile.declared
+	input.reconcile.missing_count == 0
+	input.reconcile.undeclared_observed == 0
+}
+
+# SI-7(1), CISA hash field: every hashable (non-library) module carries a hash,
+# except explicit reviewed exemptions (data.hash_exempt). No relaxed threshold —
+# an unhashed, non-exempt module fails the gate.
+_integrity_unresolved := [m | some m in object.get(input, ["sbom", "integrity", "unhashed"], []); not data.hash_exempt[m]]
+
+default _integrity_coverage := false
+_integrity_coverage if {
+	input.sbom.integrity
+	count(_integrity_unresolved) == 0
+}
+
 # ---------------------------------------------------------------------------
 # Normalized verifier reports — one per fact, tagged with the controls it
 # satisfies. The gate ANDs isSuccess across all of them.
@@ -93,6 +113,18 @@ verifier_reports := [
 		["SP800-193-4.2", "SP800-147"],
 	),
 	_report(
+		"reconcile-membership", _reconcile_membership,
+		"every declared module observed in the image; no undeclared artifact",
+		_reconcile_membership_msg,
+		["SI-7", "CM-8(3)"],
+	),
+	_report(
+		"component-integrity", _integrity_coverage,
+		"every hashable module carries a hash (or a reviewed exemption)",
+		_integrity_msg,
+		["SI-7(1)", "CISA-2026-hash"],
+	),
+	_report(
 		"reconcile", _reconcile_clean,
 		"declared SBOM matches observed firmware bytes",
 		"reconcile failed: SBOM does not match firmware bytes",
@@ -119,6 +151,14 @@ _provenance_msg := sprintf(
 )
 
 _cve_msg := sprintf("%d un-triaged critical CVE(s)", [count(critical_cves)])
+
+_reconcile_membership_msg := sprintf(
+	"reconcile membership incomplete: matched=%v declared=%v missing=%v undeclared=%v",
+	[object.get(input, ["reconcile", "matched"], "?"), object.get(input, ["reconcile", "declared"], "?"),
+		object.get(input, ["reconcile", "missing_count"], "?"), object.get(input, ["reconcile", "undeclared_observed"], "?")],
+)
+
+_integrity_msg := sprintf("%d module(s) lack a hash and are not in data.hash_exempt: %v", [count(_integrity_unresolved), _integrity_unresolved])
 
 # ---------------------------------------------------------------------------
 # Decision: allow iff every verifier report succeeded.
@@ -163,6 +203,10 @@ deny contains msg if {
 deny contains "SLSA L2 provenance not verified (needs attest-build-provenance + gh attestation verify)" if not input.provenance.slsa_verified
 
 deny contains "platform protections not verified (CHIPSEC critical module failed or none ran)" if not input.chipsec.critical_passed
+
+deny contains _reconcile_membership_msg if not _reconcile_membership
+
+deny contains _integrity_msg if not _integrity_coverage
 
 deny contains "reconcile failed: SBOM does not match firmware bytes" if not input.reconcile.clean
 

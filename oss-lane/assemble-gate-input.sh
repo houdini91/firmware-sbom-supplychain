@@ -59,6 +59,13 @@ fi
 SBOM_HASH="$(sha256sum "$SBOM" | cut -d' ' -f1)"
 PRESENT="$(jq '(.components|length) > 0' "$SBOM")"
 CLEAN="$(printf '%s' "$PRED" | jq '((.summary.missing // 1)==0) and ((.summary.modified // 1)==0) and ((.summary.added_suspicious // 1)==0)')"
+# SI-7/CM-8(3): reconcile membership counts, from the signed reconcile predicate summary.
+DECLARED="$(printf '%s' "$PRED" | jq '.summary.declared_modules // 0')"
+MATCHED="$(printf '%s' "$PRED" | jq '.summary.validated // 0')"
+MISSING_N="$(printf '%s' "$PRED" | jq '.summary.missing // 0')"
+UNDECLARED="$(printf '%s' "$PRED" | jq '.summary.added_suspicious // 0')"
+# SI-7(1): per-component hash coverage — non-library modules and which lack a hash.
+INTEG="$(jq -c '[.components[]|select(.type!="library")] | {hashable_total:length, hashed:([.[]|select(.hashes)]|length), unhashed:[.[]|select(.hashes|not)|.name]}' "$SBOM")"
 if [ -n "$GRYPE_JSON" ] && [ -f "$GRYPE_JSON" ]; then
   CVE="$(jq '[.matches[]? | {id:.vulnerability.id, component:.artifact.name, severity:(.vulnerability.severity|ascii_upcase)}] | unique' "$GRYPE_JSON")"
 else
@@ -68,12 +75,14 @@ fi
 jq -n --arg sig "$SIG" --arg sh "$SBOM_HASH" --arg sd "$SUBJECT_DIGEST" \
       --arg b "$EFFECTIVE_BUILDER" --arg r "$REPO" --argjson present "$PRESENT" \
       --argjson clean "$CLEAN" --argjson pred "$PRED" --argjson cve "$CVE" \
-      --arg slsa "$SLSA_VERIFIED" --arg chipsec "$CHIPSEC_PASSED" '{
-  sbom:        {present:$present, hash:("sha256:"+$sh)},
+      --arg slsa "$SLSA_VERIFIED" --arg chipsec "$CHIPSEC_PASSED" \
+      --argjson integ "$INTEG" --argjson declared "$DECLARED" --argjson matched "$MATCHED" \
+      --argjson missing_n "$MISSING_N" --argjson undeclared "$UNDECLARED" '{
+  sbom:        {present:$present, hash:("sha256:"+$sh), integrity:$integ},
   attestation: {subject_digest:(if $sd=="" then "" else "sha256:"+$sd end)},
   signature:   {verified:($sig=="true")},
   provenance:  {builder_id:$b, source_repo:$r, slsa_verified:($slsa=="true")},
-  reconcile:   {clean:$clean, missing:($pred.missing // []), added:($pred.added // []), modified:($pred.modified // [])},
+  reconcile:   {clean:$clean, missing:($pred.missing // []), added:($pred.added // []), modified:($pred.modified // []), declared:$declared, matched:$matched, missing_count:$missing_n, undeclared_observed:$undeclared},
   cve:         {findings:$cve},
   chipsec:     {critical_passed:($chipsec=="true")}
 }' > "$OUT"

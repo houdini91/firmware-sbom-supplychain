@@ -2,7 +2,7 @@
   "sbom": {
     "present": true,
     "hash": "sha256:3b1f0a9c8e2d4b6a7c5e9f01234567890abcdef1122334455667788990011aabb",
-    "integrity": { "hashable_total": 123, "hashed": 122, "unhashed": ["ResetVector"] }
+    "integrity": { "hashable_total": 123, "hashed": 121, "unhashed": ["ResetVector", "SomeDxe"] }
   },
   "attestation": { "subject_digest": "sha256:3b1f0a9c8e2d4b6a7c5e9f01234567890abcdef1122334455667788990011aabb" },
   "signature": { "verified": true },
