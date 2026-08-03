@@ -1,0 +1,116 @@
+# Initiative manifests — framework → control → the verifier report(s) that satisfy it.
+#
+# This is the declarative layer over the enforcing gate (adopted from the Valint/Scribe
+# "initiative" model). The 16 rego verifier_reports stay the source of truth; this maps
+# them to framework control IDs so a run can report per-control, per-framework coverage
+# (and surface MISSING_EVIDENCE — a control whose satisfying report is absent from the VSA).
+#
+# `satisfied_by`: ALL listed reports must be isSuccess=true for the control to PASS.
+# A report named here but absent from the VSA verifier_reports => MISSING_EVIDENCE.
+# Consumed by verify-initiative.sh against a signed VSA (predicate.verifierReports[]).
+
+version: 1
+
+initiatives:
+
+  slsa.l2:
+    name: "SLSA v1.0 — Build track L2"
+    help: https://slsa.dev/spec/v1.0/levels
+    controls:
+      - id: provenance-exists
+        name: "Provenance exists (L1)"
+        satisfied_by: [provenance-identity]
+      - id: provenance-authentic
+        name: "Provenance authentic — platform-generated (L2)"
+        satisfied_by: [slsa-provenance, slsa-level-floor]
+      - id: subject-binding
+        name: "Provenance/SBOM bound to one subject digest"
+        satisfied_by: [sbom-binding, evidence-chain-bound]
+
+  ssdf:
+    name: "NIST SSDF (SP 800-218 v1.1)"
+    help: https://csrc.nist.gov/pubs/sp/800/218/final
+    controls:
+      - id: PS.2.1
+        name: "Provide integrity-verification info to acquirers"
+        satisfied_by: [attestation-signature]
+      - id: PS.3
+        name: "Archive + provide provenance/SBOM per release"
+        satisfied_by: [sbom-present, provenance-identity]
+      - id: PO.3.2
+        name: "Deploy/operate tools securely (toolchain pinned)"
+        satisfied_by: [build-tools-signed]
+      - id: PO.3.3
+        name: "Tools emit artifacts of secure practices"
+        satisfied_by: [slsa-provenance]
+      - id: PW.4.4
+        name: "Verify third-party components"
+        satisfied_by: [thirdparty-identifiers, cve-triage]
+      - id: RV.1.1
+        name: "Ongoing vulnerability discovery + triage"
+        satisfied_by: [cve-triage, vex-adjudicated]
+
+  sp-800-53:
+    name: "NIST SP 800-53 Rev 5 (SR/SI/CM/RA)"
+    help: https://csf.tools/reference/nist-sp-800-53/r5/
+    controls:
+      - id: SI-7
+        name: "Software/firmware integrity — detect unauthorized change"
+        satisfied_by: [reconcile-membership, component-integrity]
+      - id: SI-7(1)
+        name: "Integrity checks over components"
+        satisfied_by: [component-integrity]
+      - id: SI-7(15)
+        name: "Code authentication by a trusted signer"
+        satisfied_by: [signer-identity-pinned]
+      - id: CM-8(3)
+        name: "Unauthorized-component detection"
+        satisfied_by: [reconcile-membership]
+      - id: CM-14
+        name: "Signed components"
+        satisfied_by: [signer-identity-pinned]
+      - id: SR-4
+        name: "Provenance"
+        satisfied_by: [slsa-level-floor]
+      - id: SR-4(3)
+        name: "Validate genuine and not altered"
+        satisfied_by: [slsa-level-floor, evidence-chain-bound, reconcile-membership]
+      - id: RA-5
+        name: "Vulnerability scanning"
+        satisfied_by: [cve-triage]
+
+  sp-800-193:
+    name: "NIST SP 800-193 — Platform Firmware Resiliency (Protection)"
+    help: https://csrc.nist.gov/pubs/sp/800/193/final
+    controls:
+      - id: "4.2"
+        name: "Protection posture (config-level, via CHIPSEC on OVMF target)"
+        satisfied_by: [chipsec-posture]
+
+  s2c2f:
+    name: "OpenSSF S2C2F v2"
+    help: https://github.com/ossf/s2c2f
+    controls:
+      - id: SCA-1
+        name: "Scan OSS for known vulnerabilities"
+        satisfied_by: [cve-triage, vex-adjudicated]
+      - id: SCA-2
+        name: "Scan OSS for licenses"
+        satisfied_by: [thirdparty-identifiers]
+      - id: REB-3
+        name: "SBOM for rebuilt/build tooling"
+        satisfied_by: [build-tools-signed]
+
+  cra-bsi-cisa:
+    name: "EU CRA / BSI TR-03183-2 / CISA-2026 (SBOM obligations)"
+    help: https://eur-lex.europa.eu/eli/reg/2024/2847/oj
+    controls:
+      - id: cra-annex-I-II-1
+        name: "CRA Annex I Part II(1): SBOM exists, machine-readable"
+        satisfied_by: [sbom-present]
+      - id: cisa-hash
+        name: "CISA-2026: component hashes"
+        satisfied_by: [component-integrity]
+      - id: cisa-license-id
+        name: "CISA-2026: license + software identifiers (third-party)"
+        satisfied_by: [thirdparty-identifiers]

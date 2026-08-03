@@ -12,10 +12,13 @@ The actionable next steps, in execution order. Detail lives in [`DESIGN-REVIEW.m
   - [ ] Reconcile predicate records `image_digest: D` (+ per-region digests).
   - [ ] Gate anchor becomes `D` (not `sha256(sbom.cdx.json)`); add the check `SBOM.metadata.component.hashes == D == deployed .fd`.
   - *Acceptance:* a consumer can verify "this evidence is about firmware `sha256:D`," and the gate proves the SBOM describes *these* bytes.
-- [ ] **A2 · Initiative / rule-catalog layer** (adopt Valint's *structure*). Map the 16 verifiers to a declarative
-  `framework → control → rule` manifest (SLSA/SSDF/800-53/800-190/CRA/BSI); fold `control_id → satisfied_by[]` +
-  `missing_evidence[]` into the VSA; add the **`MISSING_EVIDENCE`** three-state verdict; versioned rule IDs
-  (`ns/name@vN`) + a standard verdict schema. *Pure packaging over what we already compute.*
+- [~] **A2 · Initiative / rule-catalog layer** (adopt Valint's *structure*).
+  - [x] Declarative `framework → control → rule` manifest + per-framework coverage runner —
+    `oss-lane/initiatives/frameworks.yaml` + `oss-lane/verify-initiative.py`: reads the signed VSA, reports
+    PASS / FAIL / **MISSING_EVIDENCE** across 6 frameworks / ~25 controls (SLSA L2, SSDF, 800-53, 800-193, S2C2F,
+    CRA/BSI/CISA). *Verified: clean VSA → all PASS; a failing report lights up the right control.*
+  - [ ] Fold `control_id → satisfied_by[]` (+ `missing_evidence[]`) into the VSA `predicate` itself.
+  - [ ] Versioned rule IDs (`ns/name@vN`) + metadata sidecars + a standard verdict schema.
 - [ ] **A3 · `fw-supplychain-verify` CLI** (the headline). One command a firmware engineer runs on *their*
   firmware → per-framework scorecard, using their trust policy. Consumes A1 (anchor) + A2 (initiatives).
   - ⛔ blocked-by A1, A2.
