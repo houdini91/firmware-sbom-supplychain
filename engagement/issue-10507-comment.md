@@ -24,8 +24,9 @@ library instance, a module → library dependency graph, per-module SHA-256/512 
 reusing the `-Y HASH` canonicalization), and edk2 module-type / arch / `.inf` metadata.
 
 Working branch (personal fork — happy to send to `devel@edk2.groups.io` via `git send-email` if there's
-interest): https://github.com/houdini91/edk2/pull/2 . A generated example SBOM and a longer write-up are in the
-reference repo: https://github.com/houdini91/firmware-sbom-supplychain .
+interest): https://github.com/houdini91/edk2/pull/6 (the `-Y SBOM` generator, plus the drafted `-Y SPDX`
+report type in reserve). A generated example SBOM and a longer write-up are in the reference repo:
+https://github.com/houdini91/firmware-sbom-supplychain .
 
 ## On format (CycloneDX vs SPDX)
 

@@ -114,6 +114,11 @@ jobs:
           VSA_OUT=inputs/vsa.intoto.json OPA=/usr/local/bin/opa ./oss-lane/gate.sh inputs/gate-input.json
           echo "--- VSA (signed gate verdict) ---"; jq '{result:.predicate.verificationResult, levels:.predicate.verifiedLevels, reports:[.predicate.verifierReports[]|{name,isSuccess,controls}]}' inputs/vsa.intoto.json
 
+      - name: Framework coverage from the signed VSA (initiative layer)
+        run: |
+          pip install --quiet pyyaml
+          python3 oss-lane/verify-initiative.py --vsa inputs/vsa.intoto.json
+
       - name: Sign the gate verdict (SLSA VSA) keyless
         run: |
           cosign sign-blob --yes --bundle inputs/vsa.sig.bundle inputs/vsa.intoto.json

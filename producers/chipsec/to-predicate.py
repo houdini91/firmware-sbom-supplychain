@@ -74,12 +74,22 @@ def convert(raw):
     }
 
 
+def _load(path):
+    try:
+        with open(path) as f:
+            return json.load(f)
+    except FileNotFoundError:
+        sys.exit("error: file not found: %s" % path)
+    except json.JSONDecodeError as e:
+        sys.exit("error: %s is not valid JSON: %s" % (path, e))
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("chipsec_json")
     ap.add_argument("-o", "--out")
     args = ap.parse_args()
-    pred = convert(json.load(open(args.chipsec_json)))
+    pred = convert(_load(args.chipsec_json))
     text = json.dumps(pred, indent=2)
     if args.out:
         with open(args.out, "w") as f:

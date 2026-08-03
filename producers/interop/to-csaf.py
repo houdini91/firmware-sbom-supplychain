@@ -105,12 +105,22 @@ def convert(vex):
     }
 
 
+def _load(path):
+    try:
+        with open(path) as f:
+            return json.load(f)
+    except FileNotFoundError:
+        sys.exit("error: file not found: %s" % path)
+    except json.JSONDecodeError as e:
+        sys.exit("error: %s is not valid JSON: %s" % (path, e))
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("openvex")
     ap.add_argument("-o", "--out")
     args = ap.parse_args()
-    out = convert(json.load(open(args.openvex)))
+    out = convert(_load(args.openvex))
     text = json.dumps(out, indent=2)
     if args.out:
         with open(args.out, "w") as f:

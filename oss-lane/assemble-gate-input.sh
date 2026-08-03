@@ -12,6 +12,13 @@
 #   - cve.findings: the grype scan
 set -euo pipefail
 
+# portable sha256 (hex only): GNU sha256sum, BSD/macOS shasum, or openssl fallback
+_sha256() {
+  if command -v sha256sum >/dev/null 2>&1; then sha256sum "$1" | cut -d' ' -f1
+  elif command -v shasum >/dev/null 2>&1; then shasum -a 256 "$1" | cut -d' ' -f1
+  else openssl dgst -sha256 "$1" | awk '{print $NF}'; fi
+}
+
 SBOM="${SBOM:?}"; BUNDLE="${BUNDLE:?}"; SIG="${SIG:?}"; OUT="${OUT:?}"
 BUILDER="${BUILDER_ID:-}"; REPO="${SOURCE_REPO:-}"; GRYPE_JSON="${GRYPE_JSON:-}"
 # SLSA L2 provenance is established in CI by attest-build-provenance + the
@@ -53,7 +60,11 @@ fi
 BUILDTOOLS="$(printf '%s' "$BUILDTOOLS" | jq -c --arg sig "$BUILD_TOOLS_SIG" '. + {signature_verified: ($sig=="true")}')"
 
 if [ "$SIG" = "true" ]; then
-  STMT="$(jq -r '.base64Signature' "$BUNDLE" | base64 -d | jq -r '.payload' | base64 -d)"
+  STMT="$(jq -r '.base64Signature' "$BUNDLE" | base64 -d 2>/dev/null | jq -r '.payload' 2>/dev/null | base64 -d 2>/dev/null || true)"
+  if ! printf '%s' "$STMT" | jq -e . >/dev/null 2>&1; then
+    echo "error: could not decode a DSSE in-toto payload from $BUNDLE — unexpected cosign bundle format (expected legacy .base64Signature). Pin cosign or refresh the bundle." >&2
+    exit 2
+  fi
   SUBJECT_DIGEST="$(printf '%s' "$STMT" | jq -r '.subject[0].digest.sha256 // ""')"
   PRED="$(printf '%s' "$STMT" | jq -c '.predicate')"
   # F2: extract the signer identity (cert SAN URI) from the bundle — do NOT trust an env string.
@@ -79,7 +90,7 @@ else
   EFFECTIVE_BUILDER="unverified:no-cert-identity"
 fi
 
-SBOM_HASH="$(sha256sum "$SBOM" | cut -d' ' -f1)"
+SBOM_HASH="$(_sha256 "$SBOM")"
 PRESENT="$(jq '(.components|length) > 0' "$SBOM")"
 CLEAN="$(printf '%s' "$PRED" | jq '((.summary.missing // 1)==0) and ((.summary.modified // 1)==0) and ((.summary.added_suspicious // 1)==0)')"
 # SI-7/CM-8(3): reconcile membership counts, from the signed reconcile predicate summary.
@@ -100,8 +111,10 @@ PROVENANCE_SUBJECT="${PROVENANCE_SUBJECT:-}"
 if [ -z "$PROVENANCE_SUBJECT" ] && [ "${DEV_ASSUME_CHAIN:-0}" = "1" ]; then
   PROVENANCE_SUBJECT="sha256:$SBOM_HASH"; CHAIN_ASSUMED=1
 fi
-if [ -n "$GRYPE_JSON" ] && [ -f "$GRYPE_JSON" ]; then
-  CVE="$(jq '[.matches[]? | {id:.vulnerability.id, component:.artifact.name, severity:(.vulnerability.severity|ascii_upcase)}] | unique' "$GRYPE_JSON")"
+# Guard against a missing/empty/invalid scan file — an empty grype.json (e.g. a
+# killed scan) would otherwise make jq emit nothing and break the --argjson below.
+if [ -n "$GRYPE_JSON" ] && [ -s "$GRYPE_JSON" ] && jq -e . "$GRYPE_JSON" >/dev/null 2>&1; then
+  CVE="$(jq -c '[.matches[]? | {id:.vulnerability.id, component:.artifact.name, severity:(.vulnerability.severity|ascii_upcase)}] | unique' "$GRYPE_JSON")"
 else
   CVE='[]'
 fi
@@ -117,7 +130,7 @@ FW_SBOM_DIGEST="$(jq -r '(.metadata.component.hashes[]? | select(.alg=="SHA-256"
 FW_RECONCILE_DIGEST="$(printf '%s' "$PRED" | jq -r '.image_digest // ""')"
 FW_DEPLOYED_DIGEST=""
 if [ -n "${FW_IMAGE:-}" ] && [ -f "${FW_IMAGE:-}" ]; then
-  FW_DEPLOYED_DIGEST="sha256:$(sha256sum "$FW_IMAGE" | cut -d' ' -f1)"
+  FW_DEPLOYED_DIGEST="sha256:$(_sha256 "$FW_IMAGE")"
 elif [ "${DEV_ASSUME_FWIMAGE:-0}" = "1" ]; then
   FW_DEPLOYED_DIGEST="$FW_SBOM_DIGEST"; FWIMAGE_ASSUMED=1
 fi

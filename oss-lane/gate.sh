@@ -26,6 +26,17 @@ result="$("$OPA" eval -I -f json \
   'data.firmware.deploy' < "$INPUT")"
 
 val="$(printf '%s' "$result" | jq -c '.result[0].expressions[0].value')"
+
+# Distinguish a POLICY ERROR (rego typo / undefined) from a legitimate DENY.
+# On error opa returns value=null (or embeds .errors); without this guard the
+# gate would fail closed but print zero reasons — a silent, undiagnosable block.
+if [ -z "$val" ] || [ "$val" = "null" ]; then
+  echo "⛔ GATE ERROR — policy produced no decision (rego error, not a deny):" >&2
+  printf '%s' "$result" | jq -r '(.errors // [])[] | "   • \(.message)"' 2>/dev/null | grep . >&2 \
+    || printf '   %s\n' "$result" >&2
+  exit 2
+fi
+
 allow="$(printf '%s' "$val" | jq -r '.allow')"
 
 # --- verifier reports (framework-tagged) ---
