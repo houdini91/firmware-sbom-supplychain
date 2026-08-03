@@ -1,8 +1,8 @@
 # Policy expansion — new rego rules to enforce conformance (careful review)
 
-The deploy gate enforces 7 verifier_reports today. Now that we produce a larger evidence set (E1–E9 + CHIPSEC),
-this is the **honest, deduplicated set of new rego rules** that would move named controls from `EVIDENCE`/`PARTIAL`
-→ `ENFORCED`. Produced by a control-by-control review of SLSA, NIST SSDF/800-53/800-161, S2C2F, CISA/NTIA, CRA,
+The deploy gate now enforces **17 verifier_reports** (the original 7 plus the 10 in the table below, since
+implemented). This is the **honest, deduplicated set of rego rules** that moved named controls from
+`EVIDENCE`/`PARTIAL` → `ENFORCED`, over the evidence set E1–E10. Produced by a control-by-control review of SLSA, NIST SSDF/800-53/800-161, S2C2F, CISA/NTIA, CRA,
 BSI, SP 800-190, and the firmware-platform frameworks — reviewers instructed to be **skeptical and refuse
 rubber-stamps**. Companion to [`FRAMEWORKS.md`](./FRAMEWORKS.md) (the control map) and
 [`oss-lane/policy/firmware.rego`](./oss-lane/policy/firmware.rego) (the gate).
@@ -48,7 +48,7 @@ the strong rules become vacuous:
 
 - `data.first_party_modules[]` / classification for `thirdparty-identifiers` (else it passes vacuously).
 - `data.trusted_signer_identities[]` (SAN) + `data.trusted_builders[]` for `signer-identity-pinned`.
-- `data.hash_exempt[]` (with reasons) for `component-integrity-coverage` — currently just `ResetVector`
+- `data.hash_exempt[]` (with reasons) for `component-integrity` — currently just `ResetVector`
   (a raw reset-vector blob, not a PE image → no canonical hash), which must be an *explicit reviewed exemption*,
   not a silent pass.
 
@@ -63,7 +63,7 @@ the strong rules become vacuous:
 
 ## Implementation order
 
-1. **`chipsec-posture`** (done — closes R3) and **`reconcile-membership`** + **`component-integrity-coverage`**
+1. **`chipsec-posture`** (done — closes R3) and **`reconcile-membership`** + **`component-integrity`**
    — the real SI-7 integrity story; the last surfaces the 122/123 gap immediately.
 2. **`sast-gate`** (commit-bound) — pulls E8 into the gate; biggest control-coverage gain.
 3. **`signer-identity-pinned`**, **`vex-adjudicated`** — identity pinning + triage discipline.

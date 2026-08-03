@@ -17,12 +17,14 @@ Five concrete gaps keep it from being a *clean, evidence-centric* solution:
 1. **Evidence is not uniformly in-toto.** Only E2 (SLSA provenance), E3 (reconcile), E6 (VSA-as-JSON) are proper
    in-toto Statements. E7 and the VSA are `cosign sign-blob`'d (a *detached signature*, not an attestation);
    E1/E4/E10 are bare files. (E5 isn't evidence at all — it's the signing envelope/identity.)
-2. **Everything anchors to the SBOM *file* digest, not the firmware.** The attestation `subject` is
-   `sha256(sbom.cdx.json)`; the SBOM's firmware component carries **0 hashes**; reconcile never records the
-   image digest it carved. So we can prove "evidence about this JSON," not "evidence about firmware `sha256:X`."
-3. **No framework/initiative layer.** We emit a flat set of 17 verdicts; there's no declarative
-   `framework → control → rule` map, so a reviewer can't see per-framework coverage or "control SI-7 is
-   satisfied by verifiers X+Y."
+2. **Everything anchors to the SBOM *file* digest, not the firmware.** ✅ **CLOSED (A1).** The SBOM's firmware
+   component now carries the image digest `D`, reconcile records `image_digest` (an independent re-hash), and the
+   `firmware-digest-anchor` gate report binds the evidence to the deployed bytes. *(The deeper "`D` as the primary
+   in-toto `subject` of every attestation" refactor remains — Track A4.)* Historical gap kept for context:
+   originally the attestation `subject` was `sha256(sbom.cdx.json)` and the firmware component carried 0 hashes.
+3. **No framework/initiative layer.** ✅ **CLOSED (A2).** `initiatives/frameworks.yaml` +
+   `verify-initiative.py` map the 17 verifier reports to framework control IDs and print per-framework,
+   per-control coverage (PASS / FAIL / MISSING_EVIDENCE) from a signed VSA.
 4. **No "missing evidence" state.** An enforcing gate collapses "attestation absent" and "attestation failed"
    into one FAIL — hiding the most important supply-chain signal (a *gap*) inside ordinary failures.
 5. **CI-only.** The gate fires at build time; there's no consumer/relying-party or flash/provision-time gate,
