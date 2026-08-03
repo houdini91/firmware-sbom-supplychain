@@ -45,5 +45,10 @@
     "signature_verified": true,
     "all_pinned": true,
     "unpinned": []
+  },
+  "firmware": {
+    "sbom_digest": "sha256:374472f026fc4948b00bdcb4d3deb2d8f71d725fec24d2f4ee21dfb396c8e0ce",
+    "reconcile_digest": "sha256:374472f026fc4948b00bdcb4d3deb2d8f71d725fec24d2f4ee21dfb396c8e0ce",
+    "deployed_digest": "sha256:374472f026fc4948b00bdcb4d3deb2d8f71d725fec24d2f4ee21dfb396c8e0ce"
   }
 }

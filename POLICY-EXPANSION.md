@@ -24,6 +24,7 @@ rubber-stamp; drop the clause and the rule is theater.
 | **`slsa-level-floor`** | SR-4, SR-4(3) | E2 | `slsa_level ≥ 2` | floor **`≥2`, never L3** — E2 is L2 (hosted), not hermetic/isolated | **implemented** |
 | **`build-tools-signed`** | SSDF PO.3.2, S2C2F REB-3 | E7 | `build_tools.present ∧ signature_verified ∧ count(unpinned)==0` (direct only) | map to **PO.3.x, NOT PW.6.1** — this proves *which* tools, not hardening flags | **implemented** |
 | **`evidence-chain-bound`** | SLSA subject binding | E1/E2/E5 | SBOM↔attestation↔provenance one digest | the **VSA is excluded** (it is the gate's own output — circular) | **implemented** |
+| **`firmware-digest-anchor`** | firmware-image-binding, SI-7, SR-4(3), CISA Hash | E1↔E3↔image | `SBOM.metadata.component D == reconcile.image_digest == deployed .fd digest` | the deployed leg is an **independent hash of the real bytes** (env `FW_IMAGE`), not the SBOM's self-claim — else the SBOM could describe *any* image; proven against the real `OVMF.fd` (no assume) | **implemented** |
 
 ## Rules we deliberately do NOT write (refusing conformance theater)
 

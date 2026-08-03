@@ -30,7 +30,23 @@
       "type": "firmware",
       "bom-ref": "edk2-platform",
       "name": "Ovmf",
-      "version": "0.1"
+      "version": "0.1",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "374472f026fc4948b00bdcb4d3deb2d8f71d725fec24d2f4ee21dfb396c8e0ce"
+        },
+        {
+          "alg": "SHA-512",
+          "content": "1941bb8bcc1f932d9e24d88290039fa151a80da04fe0d159824bb137d138f2e86e155819235029e9d4982d1514816eb5ce7435d539bba22c812d0efdfe2d5796"
+        }
+      ],
+      "properties": [
+        {
+          "name": "firmware:primary-image",
+          "value": "OVMF.fd"
+        }
+      ]
     },
     "supplier": {
       "name": "TianoCore",

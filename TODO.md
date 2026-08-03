@@ -6,12 +6,12 @@ The actionable next steps, in execution order. Detail lives in [`DESIGN-REVIEW.m
 
 ## Track A — clean, tangible, evidence-centric core (do this now)
 
-- [ ] **A1 · Firmware-digest anchor (the keystone).** Everything binds to the *firmware*, not a JSON file.
-  - [ ] Generator (edk2 `-Y SBOM`): write `D = sha256/sha512(OVMF.fd)` into `metadata.component.hashes` + a real `bom-ref`.
-  - [ ] Make `D` the **primary `subject`** of every image-scoped attestation (multi-subject `[{fd:D},{sbom:H}]` on provenance/SBOM/reconcile; `D` only on CVE/VEX/VSA/CHIPSEC/build-tools; source-commit on SAST/Scorecard). Firmware is an output → never `resolvedDependencies`.
-  - [ ] Reconcile predicate records `image_digest: D` (+ per-region digests).
-  - [ ] Gate anchor becomes `D` (not `sha256(sbom.cdx.json)`); add the check `SBOM.metadata.component.hashes == D == deployed .fd`.
-  - *Acceptance:* a consumer can verify "this evidence is about firmware `sha256:D`," and the gate proves the SBOM describes *these* bytes.
+- [~] **A1 · Firmware-digest anchor (the keystone).** Everything binds to the *firmware*, not a JSON file. **Core DONE (2026-08-03)** — `D = sha256:374472f0…c8e0ce` (real OVMF.fd).
+  - [x] Generator (edk2 `-Y SBOM`): hashes each built FD, writes the primary image's `D` into `metadata.component.hashes` + `firmware:*` properties. *(FD-selection + hash unit-verified against the real FV: picks `OVMF.fd`, reproduces `D`. Full in-build test pending a rebuild.)*
+  - [x] Reconcile predicate records `image_digest: D`.
+  - [x] Gate check `SBOM D == reconcile image_digest == deployed .fd` — new `firmware-digest-anchor` verifier report (17th), hard `deny`. Assembler derives the deployed leg from `FW_IMAGE` (real independent hash; `DEV_ASSUME_FWIMAGE` for offline). Negative fixture `firmware-digest-mismatch` → sole failing report → DENY. Proven genuinely against the real `.fd` (no assume → ALLOW). Wired into `frameworks.yaml` (SR-4(3), `cisa-fw-binding`).
+  - [ ] **(→ A4)** Make `D` the **primary in-toto `subject`** of every image-scoped attestation (multi-subject `[{fd:D},{sbom:H}]` on provenance/SBOM/reconcile; `D` only on CVE/VEX/VSA/CHIPSEC/build-tools; source-commit on SAST/Scorecard). Firmware is an output → never `resolvedDependencies`. *Deeper refactor; the DSSE-subject discipline moves to Track A4.*
+  - *Acceptance (met for the gate):* the gate proves the SBOM + evidence describe *these* firmware bytes; a consumer verifies "evidence about firmware `sha256:D`."
 - [~] **A2 · Initiative / rule-catalog layer** (adopt Valint's *structure*).
   - [x] Declarative `framework → control → rule` manifest + per-framework coverage runner —
     `oss-lane/initiatives/frameworks.yaml` + `oss-lane/verify-initiative.py`: reads the signed VSA, reports

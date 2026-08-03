@@ -126,6 +126,20 @@ _evidence_chain_bound if {
 	input.provenance.subject_digest == input.attestation.subject_digest
 }
 
+# Firmware-image anchor (the keystone). Three independently-derived digests of
+# the FIRMWARE BYTES agree: (1) the SBOM's own metadata.component digest D — what
+# the build says it shipped; (2) the reconcile verdict's image_digest — what the
+# observed carve was taken from; (3) the digest of the .fd actually deployed —
+# what a verifier hashes off the flash/build output. Equal ⇒ the whole evidence
+# set is about THESE bytes, not a detached JSON file. In the demo all three are
+# the real OVMF.fd digest; in production a flash-time verifier supplies (3).
+default _firmware_anchored := false
+_firmware_anchored if {
+	input.firmware.sbom_digest != ""
+	input.firmware.deployed_digest == input.firmware.sbom_digest
+	input.firmware.reconcile_digest == input.firmware.sbom_digest
+}
+
 # SI-7(15) Code Authentication, CM-14 Signed Components, SR-4(1): the signed
 # artifact's cryptographic identity (the keyless cert SAN) is in the trusted set
 # AND the signature verified — ties "a signature verified" to "signed by a trusted
@@ -156,6 +170,12 @@ verifier_reports := [
 		"SBOM digest bound to the signed attestation subject",
 		"SBOM bytes do not match the signed attestation subject (possible swap after signing)",
 		["in-toto-subject-binding"],
+	),
+	_report(
+		"firmware-digest-anchor", _firmware_anchored,
+		"evidence bound to the deployed firmware bytes (SBOM image digest == reconcile image == deployed .fd)",
+		"firmware digest mismatch: SBOM / reconcile / deployed .fd disagree — evidence is not about these bytes",
+		["firmware-image-binding", "SI-7", "SR-4(3)", "CISA-2026-hash"],
 	),
 	_report(
 		"provenance-identity", _provenance_ok,
@@ -329,6 +349,8 @@ deny contains _thirdparty_msg if not _thirdparty_ok
 deny contains _slsa_level_msg if not _slsa_level_floor
 
 deny contains "evidence chain not bound: SBOM / attestation / provenance subject digests differ" if not _evidence_chain_bound
+
+deny contains "firmware digest not anchored: SBOM / reconcile / deployed .fd disagree" if not _firmware_anchored
 
 deny contains _signer_msg if not _signer_pinned
 
