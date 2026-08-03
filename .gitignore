@@ -35,3 +35,6 @@ inputs/sbom.slsa.bundle
 inputs/slsa-predicate.json
 inputs/build-tools.cdx.json
 inputs/build-tools.sig.bundle
+
+# downloaded tool binary (not source)
+bin/sbom-convert
