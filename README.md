@@ -16,6 +16,33 @@ tool, not a second enforcement point. Honest scope, stated up front.
 > functional / operational design and the who-does-what boundary, written to double as the note that would
 > attach to the upstream generator discussion (edk2 #10507). A proposal to open a conversation, not a mandate.
 
+## Quickstart
+
+```bash
+make deps      # Python deps (PyYAML); see requirements.txt for the CLI tools (opa, jq, cosign, grype)
+make test      # gate honesty tests — ALLOW a clean release, DENY each of the 17 failure modes
+make coverage  # per-framework, per-control compliance coverage from a fresh signed VSA
+make demo      # the full OSS lane end to end (needs cosign + grype)
+```
+
+`make test` and `make coverage` are self-contained (opa + jq + python3/PyYAML). The gate itself is
+[`oss-lane/policy/firmware.rego`](oss-lane/policy/firmware.rego) — **17 verifier reports** ANDed into a signed
+SLSA VSA, each with an isolating negative fixture under [`oss-lane/inputs/`](oss-lane/inputs).
+
+## Documentation
+
+Read in this order:
+
+1. **README** (this file) — what it is, how to run it.
+2. [`DESIGN.md`](DESIGN.md) — the security / functional / operational design + the upstream-generator rationale.
+3. [`FRAMEWORKS.md`](FRAMEWORKS.md) — the honest evidence→control map (exact section numbers; the 17 enforced
+   reports over evidence atoms E1–E10).
+4. [`oss-lane/compliance-map.md`](oss-lane/compliance-map.md) — the enforced subset + the two-lane story.
+
+Internal worklog (not product docs): [`DESIGN-REVIEW.md`](DESIGN-REVIEW.md) (architecture review + verdict),
+[`POLICY-EXPANSION.md`](POLICY-EXPANSION.md) (the rule set), [`EVIDENCE-ROADMAP.md`](EVIDENCE-ROADMAP.md)
+(forward evidence lanes), [`TODO.md`](TODO.md) (punch-list).
+
 ## The pipeline
 
 ```
@@ -29,7 +56,7 @@ shape; this table says what exists. ✅ implemented · ⚠️ canned/stubbed · 
 
 | Stage | Designed | Status |
 |---|---|---|
-| 1 — Generate declared SBOM | edk2 `-Y SBOM` | ✅ implemented (edk2 PR #2; CycloneDX 1.6, per-module SHA-256/512, CISA/BSI Tier-1 metadata; 310-component example committed) |
+| 1 — Generate declared SBOM | edk2 `-Y SBOM` | ✅ implemented (edk2 fork PR #6; CycloneDX 1.6, per-module SHA-256/512, firmware-image digest in `metadata.component`, CISA/BSI Tier-1 metadata; **311-component example committed** — the upstream generator emits 310, the demo enriches it with `openssl` as an in-image third-party dep, R1) |
 | 2 — Observed carve → observed FFS | edk2 FMMT | ✅ implemented (`reconcile/carve.sh` — FMMT decompresses the FVs and lists FFS `FILE_GUID`s) |
 | 3 — Reconcile declared vs observed | `reconcile/sbom-reconcile.py` | ✅ **generated** (not canned) — real carve → verdict: 123/123 modules validated, 0 missing, 0 suspicious. *Membership* is real; *byte-integrity* (`modified`) is deferred with a **feasibility finding**: extracting a module's in-FV PE32 and rebasing to 0 does not match the declared build-`.efi` hash even for a DXE driver (FDF-assembly GenFw strips debug / zeroes timestamp+checksum), so real integrity needs *matched* canonicalization on both sides — a characterized research problem, not just a TODO |
 | 4 — CDX → SPDX | protobom `sbom-convert` | ✅ implemented (`interop/to-spdx.sh` + `inputs/sbom.spdx.json`) |
@@ -41,7 +68,7 @@ shape; this table says what exists. ✅ implemented · ⚠️ canned/stubbed · 
 | runtime — measured boot / RIM bind | TCG RIM / RATS | ⛔ aspirational, documented in DESIGN (not implemented) |
 
 The enforcing gate (stages 5–8), the SPDX interop (4), and now the real observed-carve + reconcile (2/3) run
-here; the generator (1) is edk2 PR #2. Remaining: reconcile's `modified` (byte-integrity) — feasibility-tested and found to need *matched*
+here; the generator (1) is edk2 fork PR #6. Remaining: reconcile's `modified` (byte-integrity) — feasibility-tested and found to need *matched*
 canonicalization (the in-image PE differs from the build `.efi` after FDF-assembly GenFw processing), so it
 stays deferred with that finding recorded. Every other designed stage now runs.
 
