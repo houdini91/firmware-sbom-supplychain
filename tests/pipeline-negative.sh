@@ -8,8 +8,9 @@ ROOT="$(cd "$HERE/.." && pwd)"
 IN="$ROOT/inputs"
 OPA="${OPA:-$ROOT/bin/opa}"
 BUNDLE="$IN/sbom.att.bundle"
-export BUILDER_ID="${BUILDER_ID:-https://github.com/houdini91/firmware-sbom-supplychain/.github/workflows/supply-chain.yml@refs/heads/main}"
-export SOURCE_REPO="${SOURCE_REPO:-https://github.com/houdini91/firmware-sbom-supplychain}"
+# builder identity + source repo come from the single source of truth (data.json)
+export BUILDER_ID="${BUILDER_ID:-$(jq -r '.expected.builder_id' "$ROOT/oss-lane/policy/data.json")}"
+export SOURCE_REPO="${SOURCE_REPO:-$(jq -r '.expected.source_repo' "$ROOT/oss-lane/policy/data.json")}"
 
 [ -f "$BUNDLE" ] || { echo "SKIP: no signed bundle (run attest first)"; exit 0; }
 [ -f "$IN/grype.json" ] || echo '{"matches":[]}' > "$IN/grype.json"

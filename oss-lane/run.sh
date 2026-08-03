@@ -57,8 +57,8 @@ echo "== 6. assemble gate input from VERIFIED evidence (shared assembler) =="
 # Local key-signing carries no cert identity, so builder_id can't be cryptographically verified here:
 # default to DEV_ASSUME_IDENTITY (loudly warned). CI keyless extracts a real identity instead.
 SBOM="$SBOM" BUNDLE="$IN/sbom.att.bundle" SIG="$SIG" \
-  BUILDER_ID="${BUILDER_ID:-https://github.com/houdini91/firmware-sbom-supplychain/.github/workflows/supply-chain.yml@refs/heads/main}" \
-  SOURCE_REPO="${SOURCE_REPO:-https://github.com/houdini91/firmware-sbom-supplychain}" \
+  BUILDER_ID="${BUILDER_ID:-$(jq -r '.expected.builder_id' "$HERE/policy/data.json")}" \
+  SOURCE_REPO="${SOURCE_REPO:-$(jq -r '.expected.source_repo' "$HERE/policy/data.json")}" \
   GRYPE_JSON="$IN/grype.json" OUT="$IN/gate-input.json" \
   DEV_ASSUME_IDENTITY="${DEV_ASSUME_IDENTITY:-1}" \
   DEV_ASSUME_SLSA="${DEV_ASSUME_SLSA:-1}" \

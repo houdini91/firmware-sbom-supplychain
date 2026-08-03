@@ -1,0 +1,16 @@
+# Python dependencies for this repo's tooling.
+#   pip install -r requirements.txt   (or: make deps)
+#
+# Only verify-initiative.py needs a third-party package; the reconcile and
+# interop scripts are stdlib-only.
+PyYAML>=6.0
+
+# External CLI tools the lanes shell out to are NOT pip-installable — install
+# them via your package manager / release binaries:
+#   opa      (policy gate)            https://www.openpolicyagent.org/docs/latest/#running-opa
+#   jq       (fact assembly)          https://jqlang.github.io/jq/
+#   cosign   (keyless sign/verify)    https://docs.sigstore.dev/cosign/installation/
+#   grype    (CVE scan)               https://github.com/anchore/grype
+#   gh       (SLSA attestation verify) https://cli.github.com/
+# Optional, for regenerating derived artifacts / the observed carve:
+#   sbom-convert (protobom, CDX<->SPDX), uswid (coSWID), FMMT.py (edk2 BaseTools)

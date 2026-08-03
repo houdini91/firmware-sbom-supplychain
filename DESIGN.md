@@ -75,7 +75,7 @@ data — no build-system surgery, no binary parsing, no new heavy dependency (Cy
 #10507 directly and is the automated generator #6455 lacked. The natural upstream form is a native
 `-Y SBOM` report type in `BuildReport.py`, reusing the same data.
 
-*(Implemented as a native `-Y SBOM` report type — [edk2 PR #2]. A full OvmfPkgX64 DEBUG/GCC build produces a
+*(Implemented as a native `-Y SBOM` report type — [edk2 PR #6]. A full OvmfPkgX64 DEBUG/GCC build produces a
 310-component CycloneDX 1.6 SBOM: one component per built module and resolved library instance, a
 module→library `dependsOn` graph (122 edges), per-component `edk2:moduleType`/`edk2:arch`/`edk2:isLibrary`
 properties, and a workspace-relative `externalReference` to each module `.inf`. A generated example is
@@ -270,7 +270,7 @@ sent upstream.
 
 | PR | Repo | Role | Upstream status |
 |---|---|---|---|
-| [edk2 PR #2] — `-Y SBOM` generator | edk2 / BaseTools | **The anchor.** Build-time CycloneDX from the `-Y COMPILE_INFO` AutoGen data. Directly answers [#10507]; example lives in this repo. | fork; via #10507 |
+| [edk2 PR #6] — `-Y SBOM` generator | edk2 / BaseTools | **The anchor.** Build-time CycloneDX from the `-Y COMPILE_INFO` AutoGen data. Directly answers [#10507]; example lives in this repo. | fork; via #10507 |
 | [uSWID PR #1] — CDX 1.4+ component types | hughsie/python-uswid | **The embed bridge.** uSWID converts CDX→coSWID and embeds it so fwupd reads it on-device; the generator's output tripped uSWID's type parser — this fixes the round-trip. | ✅ **upstreamed → [hughsie/python-uswid#98](https://github.com/hughsie/python-uswid/pull/98)** |
 | [edk2 PR #1] — libspdm 3.7.0→3.8.2 | edk2 / SecurityPkg | **Supply-chain hygiene, same theme.** Refreshes a third-party component and honestly scopes its exposure — exactly the stale-pin an SBOM surfaces. | ✅ **upstreamed → [tianocore/edk2#12936](https://github.com/tianocore/edk2/pull/12936)** |
 | [edk2 PR #5] — native `-Y SPDX` | edk2 / BaseTools | **Reserve.** Native SPDX emission if the format question calls for it; not bundled with the CycloneDX generator. | fork reserve (not proposed) |
@@ -282,10 +282,10 @@ deliberately **not** proposed upstream.
 
 One concrete, working artifact per conversation — no big-bang proposal:
 
-1. **[#10507]** — comment offering the `-Y SBOM` generator ([edk2 PR #2]) + example, using this write-up for
+1. **[#10507]** — comment offering the `-Y SBOM` generator ([edk2 PR #6]) + example, using this write-up for
    the shape. *This is where the generator lands.*
 2. **`devel@edk2.groups.io`** — edk2's canonical path is `git send-email` with maintainers Cc'd (Bob Feng,
-   Yuwei Chen); the GitHub PR is a convenience mirror. PR #2 is already formatted for the list.
+   Yuwei Chen); the GitHub PR is a convenience mirror. PR #6 is already formatted for the list.
 3. **Richard Hughes / fwupd + uSWID** — lead with the embed round-trip ([uSWID PR #1]; cf. fwupd [#9414]
    merged, [#10263] open), then the verification angle.
 4. **UEFI Forum firmware-SBOM effort** — higher-level positioning once the concrete generator exists to
@@ -318,7 +318,7 @@ targets OVMF/edk2 for reproducibility. Defensive use only.
 
 [#10507]: https://github.com/tianocore/edk2/issues/10507
 [#6455]: https://github.com/tianocore/edk2/pull/6455
-[edk2 PR #2]: https://github.com/houdini91/edk2/pull/2
+[edk2 PR #6]: https://github.com/houdini91/edk2/pull/6
 [edk2 PR #1]: https://github.com/houdini91/edk2/pull/1
 [uSWID PR #1]: https://github.com/houdini91/python-uswid/pull/1
 [#9414]: https://github.com/fwupd/fwupd/pull/9414
