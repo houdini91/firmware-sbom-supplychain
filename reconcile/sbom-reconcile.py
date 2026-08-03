@@ -50,7 +50,21 @@ def parse_fmmt(text):
     return fv_guids, ffs
 
 
-def reconcile(sbom, fmmt_text):
+def sha256_file(path):
+    """Independent SHA-256 of the firmware image the observed side was carved
+    from — leg 2 of the firmware-digest anchor. Distinct measurement from the
+    build-time generator's hash (leg 1): if the SBOM's self-declared
+    metadata.component digest is edited to lie, this recomputed value diverges
+    and the gate's firmware-digest-anchor denies. Returns "sha256:<hex>"."""
+    import hashlib
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1 << 20), b""):
+            h.update(chunk)
+    return "sha256:" + h.hexdigest()
+
+
+def reconcile(sbom, fmmt_text, image_digest=None):
     comps = sbom["components"]
     declared_mod = {c["bom-ref"].lower(): c for c in comps if c.get("type") != "library"}
     declared_lib = [c for c in comps if c.get("type") == "library"]
@@ -92,6 +106,10 @@ def reconcile(sbom, fmmt_text):
     return {
         "tool": "sbom-reconcile",
         "clean": clean,
+        # leg 2 of the firmware-digest anchor: this tool's own SHA-256 of the
+        # image it carved, independent of the SBOM's self-declared digest. null
+        # when --image was not supplied (membership-only run).
+        "image_digest": image_digest,
         "granularity": "module/FFS",
         "summary": {
             "declared_modules": len(declared_mod),
@@ -126,9 +144,19 @@ def main():
     ap = argparse.ArgumentParser(description="Reconcile a declared SBOM against carved firmware FFS.")
     ap.add_argument("--sbom", required=True)
     ap.add_argument("--fmmt", required=True, help="text output of FMMT.py -v image.fd")
+    ap.add_argument("--image", help="the firmware image (.fd) the FMMT view was carved from; "
+                                    "hashed to record image_digest (anchor leg 2)")
     ap.add_argument("-o", "--out")
     a = ap.parse_args()
-    verdict = reconcile(json.load(open(a.sbom)), open(a.fmmt).read())
+    for label, path in (("sbom", a.sbom), ("fmmt", a.fmmt), ("image", a.image)):
+        if path and not __import__("os").path.isfile(path):
+            sys.exit("sbom-reconcile: --%s not found: %s" % (label, path))
+    try:
+        sbom = json.load(open(a.sbom))
+    except (ValueError, OSError) as e:
+        sys.exit("sbom-reconcile: --sbom is not readable JSON: %s" % e)
+    image_digest = sha256_file(a.image) if a.image else None
+    verdict = reconcile(sbom, open(a.fmmt).read(), image_digest)
     out = json.dumps(verdict, indent=1)
     if a.out:
         open(a.out, "w").write(out + "\n")

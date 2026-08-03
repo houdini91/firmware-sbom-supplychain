@@ -45,6 +45,22 @@
         {
           "name": "firmware:primary-image",
           "value": "OVMF.fd"
+        },
+        {
+          "name": "firmware:fd-image",
+          "value": "OVMF.fd sha256:374472f026fc4948b00bdcb4d3deb2d8f71d725fec24d2f4ee21dfb396c8e0ce size:4194304"
+        },
+        {
+          "name": "firmware:fd-image",
+          "value": "OVMF_CODE.fd sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37 size:3653632"
+        },
+        {
+          "name": "firmware:fd-image",
+          "value": "OVMF_VARS.fd sha256:5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e size:540672"
+        },
+        {
+          "name": "firmware:fd-image",
+          "value": "MEMFD.fd sha256:57dd1576ebc8570eddc3e78d2a39c1576b60d742019f8fe786079c594646fde9 size:16252928"
         }
       ]
     },

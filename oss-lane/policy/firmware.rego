@@ -133,11 +133,30 @@ _evidence_chain_bound if {
 # what a verifier hashes off the flash/build output. Equal ⇒ the whole evidence
 # set is about THESE bytes, not a detached JSON file. In the demo all three are
 # the real OVMF.fd digest; in production a flash-time verifier supplies (3).
+# Normalize a digest to lower(alg:hex) so leg comparison is immune to case /
+# formatting differences between the three independent producers.
+_dnorm(d) := lower(d)
+
 default _firmware_anchored := false
 _firmware_anchored if {
-	input.firmware.sbom_digest != ""
-	input.firmware.deployed_digest == input.firmware.sbom_digest
-	input.firmware.reconcile_digest == input.firmware.sbom_digest
+	s := _dnorm(input.firmware.sbom_digest)
+	s != ""
+	startswith(s, "sha256:") # assert the algorithm token, not just any string match
+	_dnorm(input.firmware.deployed_digest) == s
+	_dnorm(input.firmware.reconcile_digest) == s
+}
+
+# Distinct failure messages: an ABSENT leg (a producer that emitted no digest —
+# a supply-chain gap) reads very differently from a genuine value MISMATCH (a
+# possible swap/tamper). SHA-256 is the compared anchor; the generator also
+# records SHA-512 in the SBOM for defense-in-depth, not gated (256 suffices).
+default _firmware_anchor_msg := "firmware digest not anchored"
+_firmware_anchor_msg := "firmware anchor: no image digest present (SBOM/reconcile/deployed leg empty) — cannot bind evidence to firmware bytes" if {
+	"" in {_dnorm(input.firmware.sbom_digest), _dnorm(input.firmware.reconcile_digest), _dnorm(input.firmware.deployed_digest)}
+}
+_firmware_anchor_msg := sprintf("firmware digest MISMATCH: sbom=%v reconcile=%v deployed=%v — evidence is not about these bytes", [input.firmware.sbom_digest, input.firmware.reconcile_digest, input.firmware.deployed_digest]) if {
+	not "" in {_dnorm(input.firmware.sbom_digest), _dnorm(input.firmware.reconcile_digest), _dnorm(input.firmware.deployed_digest)}
+	not _firmware_anchored
 }
 
 # SI-7(15) Code Authentication, CM-14 Signed Components, SR-4(1): the signed
@@ -173,8 +192,8 @@ verifier_reports := [
 	),
 	_report(
 		"firmware-digest-anchor", _firmware_anchored,
-		"evidence bound to the deployed firmware bytes (SBOM image digest == reconcile image == deployed .fd)",
-		"firmware digest mismatch: SBOM / reconcile / deployed .fd disagree — evidence is not about these bytes",
+		"evidence bound to the firmware bytes (build-time SBOM digest == reconcile's independent hash == deployed .fd)",
+		_firmware_anchor_msg,
 		["firmware-image-binding", "SI-7", "SR-4(3)", "CISA-2026-hash"],
 	),
 	_report(
@@ -350,7 +369,7 @@ deny contains _slsa_level_msg if not _slsa_level_floor
 
 deny contains "evidence chain not bound: SBOM / attestation / provenance subject digests differ" if not _evidence_chain_bound
 
-deny contains "firmware digest not anchored: SBOM / reconcile / deployed .fd disagree" if not _firmware_anchored
+deny contains _firmware_anchor_msg if not _firmware_anchored
 
 deny contains _signer_msg if not _signer_pinned
 

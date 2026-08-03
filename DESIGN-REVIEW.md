@@ -167,8 +167,11 @@ discipline now fires at **flash time, provisioning, and first boot** using tools
 = `sha256:374472f0…c8e0ce` now drives the anchor. Done: the `-Y SBOM` generator hashes each built FD and writes the
 primary image's `D` into `metadata.component.hashes` (verified: it selects `OVMF.fd` and reproduces `D`); the demo
 SBOM + reconcile predicate (`image_digest`) carry `D`; a new `firmware-digest-anchor` verifier report (17th) hard-blocks
-unless `SBOM D == reconcile image_digest == the deployed .fd` (proven genuinely against the real `.fd`: no assume,
-gate ALLOW; a mismatched deployed digest → the sole failing report → DENY). **Still open (deeper refactor):** making
+unless `SBOM D == reconcile image_digest == the deployed .fd`. Leg 1 is the generator's build-time hash; leg 2 is
+`sbom-reconcile --image` independently re-hashing the carved image (a genuine second measurement); leg 3 is the
+deployed image hashed at flash/verify time via `FW_IMAGE` (assumed in CI + the offline demo, which don't rebuild
+OVMF). Demonstrated against the real `.fd` via `FW_IMAGE` → gate ALLOW; a mismatched deployed digest → the sole
+failing report → DENY. **Still open (deeper refactor):** making
 `D` the *primary in-toto `subject`* of every image-scoped attestation (the multi-subject/`resolvedDependencies`
 discipline below) — that's Track A4, not yet done. The remaining Tier-0 bullets describe that follow-on:
 - The `-Y SBOM` generator writes `D` into `metadata.component.hashes` (+ a real `bom-ref`) so the SBOM
