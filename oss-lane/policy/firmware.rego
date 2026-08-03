@@ -49,7 +49,7 @@ _slsa_verified if input.provenance.slsa_verified
 
 # CHIPSEC platform posture (R3): the applicable critical protection modules
 # PASSED against the target. NOTAPPLICABLE HW-root checks on OVMF/QEMU are not
-# failures (see chipsec-lane/to-predicate.py). Platform-config assessment, not
+# failures (see producers/chipsec/to-predicate.py). Platform-config assessment, not
 # runtime measured boot.
 default _chipsec_posture := false
 _chipsec_posture if input.chipsec.critical_passed

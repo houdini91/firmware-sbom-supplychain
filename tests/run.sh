@@ -4,7 +4,7 @@ set -uo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 GATE="$HERE/../oss-lane/gate.sh"
-IN="$HERE/../oss-lane/inputs"
+IN="$HERE/../oss-lane/fixtures"
 fail=0
 
 expect() { # <fixture> <allow|deny>

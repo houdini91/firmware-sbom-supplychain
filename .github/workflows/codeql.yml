@@ -6,7 +6,7 @@ name: codeql-sast
 #     step can attest the SARIF as a signed in-toto predicate.
 #
 # Two independent scan targets:
-#   1. sast-python  — this repo's own Python supply-chain tooling (reconcile/).
+#   1. sast-python  — this repo's own Python supply-chain tooling (producers/reconcile/).
 #                     No external checkout; runs on every push for a fast, always-
 #                     green "we SAST our own tools" signal.
 #   2. sast-edk2-c  — the pinned edk2 fork's firmware C, scoped to NetworkPkg via

@@ -4,14 +4,14 @@
 # set against the declared CycloneDX SBOM. Requires an edk2 build tree (FMMT +
 # GenFw on PATH). Regenerates inputs/reconcile-verdict.json — it is NOT canned.
 #
-#   EDK2=/path/to/edk2 ./reconcile/carve.sh <firmware.fd>
+#   EDK2=/path/to/edk2 ./producers/reconcile/carve.sh <firmware.fd>
 #
-# Example: EDK2=/media/.../edk2 ./reconcile/carve.sh \
+# Example: EDK2=/media/.../edk2 ./producers/reconcile/carve.sh \
 #            "$EDK2/Build/OvmfX64/DEBUG_GCC/FV/OVMF.fd"
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT="$(cd "$HERE/.." && pwd)"
+ROOT="$(cd "$HERE/../.." && pwd)"
 EDK2="${EDK2:?set EDK2=/path/to/edk2 build tree (needs BaseTools FMMT + GenFw)}"
 IMG="${1:?usage: EDK2=<tree> carve.sh <firmware.fd>}"
 

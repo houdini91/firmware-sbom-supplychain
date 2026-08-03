@@ -15,7 +15,7 @@
   integrity** (SI-7(1)) · **VEX adjudication** (RV.1.1, high+critical) · **third-party identity** (CISA
   License/PURL, S2C2F SCA-2) · **build-tools signed** (SSDF PO.3.2 / S2C2F REB-3)). The SLSA-L2 one is additionally backed by the
   `gh attestation verify` CI hard-gate. These are the controls we can defend as *actually enforced*, not merely
-  mapped. The remaining planned rules are tracked in [`POLICY-EXPANSION.md`](./POLICY-EXPANSION.md).
+  mapped. The remaining planned rules are tracked in [`POLICY-EXPANSION.md`](planning/POLICY-EXPANSION.md).
 - **Satisfiable from evidence we already emit** — many named controls across SLSA, NIST SSDF/800-53/800-161,
   OpenSSF S2C2F, the CISA/NTIA SBOM elements, EU CRA, BSI TR-03183-2, and NIST 800-190 are met or partly met by
   the ten evidence artifacts — but *not wired into a gate*. Marked `EVIDENCE` / `PARTIAL`.
@@ -61,7 +61,7 @@ not asserted.
 | **E7** | **Build-tools SBOM** | CycloneDX + SHA-pins | the *build* toolchain is inventoried + signed | CI actions/tools, SHA-pinned + keyless-signed; **direct only, not transitive** | `build-tools-signed` *(gate)* |
 | **E8** | **SAST report** | CodeQL SARIF (keyless-signed) | static code-analysis findings | `codeql-sast` workflow — `python` (this repo's tooling, **0 findings**) on push + scoped edk2 `c-cpp` (NetworkPkg) on dispatch; **green in CI**, Security-tab uploaded, keyless-signed, and **severity-gated** (fails ≥7.0) | `codeql-sast` severity gate *(CI)* |
 | **E9** | **OpenSSF Scorecard** | Scorecard SARIF (keyless-signed) | repo security-posture score | `scorecard-analysis` workflow — push + weekly; Security-tab uploaded, published to the OpenSSF API (badge), keyless-signed. Posture evidence (R5) | — (soft evidence, deliberately not a hard gate) |
-| **E10** | **CHIPSEC posture** | in-toto predicate | platform-firmware protections | `chipsec-lane` — CHIPSEC modules vs the OVMF/QEMU target → `critical_passed` (applicable critical modules PASS; `NOTAPPLICABLE` HW-root checks excluded). Config assessment, not runtime measured boot (R3) | `chipsec-posture` *(gate)* |
+| **E10** | **CHIPSEC posture** | in-toto predicate | platform-firmware protections | `producers/chipsec` — CHIPSEC modules vs the OVMF/QEMU target → `critical_passed` (applicable critical modules PASS; `NOTAPPLICABLE` HW-root checks excluded). Config assessment, not runtime measured boot (R3) | `chipsec-posture` *(gate)* |
 
 > **The trust anchor:** the seventeen gate reports are `sbom-present` (E1), `attestation-signature` (E5),
 > `sbom-binding` (E1↔E5 digest), `provenance-identity` (E2), `slsa-provenance` (E2, backed by the
@@ -150,7 +150,7 @@ Ranked by **controls-advanced per unit of effort**, using the overlap matrix.
 evidence, moving SSDF PW.7/PW.8 and 800-53 SA-11(1) from `N/A` to **`ENFORCED (CI)`**. (It is a hard CI gate on
 the SAST workflow; making it a required status check would also block merges/deploys on it.) **CHIPSEC**
 platform-security assessment (R3) and **fuzzing** (R8) extend this same category — see
-[`EVIDENCE-ROADMAP.md`](./EVIDENCE-ROADMAP.md).
+[`EVIDENCE-ROADMAP.md`](planning/EVIDENCE-ROADMAP.md).
 
 ---
 
@@ -268,7 +268,7 @@ Tiers (§5.2): **Required** = always mandatory · **Additional** = mandatory *wh
 | **§5.2.2 / Table 3** | component creator / filename | Req | — | **PLANNED** | Not emitted (bom-ref is the GUID, not a filename). |
 | **§5.2.2 / Table 3** | executable / archive / structured properties | Req | — | **PLANNED** | BSI publishes a [CycloneDX property taxonomy](https://github.com/BSI-Bund/tr-03183-cyclonedx-property-taxonomy) for exactly these. |
 | **§5.2.4 / Table 5** | CPE / **PURL**, source/deployable URIs, original licences | Add | E1 | **PARTIAL** | Satisfied for the in-image third-party dep (openssl: PURL+CPE+Apache-2.0, R1); edk2 FFS modules have no sensible PURL (N/A by design). |
-| **§8.1.14** | vulnerability data → **CSAF (VEX profile)** | rec | E4 | **EVIDENCE** | Triage authored as OpenVEX (`inputs/vex.openvex.json`), converted to BSI's named **CSAF 2.0 VEX** via `interop/to-csaf.py` → `inputs/vex.csaf.json` (R6). |
+| **§8.1.14** | vulnerability data → **CSAF (VEX profile)** | rec | E4 | **EVIDENCE** | Triage authored as OpenVEX (`inputs/vex.openvex.json`), converted to BSI's named **CSAF 2.0 VEX** via `producers/interop/to-csaf.py` → `inputs/vex.csaf.json` (R6). |
 | **§8.1.15** | SBOM ideally digitally signed | rec | E5 | **EVIDENCE** | cosign covers it. |
 | **§8.4.3** | Build SBOM | — | E7 | **EVIDENCE** | E7 aligns with the Build-SBOM concept. |
 

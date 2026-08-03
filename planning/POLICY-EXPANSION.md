@@ -4,8 +4,8 @@ The deploy gate now enforces **17 verifier_reports** (the original 7 plus the 10
 implemented). This is the **honest, deduplicated set of rego rules** that moved named controls from
 `EVIDENCE`/`PARTIAL` → `ENFORCED`, over the evidence set E1–E10. Produced by a control-by-control review of SLSA, NIST SSDF/800-53/800-161, S2C2F, CISA/NTIA, CRA,
 BSI, SP 800-190, and the firmware-platform frameworks — reviewers instructed to be **skeptical and refuse
-rubber-stamps**. Companion to [`FRAMEWORKS.md`](./FRAMEWORKS.md) (the control map) and
-[`oss-lane/policy/firmware.rego`](./oss-lane/policy/firmware.rego) (the gate).
+rubber-stamps**. Companion to [`FRAMEWORKS.md`](../FRAMEWORKS.md) (the control map) and
+[`oss-lane/policy/firmware.rego`](../oss-lane/policy/firmware.rego) (the gate).
 
 ## The rules (honest set)
 

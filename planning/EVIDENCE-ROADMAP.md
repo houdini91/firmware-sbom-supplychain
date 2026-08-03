@@ -1,6 +1,6 @@
 # Evidence roadmap — the next artifacts and the controls they unlock
 
-Forward-looking companion to [`FRAMEWORKS.md`](./FRAMEWORKS.md) (which maps *current* evidence to controls).
+Forward-looking companion to [`FRAMEWORKS.md`](../FRAMEWORKS.md) (which maps *current* evidence to controls).
 Each item below is a **new or enriched evidence artifact**, the **specific controls it flips**, its effort, and
 its acceptance criteria. Everything follows the same lane pattern the pipeline already uses:
 
@@ -101,7 +101,7 @@ cases documented, not faked.
 ### R5 — OpenSSF Scorecard (attested)  ·  R6 — CSAF/VEX  *(DONE)*
 R5: `scorecard.yml` runs Scorecard on push + weekly, uploads the SARIF, publishes to the OpenSSF API (badge),
 and keyless-signs the result (E9) → SSDF PO / S2C2F posture evidence. R6: triage authored as OpenVEX
-(`inputs/vex.openvex.json`) and converted to BSI's named CSAF 2.0 VEX by `interop/to-csaf.py`
+(`inputs/vex.openvex.json`) and converted to BSI's named CSAF 2.0 VEX by `producers/interop/to-csaf.py`
 (`inputs/vex.csaf.json`) → BSI §8.1.14 met.
 
 ### R7 — Binary-hardening posture · R8 — Fuzzing · R9 — Runtime attestation  *(later / horizon)*
