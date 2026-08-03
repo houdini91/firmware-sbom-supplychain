@@ -14,6 +14,9 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$HERE/.." && pwd)"
 IN="$ROOT/inputs"
 V="${VALINT:-$HOME/.scribe/bin/valint}"
+[ -x "$V" ] || command -v "$V" >/dev/null 2>&1 || {
+  echo "error: valint not found at '$V' — set VALINT=/path/to/valint or install it (https://github.com/scribe-public). This is the optional Valint lane; the OSS lane needs no valint." >&2
+  exit 2; }
 SBOM="$IN/sbom.cdx.json"
 
 SIGN=(-D)                       # -D: no scribe cloud

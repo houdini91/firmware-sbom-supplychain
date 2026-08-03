@@ -11,6 +11,10 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$HERE/.." && pwd)"
 IN="$ROOT/inputs"; BIN="$ROOT/bin"
 OPA="${OPA:-$BIN/opa}"; COSIGN="${COSIGN:-cosign}"
+# preflight: fail with an actionable message, not a cryptic set -e abort mid-step
+for tool in "$COSIGN" grype; do
+  command -v "$tool" >/dev/null 2>&1 || { echo "error: '$tool' not found on PATH — this lane needs it (see requirements.txt); set the matching env var or install it." >&2; exit 2; }
+done
 KEYS="$HERE/.keys"
 SBOM="$IN/sbom.cdx.json"; VERDICT="$IN/reconcile-verdict.json"
 TYPE="https://firmware-sbom-supplychain/reconcile/v1"
@@ -22,7 +26,7 @@ echo "   $KEYS/cosign.key"
 
 echo "== 2. attest-blob (sign SBOM; predicate = reconcile verdict) =="
 "$COSIGN" attest-blob --yes --key "$KEYS/cosign.key" --predicate "$VERDICT" --type "$TYPE" \
-  --bundle "$IN/sbom.att.bundle" "$SBOM" >/dev/null 2>&1
+  --bundle "$IN/sbom.att.bundle" "$SBOM" >/dev/null
 echo "   bundle: inputs/sbom.att.bundle"
 
 echo "== 3. verify-blob-attestation =="
