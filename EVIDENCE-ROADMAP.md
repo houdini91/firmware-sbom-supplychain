@@ -18,7 +18,7 @@ code-analysis and zero platform-security evidence**. The roadmap closes that, in
 |---|---|---|:--:|---|
 | **R0a** | `slsa-provenance` verifier report | SLSA L2 row `(CI)` → `(gate)`; VSA lists the L2 report | S | now |
 | **R0b** | policy/lane cleanup (dir + two-lane clarity + dedup) | none (hygiene; single source of truth) | S–M | now |
-| **R1** | **SBOM third-party identity** (PURL/CPE/license/version/supplier on the 13 submodules) | CRA AnnexI §II(1) completeness · BSI §5.2.2 licenses+deps, §5.2.4 CPE/PURL/URIs · CISA'26 License+SoftwareID+Supplier+completeness · S2C2F SCA-2, INV-1 · SSDF PS.3.2, PW.4.1 · 800-53 CM-8, SR-4(4) — **+ makes the E4 CVE gate real** | M | broad |
+| **R1** | **SBOM third-party identity** (PURL/CPE/license/version/supplier on openssl (the one in-image third-party dep)) | CRA AnnexI §II(1) completeness · BSI §5.2.2 licenses+deps, §5.2.4 CPE/PURL/URIs · CISA'26 License+SoftwareID+Supplier+completeness · S2C2F SCA-2, INV-1 · SSDF PS.3.2, PW.4.1 · 800-53 CM-8, SR-4(4) — **+ makes the E4 CVE gate real** | M | broad |
 | **R2** | **SAST report** (CodeQL `build-mode:none` / Semgrep → SARIF) | SSDF PW.7.1, PW.7.2, PW.8, RV.1.2 · 800-53 **SA-11**, SA-11(1) · CRA AnnexI §II(3) | M | broad |
 | **R3** | **CHIPSEC platform-security assessment** (vs OVMF/QEMU) | SP **800-193 §4.2** Protection (partial→real) · SP **800-147/147B** BIOS update protection · Secure Boot config | M–H | **flagship** |
 | **R4** | **Byte-integrity reconcile** (canonicalized per-region digest, not membership) | 800-53 SR-4(3) "not altered", SI-7, SI-7(1) · S2C2F AUD-3 — PARTIAL → strong | M–H | differentiator |

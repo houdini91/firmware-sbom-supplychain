@@ -18,7 +18,7 @@
   mapped. The remaining planned rules are tracked in [`POLICY-EXPANSION.md`](./POLICY-EXPANSION.md).
 - **Satisfiable from evidence we already emit** — many named controls across SLSA, NIST SSDF/800-53/800-161,
   OpenSSF S2C2F, the CISA/NTIA SBOM elements, EU CRA, BSI TR-03183-2, and NIST 800-190 are met or partly met by
-  the seven evidence artifacts — but *not wired into a gate*. Marked `EVIDENCE` / `PARTIAL`.
+  the ten evidence artifacts — but *not wired into a gate*. Marked `EVIDENCE` / `PARTIAL`.
 - **Not yet, and honestly named** — SBOM enrichment work (`PLANNED`) and the entire runtime/attestation stack
   (SP 800-193, TCG RIM, IETF RATS — `FUTURISTIC`), which needs a class of evidence we do not produce: a signed
   **TPM quote** and a signed **golden RIM**.
@@ -45,9 +45,9 @@ framework  →  §control (exact ref)  →  evidence that proves it  →  status
 | **`FUTURISTIC`** | Needs a new *class* of evidence we do not produce (runtime attestation: TPM quote + golden RIM). |
 | **`N/A (process)`** | An organizational/process obligation (a policy, an SLA, an acquisition process) that **no build artifact can satisfy** — listed so it is visibly out of scope, not silently dropped. |
 
-## Evidence inventory — what we actually produce (E1–E7)
+## Evidence inventory — what we actually produce (E1–E10)
 
-Every table references these seven atoms. The ground-truth column is read from the real artifacts in this repo,
+Every table references these ten atoms. The ground-truth column is read from the real artifacts in this repo,
 not asserted.
 
 | # | Evidence | Format / predicate | What it proves | Ground-truth today | Enforced by |
@@ -71,7 +71,10 @@ not asserted.
 > `build-tools-signed` (E7, SSDF PO.3.2 / S2C2F REB-3 — the build toolchain is signed + SHA/version-pinned),
 > `firmware-digest-anchor` (E1↔E3↔image — the SBOM's `metadata.component` digest `D`, the reconcile
 > `image_digest`, and the digest of the **deployed `.fd`** all agree, so the whole evidence set is about
-> *these* firmware bytes, not a detached JSON file) — the gate ANDs them and emits E6. The
+> *these* firmware bytes, not a detached JSON file), `slsa-level-floor` (E2, SR-4/SR-4(3) — SLSA level ≥ 2),
+> `evidence-chain-bound` (E1/E2/E5, one subject digest across SBOM↔attestation↔provenance), and
+> `signer-identity-pinned` (E5, SI-7(15)/CM-14/SR-4(1) — the cert SAN is in the trusted set) — the gate ANDs all
+> seventeen and emits E6. The
 > `component-integrity` rule passes only with an explicit reviewed `data.hash_exempt` entry (ResetVector), never a
 > relaxed threshold.
 
@@ -302,7 +305,7 @@ fields: **licenses, PURLs, supplier, submodule components**.
 | **§4.1.1** Image vulnerabilities | pipeline vuln scan + "quality gate" above a CVSS threshold | E4, E3 | **ENFORCED** *(gate)* | `cve-triage` at severity=critical is exactly the quality gate. |
 | **§4.1.5** Use of untrusted images | discrete signature identity + **validate signature before execution** | E5, E2, E6, E3 | **PARTIAL** | E5/E2/E6/E3 give sign+identify+verify+tamper-detect. **Caveat:** §4.1.5 (footnote 6 → CMVP) wants a **NIST-validated (FIPS 140)** crypto implementation — Sigstore/cosign keyless is **not** CMVP-validated. |
 | **§4.2.3** Registry auth/authz | signed + scanned before promotion to a registry | E5, E4 | **PARTIAL** | Pattern supported; registry admission enforcement not shown. |
-| **§4.1.2** Image config defects | secure config / minimal base | — | **N/A** | Not addressed by E1–E7. |
+| **§4.1.2** Image config defects | secure config / minimal base | — | **N/A** | Not addressed by E1–E10. |
 
 ## D. Firmware-runtime frameworks — FUTURISTIC (the honest zero)
 

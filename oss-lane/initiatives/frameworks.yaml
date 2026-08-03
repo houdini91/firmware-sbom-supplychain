@@ -1,13 +1,13 @@
 # Initiative manifests — framework → control → the verifier report(s) that satisfy it.
 #
 # This is the declarative layer over the enforcing gate (adopted from the Valint/Scribe
-# "initiative" model). The 16 rego verifier_reports stay the source of truth; this maps
+# "initiative" model). The 17 rego verifier_reports stay the source of truth; this maps
 # them to framework control IDs so a run can report per-control, per-framework coverage
 # (and surface MISSING_EVIDENCE — a control whose satisfying report is absent from the VSA).
 #
 # `satisfied_by`: ALL listed reports must be isSuccess=true for the control to PASS.
 # A report named here but absent from the VSA verifier_reports => MISSING_EVIDENCE.
-# Consumed by verify-initiative.sh against a signed VSA (predicate.verifierReports[]).
+# Consumed by verify-initiative.py against a signed VSA (predicate.verifierReports[]).
 
 version: 1
 
