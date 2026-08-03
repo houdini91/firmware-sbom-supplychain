@@ -141,10 +141,23 @@ discipline now fires at **flash time, provisioning, and first boot** using tools
 ## Upstream engagement (contribution-backed, reference-first)
 
 - **edk2 #10507** — the `-Y SBOM` generator (fork PR #6) — held for a maintainer signal (Richard on uSWID #98).
-- **CHIPSEC — "attestable evidence" discussion.** Not "a supply-chain module in CHIPSEC" (out of scope), but the
-  reverse: **CHIPSEC results as signed in-toto attestations** consumable by a supply-chain gate — for which we
-  *already have a working reference* (`chipsec-lane/to-predicate.py`). Open as a Discussion, reference-first, once
-  the firmware-digest binding is clean.
+- **CHIPSEC engagement (verified against release 2.0.7 source, not assumed).** CHIPSEC does **not** verify
+  firmware signatures today — its Secure Boot module checks mechanism *posture* (Secure Boot enabled, PK/KEK/db
+  present + authenticated-write + write-protected), there's no Boot Guard/FIT/KM/BPM parser, and there's zero
+  crypto-verification code anywhere. So *"is this firmware artifact authentically built + backed by verifiable
+  supply-chain evidence"* is a **genuine, unfilled gap** (0 prior issues/PRs/discussions across all supply-chain
+  terms). Crucially, CHIPSEC **already ships the exact architectural pattern** the module needs: offline,
+  image-file, PASSED/FAILED `tools/uefi/` modules that reconcile an image against an external trust oracle —
+  `scan_image.py` (golden allow-list ≈ our reconcile), `scan_blocked.py` (hash/GUID deny-list), `reputation.py`
+  (VirusTotal oracle), all runnable with `-i -n` (no driver). **The pitch: an evidence-verification `tools/uefi/`
+  module that trusts a *signed SBOM/SLSA attestation* instead of an AV cloud** — same shape, stronger oracle,
+  reusing `decode_uefi_region`/`build_efi_model`. Honest seam to own up front: it wouldn't touch CHIPSEC's
+  hardware layer and adds crypto + network (Rekor) deps the project deliberately avoids — so lead with the
+  `reputation.py` precedent and offer a companion-tool fallback. Open as an **[Ideas] Discussion** (the venue used
+  by the existing **#1400 LVFS/HSI collaboration** thread — a receptive precedent tied to Richard Hughes'
+  ecosystem), DCO sign-off, reference-first — after the firmware-digest binding is clean. Our
+  `chipsec-lane/to-predicate.py` (CHIPSEC results → signed attestation) is the complementary direction and a
+  ready reference.
 
 ---
 
