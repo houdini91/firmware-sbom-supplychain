@@ -25,4 +25,5 @@ echo "✓ carved $(basename "$IMG") -> ${VIEW#$ROOT/}"
 python3 "$HERE/sbom-reconcile.py" \
   --sbom "$ROOT/inputs/sbom.cdx.json" \
   --fmmt "$VIEW" \
+  --image "$IMG" \
   -o "$ROOT/inputs/reconcile-verdict.json"
