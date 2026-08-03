@@ -4,7 +4,7 @@
 # (which stays CycloneDX-only, no new build dependency) — SPDX conversion is a
 # downstream consumer concern. See DESIGN.md ("only the generator" upstream).
 #
-#   ./interop/to-spdx.sh [in.cdx.json] [out.spdx.json]
+#   ./producers/interop/to-spdx.sh [in.cdx.json] [out.spdx.json]
 #
 # Install the converter once:  go install github.com/protobom/sbom-convert@latest
 # (GOBIN=./bin so it lands next to bin/opa; bin/ is gitignored).
@@ -16,7 +16,7 @@
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT="$(cd "$HERE/.." && pwd)"
+ROOT="$(cd "$HERE/../.." && pwd)"
 CONV="${SBOM_CONVERT:-$ROOT/bin/sbom-convert}"
 IN="${1:-$ROOT/inputs/sbom.cdx.json}"
 OUT="${2:-$ROOT/inputs/sbom.spdx.json}"

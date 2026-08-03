@@ -4,7 +4,7 @@ This is the **enforced subset**: the checks the OSS-lane deploy gate
 ([`policy/firmware.rego`](./policy/firmware.rego)) **hard-blocks the release on**. The full
 framework → control → evidence → status map (every framework, with exact section numbers and honest
 partial/planned/futuristic coverage) lives in [`../FRAMEWORKS.md`](../FRAMEWORKS.md); the forward plan is in
-[`../EVIDENCE-ROADMAP.md`](../EVIDENCE-ROADMAP.md).
+[`../EVIDENCE-ROADMAP.md`](../planning/EVIDENCE-ROADMAP.md).
 
 Each OSS-lane check emits a normalized **verifier report** (`{name, isSuccess, message, controls}`); the gate
 ANDs `isSuccess` and emits the verdict as a signed **SLSA VSA**. The **Valint lane** runs the same intent
@@ -38,4 +38,4 @@ binding, the CVE/VEX gate, and — since the repo is public — **SLSA Build L2*
 CI (one isolating negative fixture each) and recorded in the VSA. The offline demo cannot run `attest-build-provenance`, so L2 there is an opt-in
 assumption (`DEV_ASSUME_SLSA`, loudly warned). SBOM-field completeness (licenses/PURLs/submodules) and
 code-analysis (SAST, `codeql-sast`) evidence are mapped and being wired, not all enforced yet — see
-[`../FRAMEWORKS.md`](../FRAMEWORKS.md) and [`../EVIDENCE-ROADMAP.md`](../EVIDENCE-ROADMAP.md).
+[`../FRAMEWORKS.md`](../FRAMEWORKS.md) and [`../EVIDENCE-ROADMAP.md`](../planning/EVIDENCE-ROADMAP.md).

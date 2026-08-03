@@ -40,7 +40,7 @@ set). See the CHIPSEC docs for the QEMU/OVMF harness; export results with `--jso
 
 Then convert + (in CI) sign:
 ```bash
-python chipsec-lane/to-predicate.py chipsec.raw.json -o inputs/chipsec.json
+python producers/chipsec/to-predicate.py chipsec.raw.json -o inputs/chipsec.json
 # CI keyless-signs inputs/chipsec.json like the other evidence, and the gate reads
 # inputs/chipsec.json -> input.chipsec.{critical_passed, results} (see the chipsec-posture rego rule).
 ```

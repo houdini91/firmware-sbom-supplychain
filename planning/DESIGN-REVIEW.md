@@ -1,7 +1,7 @@
 # Design review — is this a clean, evidence-centric supply-chain solution?
 
 A holistic review of the whole solution (evidence model, controls, adoptability), synthesizing three independent
-reviews. Verdict-first, then the prioritized plan. Companion to [`FRAMEWORKS.md`](./FRAMEWORKS.md) (control map),
+reviews. Verdict-first, then the prioritized plan. Companion to [`FRAMEWORKS.md`](../FRAMEWORKS.md) (control map),
 [`POLICY-EXPANSION.md`](./POLICY-EXPANSION.md) (rule set), and [`EVIDENCE-ROADMAP.md`](./EVIDENCE-ROADMAP.md).
 
 ## Verdict
@@ -158,7 +158,7 @@ discipline now fires at **flash time, provisioning, and first boot** using tools
   `reputation.py` precedent and offer a companion-tool fallback. Open as an **[Ideas] Discussion** (the venue used
   by the existing **#1400 LVFS/HSI collaboration** thread — a receptive precedent tied to Richard Hughes'
   ecosystem), DCO sign-off, reference-first — after the firmware-digest binding is clean. Our
-  `chipsec-lane/to-predicate.py` (CHIPSEC results → signed attestation) is the complementary direction and a
+  `producers/chipsec/to-predicate.py` (CHIPSEC results → signed attestation) is the complementary direction and a
   ready reference.
 
 ---

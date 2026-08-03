@@ -4,7 +4,7 @@
 
 SHELL := /bin/bash
 ROOT  := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
-FIX   := $(ROOT)oss-lane/inputs
+FIX   := $(ROOT)oss-lane/fixtures
 VSA   := /tmp/fw-vsa.json
 
 .DEFAULT_GOAL := help
@@ -28,7 +28,7 @@ coverage: ## Per-framework, per-control coverage from a fresh signed VSA (opa+py
 	@python3 oss-lane/verify-initiative.py --vsa $(VSA)
 
 .PHONY: gate
-gate: ## Run the gate on one fixture: make gate FIXTURE=oss-lane/inputs/clean.json
+gate: ## Run the gate on one fixture: make gate FIXTURE=oss-lane/fixtures/clean.json
 	bash oss-lane/gate.sh $(or $(FIXTURE),$(FIX)/clean.json)
 
 .PHONY: demo
@@ -38,7 +38,7 @@ demo: ## Full OSS lane end to end (needs cosign + grype + opa)
 .PHONY: reconcile
 reconcile: ## Carve a real image + reconcile: make reconcile EDK2=<tree> IMG=<image.fd>
 	@test -n "$(EDK2)" -a -n "$(IMG)" || { echo "usage: make reconcile EDK2=<edk2 tree> IMG=<image.fd>"; exit 2; }
-	EDK2=$(EDK2) bash reconcile/carve.sh $(IMG)
+	EDK2=$(EDK2) bash producers/reconcile/carve.sh $(IMG)
 
 .PHONY: clean
 clean: ## Remove generated local artifacts (keys, gate inputs, VSAs)

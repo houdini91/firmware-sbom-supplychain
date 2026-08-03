@@ -230,7 +230,7 @@ gate + VEX triage); and — at runtime, aspirationally — drift across the flee
 boundaries: generation + signing run inside an **isolated builder** with the builder's own **keyless OIDC
 identity** (not any human key), on a protected trigger; the CI actions are **SHA-pinned** and inventoried in a
 signed **build-tools SBOM** so the toolchain is evidence too. **Honest limitations:** the reconcile verdict is
-now *generated* by `reconcile/sbom-reconcile.py` from a real FMMT carve (membership: 123/123 modules
+now *generated* by `producers/reconcile/sbom-reconcile.py` from a real FMMT carve (membership: 123/123 modules
 validated, 0 missing) and committed as the example; wiring it into CI, and `modified` (byte-integrity) is deferred with a
 feasibility finding (in-image PE != build `.efi` after FDF-assembly GenFw processing, so it needs matched
 canonicalization on both sides), are the remaining steps; reconcile is module-granular (libraries verified transitively); the build-tools SBOM

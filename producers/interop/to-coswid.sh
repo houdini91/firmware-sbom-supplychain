@@ -4,7 +4,7 @@
 # `.sbom` section and re-extract to prove the round-trip. This is the
 # fwupd / uSWID embedded-SBOM path.
 #
-#   USWID=/path/to/uswid ./interop/to-coswid.sh [carrier.efi]
+#   USWID=/path/to/uswid ./producers/interop/to-coswid.sh [carrier.efi]
 #
 # Needs `uswid` (github.com/hughsie/python-uswid; this project's CDX-type fix
 # lives in houdini91/python-uswid#1) and objcopy. Verified round-trip: a 310-
@@ -17,7 +17,7 @@
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT="$(cd "$HERE/.." && pwd)"
+ROOT="$(cd "$HERE/../.." && pwd)"
 UW="${USWID:-uswid}"
 IN="$ROOT/inputs/sbom.cdx.json"
 CONTAINER="$ROOT/inputs/sbom.uswid"
