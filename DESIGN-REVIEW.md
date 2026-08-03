@@ -7,7 +7,7 @@ reviews. Verdict-first, then the prioritized plan. Companion to [`FRAMEWORKS.md`
 ## Verdict
 
 **The engine is strong; the packaging and the anchoring are the gaps.** What's already good and worth keeping:
-the **enforcement** (16 OPA verifier reports → a signed SLSA VSA), the **fully-open stack** (cosign keyless +
+the **enforcement** (17 OPA verifier reports → a signed SLSA VSA), the **fully-open stack** (cosign keyless +
 Rekor + OPA/Rego + in-toto + VSA — no proprietary lock-in), and the **honesty discipline** (every rule has a
 negative fixture; `N/A`/`FUTURISTIC` are named, not hidden). The Valint review confirmed our *verification logic
 is not inferior* — Valint runs OPA under the hood too.
@@ -20,7 +20,7 @@ Five concrete gaps keep it from being a *clean, evidence-centric* solution:
 2. **Everything anchors to the SBOM *file* digest, not the firmware.** The attestation `subject` is
    `sha256(sbom.cdx.json)`; the SBOM's firmware component carries **0 hashes**; reconcile never records the
    image digest it carved. So we can prove "evidence about this JSON," not "evidence about firmware `sha256:X`."
-3. **No framework/initiative layer.** We emit a flat set of 16 verdicts; there's no declarative
+3. **No framework/initiative layer.** We emit a flat set of 17 verdicts; there's no declarative
    `framework → control → rule` map, so a reviewer can't see per-framework coverage or "control SI-7 is
    satisfied by verifiers X+Y."
 4. **No "missing evidence" state.** An enforcing gate collapses "attestation absent" and "attestation failed"
@@ -80,7 +80,7 @@ The Valint review's core lesson: our gap is the **catalog + framework layer**, p
 already compute. Adopt:
 
 - **Initiatives:** a declarative `framework → control → rule` manifest (SLSA / SSDF / 800-53 / 800-190 / CRA /
-  BSI) mapping our 16 verifiers to real control IDs with "why this control" prose; fold `control_id →
+  BSI) mapping our 17 verifiers to real control IDs with "why this control" prose; fold `control_id →
   satisfied_by[]` into the VSA `predicate`. One rule set, many frameworks. **This is what powers the verifier CLI
   below.**
 - **Three-state verdict:** `PASS / FAIL / MISSING_EVIDENCE(required)` — each rule declares the predicate it
@@ -163,8 +163,14 @@ discipline now fires at **flash time, provisioning, and first boot** using tools
 
 ## Prioritized plan
 
-**Tier 0 — the keystone (hours, biggest integrity payoff).** Define `D = sha256/sha512(OVMF.fd)` (computed before
-any coSWID embed, so it's stable) and drive it everywhere:
+**Tier 0 — the keystone (biggest integrity payoff).** ✅ **IMPLEMENTED (2026-08-03).** `D = sha256/sha512(OVMF.fd)`
+= `sha256:374472f0…c8e0ce` now drives the anchor. Done: the `-Y SBOM` generator hashes each built FD and writes the
+primary image's `D` into `metadata.component.hashes` (verified: it selects `OVMF.fd` and reproduces `D`); the demo
+SBOM + reconcile predicate (`image_digest`) carry `D`; a new `firmware-digest-anchor` verifier report (17th) hard-blocks
+unless `SBOM D == reconcile image_digest == the deployed .fd` (proven genuinely against the real `.fd`: no assume,
+gate ALLOW; a mismatched deployed digest → the sole failing report → DENY). **Still open (deeper refactor):** making
+`D` the *primary in-toto `subject`* of every image-scoped attestation (the multi-subject/`resolvedDependencies`
+discipline below) — that's Track A4, not yet done. The remaining Tier-0 bullets describe that follow-on:
 - The `-Y SBOM` generator writes `D` into `metadata.component.hashes` (+ a real `bom-ref`) so the SBOM
   **self-declares which firmware bytes it describes**.
 - `D` becomes the **primary `subject`** of every image-scoped attestation. `subject` is an *array* — use

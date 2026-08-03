@@ -74,7 +74,7 @@ initiatives:
         satisfied_by: [slsa-level-floor]
       - id: SR-4(3)
         name: "Validate genuine and not altered"
-        satisfied_by: [slsa-level-floor, evidence-chain-bound, reconcile-membership]
+        satisfied_by: [slsa-level-floor, evidence-chain-bound, reconcile-membership, firmware-digest-anchor]
       - id: RA-5
         name: "Vulnerability scanning"
         satisfied_by: [cve-triage]
@@ -111,6 +111,9 @@ initiatives:
       - id: cisa-hash
         name: "CISA-2026: component hashes"
         satisfied_by: [component-integrity]
+      - id: cisa-fw-binding
+        name: "SBOM bound to the firmware image digest (evidence is about these bytes)"
+        satisfied_by: [firmware-digest-anchor]
       - id: cisa-license-id
         name: "CISA-2026: license + software identifiers (third-party)"
         satisfied_by: [thirdparty-identifiers]

@@ -106,18 +106,36 @@ else
   CVE='[]'
 fi
 
+# Firmware-image anchor (the keystone): three independently-derived digests of the
+# firmware BYTES must agree — the SBOM's own metadata.component (what the build says
+# it shipped), the reconcile predicate's image_digest (what the observed carve was
+# taken from), and the digest of the .fd actually deployed (what a verifier hashes).
+# CI / a flash-time verifier sets FW_IMAGE to the deployed image; the offline demo
+# has no deployed artifact to hash, so DEV_ASSUME_FWIMAGE=1 binds it to D (warned).
+FW_SBOM_DIGEST="$(jq -r '(.metadata.component.hashes[]? | select(.alg=="SHA-256") | .content) // ""' "$SBOM")"
+[ -n "$FW_SBOM_DIGEST" ] && FW_SBOM_DIGEST="sha256:$FW_SBOM_DIGEST"
+FW_RECONCILE_DIGEST="$(printf '%s' "$PRED" | jq -r '.image_digest // ""')"
+FW_DEPLOYED_DIGEST=""
+if [ -n "${FW_IMAGE:-}" ] && [ -f "${FW_IMAGE:-}" ]; then
+  FW_DEPLOYED_DIGEST="sha256:$(sha256sum "$FW_IMAGE" | cut -d' ' -f1)"
+elif [ "${DEV_ASSUME_FWIMAGE:-0}" = "1" ]; then
+  FW_DEPLOYED_DIGEST="$FW_SBOM_DIGEST"; FWIMAGE_ASSUMED=1
+fi
+
 jq -n --arg sig "$SIG" --arg sh "$SBOM_HASH" --arg sd "$SUBJECT_DIGEST" \
       --arg b "$EFFECTIVE_BUILDER" --arg r "$REPO" --argjson present "$PRESENT" \
       --argjson clean "$CLEAN" --argjson pred "$PRED" --argjson cve "$CVE" \
       --arg slsa "$SLSA_VERIFIED" --arg chipsec "$CHIPSEC_PASSED" --argjson slsa_level "$SLSA_LEVEL" \
       --argjson integ "$INTEG" --argjson declared "$DECLARED" --argjson matched "$MATCHED" \
       --argjson missing_n "$MISSING_N" --argjson undeclared "$UNDECLARED" --argjson thirdparty "$THIRDPARTY" \
-      --argjson buildtools "$BUILDTOOLS" --arg provsub "$PROVENANCE_SUBJECT" '{
+      --argjson buildtools "$BUILDTOOLS" --arg provsub "$PROVENANCE_SUBJECT" \
+      --arg fwsbom "$FW_SBOM_DIGEST" --arg fwrec "$FW_RECONCILE_DIGEST" --arg fwdep "$FW_DEPLOYED_DIGEST" '{
   sbom:        {present:$present, hash:("sha256:"+$sh), integrity:$integ, thirdparty:$thirdparty},
   attestation: {subject_digest:(if $sd=="" then "" else "sha256:"+$sd end)},
   signature:   {verified:($sig=="true"), identity:$b},
   provenance:  {builder_id:$b, source_repo:$r, slsa_verified:($slsa=="true"), slsa_level:$slsa_level, subject_digest:$provsub},
   reconcile:   {clean:$clean, missing:($pred.missing // []), added:($pred.added // []), modified:($pred.modified // []), declared:$declared, matched:$matched, missing_count:$missing_n, undeclared_observed:$undeclared},
+  firmware:    {sbom_digest:$fwsbom, reconcile_digest:$fwrec, deployed_digest:$fwdep},
   cve:         {findings:$cve},
   chipsec:     {critical_passed:($chipsec=="true")},
   build_tools: {present:$buildtools.present, signature_verified:$buildtools.signature_verified, all_pinned:$buildtools.all_pinned, unpinned:$buildtools.unpinned}
@@ -132,3 +150,5 @@ echo "   builder_id=$EFFECTIVE_BUILDER"
   echo "   ⚠ DEV_ASSUME_BUILDTOOLS=1 — build-tools signature ASSUMED for local demo, not verified (CI verifies it via cosign verify-blob of the build-tools bundle)"
 [ "${CHAIN_ASSUMED:-0}" != "1" ] || \
   echo "   ⚠ DEV_ASSUME_CHAIN=1 — provenance subject ASSUMED = SBOM digest for local demo (CI extracts it from the verified attestation)"
+[ "${FWIMAGE_ASSUMED:-0}" != "1" ] || \
+  echo "   ⚠ DEV_ASSUME_FWIMAGE=1 — deployed .fd digest ASSUMED = SBOM image digest for local demo (CI/flash sets FW_IMAGE to hash the real deployed image)"

@@ -163,58 +163,59 @@
     {
       "guid": "222c386d-5abc-4fb4-b124-fbb82488acf4",
       "name": "PlatformPei",
-      "reason": "XIP/rebased in FV (PEIM) \u2014 in-FV bytes need canonicalization before hash compare"
+      "reason": "XIP/rebased in FV (PEIM) — in-FV bytes need canonicalization before hash compare"
     },
     {
       "guid": "280251c4-1d09-4035-9062-839acb5f18c1",
       "name": "CpuMpPei",
-      "reason": "XIP/rebased in FV (PEIM) \u2014 in-FV bytes need canonicalization before hash compare"
+      "reason": "XIP/rebased in FV (PEIM) — in-FV bytes need canonicalization before hash compare"
     },
     {
       "guid": "52c05b14-0b98-496c-bc3b-04b50211d680",
       "name": "PeiCore",
-      "reason": "XIP/rebased in FV (PEI_CORE) \u2014 in-FV bytes need canonicalization before hash compare"
+      "reason": "XIP/rebased in FV (PEI_CORE) — in-FV bytes need canonicalization before hash compare"
     },
     {
       "guid": "86d70125-baa3-4296-a62f-602bebbb9081",
       "name": "DxeIpl",
-      "reason": "XIP/rebased in FV (PEIM) \u2014 in-FV bytes need canonicalization before hash compare"
+      "reason": "XIP/rebased in FV (PEIM) — in-FV bytes need canonicalization before hash compare"
     },
     {
       "guid": "89e549b0-7cfe-449d-9ba3-10d8b2312d71",
       "name": "S3Resume2Pei",
-      "reason": "XIP/rebased in FV (PEIM) \u2014 in-FV bytes need canonicalization before hash compare"
+      "reason": "XIP/rebased in FV (PEIM) — in-FV bytes need canonicalization before hash compare"
     },
     {
       "guid": "9b3ada4f-ae56-4c24-8dea-f03b7558ae50",
       "name": "PcdPeim",
-      "reason": "XIP/rebased in FV (PEIM) \u2014 in-FV bytes need canonicalization before hash compare"
+      "reason": "XIP/rebased in FV (PEIM) — in-FV bytes need canonicalization before hash compare"
     },
     {
       "guid": "9d225237-fa01-464c-a949-baabc02d31d0",
       "name": "StatusCodeHandlerPei",
-      "reason": "XIP/rebased in FV (PEIM) \u2014 in-FV bytes need canonicalization before hash compare"
+      "reason": "XIP/rebased in FV (PEIM) — in-FV bytes need canonicalization before hash compare"
     },
     {
       "guid": "a3610442-e69f-4df3-82ca-2360c4031a23",
       "name": "ReportStatusCodeRouterPei",
-      "reason": "XIP/rebased in FV (PEIM) \u2014 in-FV bytes need canonicalization before hash compare"
+      "reason": "XIP/rebased in FV (PEIM) — in-FV bytes need canonicalization before hash compare"
     },
     {
       "guid": "df1ccef6-f301-4a63-9661-fc6030dcc880",
       "name": "SecMain",
-      "reason": "XIP/rebased in FV (SEC) \u2014 in-FV bytes need canonicalization before hash compare"
+      "reason": "XIP/rebased in FV (SEC) — in-FV bytes need canonicalization before hash compare"
     },
     {
       "guid": "edadeb9d-ddba-48bd-9d22-c1c169c8c5c6",
       "name": "CpuMpPei",
-      "reason": "XIP/rebased in FV (PEIM) \u2014 in-FV bytes need canonicalization before hash compare"
+      "reason": "XIP/rebased in FV (PEIM) — in-FV bytes need canonicalization before hash compare"
     },
     {
       "guid": "fcb3a3d6-6274-411c-a548-bd0e717d533a",
       "name": "TdTcg2Pei",
-      "reason": "XIP/rebased in FV (PEIM) \u2014 in-FV bytes need canonicalization before hash compare"
+      "reason": "XIP/rebased in FV (PEIM) — in-FV bytes need canonicalization before hash compare"
     }
   ],
-  "libraries_transitive": 187
+  "libraries_transitive": 187,
+  "image_digest": "sha256:374472f026fc4948b00bdcb4d3deb2d8f71d725fec24d2f4ee21dfb396c8e0ce"
 }

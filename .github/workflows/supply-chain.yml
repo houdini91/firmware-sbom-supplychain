@@ -107,6 +107,7 @@ jobs:
           CHIPSEC_JSON=inputs/chipsec.json \
           BUILD_TOOLS_JSON=inputs/build-tools.cdx.json BUILD_TOOLS_SIG=true \
           PROVENANCE_SUBJECT="sha256:$(sha256sum inputs/sbom.cdx.json | cut -d' ' -f1)" \
+          DEV_ASSUME_FWIMAGE=1 \
           GRYPE_JSON=inputs/grype.json OUT=inputs/gate-input.json \
           bash oss-lane/assemble-gate-input.sh
           echo "--- gate input ---"; jq '{sbom,attestation,signature,provenance,reconcile:{clean:.reconcile.clean},cve:{n:(.cve.findings|length)}}' inputs/gate-input.json
