@@ -1,0 +1,46 @@
+# TODO — prioritized punch-list
+
+The actionable next steps, in execution order. Detail lives in [`DESIGN-REVIEW.md`](./DESIGN-REVIEW.md)
+(architecture + verdict), [`EVIDENCE-ROADMAP.md`](./EVIDENCE-ROADMAP.md) (evidence lanes), and
+[`POLICY-EXPANSION.md`](./POLICY-EXPANSION.md) (rules). Checkbox = do it; `⛔ blocked-by` = don't start yet.
+
+## Track A — clean, tangible, evidence-centric core (do this now)
+
+- [ ] **A1 · Firmware-digest anchor (the keystone).** Everything binds to the *firmware*, not a JSON file.
+  - [ ] Generator (edk2 `-Y SBOM`): write `D = sha256/sha512(OVMF.fd)` into `metadata.component.hashes` + a real `bom-ref`.
+  - [ ] Make `D` the **primary `subject`** of every image-scoped attestation (multi-subject `[{fd:D},{sbom:H}]` on provenance/SBOM/reconcile; `D` only on CVE/VEX/VSA/CHIPSEC/build-tools; source-commit on SAST/Scorecard). Firmware is an output → never `resolvedDependencies`.
+  - [ ] Reconcile predicate records `image_digest: D` (+ per-region digests).
+  - [ ] Gate anchor becomes `D` (not `sha256(sbom.cdx.json)`); add the check `SBOM.metadata.component.hashes == D == deployed .fd`.
+  - *Acceptance:* a consumer can verify "this evidence is about firmware `sha256:D`," and the gate proves the SBOM describes *these* bytes.
+- [ ] **A2 · Initiative / rule-catalog layer** (adopt Valint's *structure*). Map the 16 verifiers to a declarative
+  `framework → control → rule` manifest (SLSA/SSDF/800-53/800-190/CRA/BSI); fold `control_id → satisfied_by[]` +
+  `missing_evidence[]` into the VSA; add the **`MISSING_EVIDENCE`** three-state verdict; versioned rule IDs
+  (`ns/name@vN`) + a standard verdict schema. *Pure packaging over what we already compute.*
+- [ ] **A3 · `fw-supplychain-verify` CLI** (the headline). One command a firmware engineer runs on *their*
+  firmware → per-framework scorecard, using their trust policy. Consumes A1 (anchor) + A2 (initiatives).
+  - ⛔ blocked-by A1, A2.
+- [ ] **A4 · Uniform in-toto wrapping.** `sign-blob → attest-blob` for E6 (VSA) + E7 (build-tools); wrap E1/E4/E10
+  as DSSE Statements (`subject = D`); collapse CSAF into an E4b reference; drop E5 as an "evidence" row (it's the
+  signing envelope). ⛔ blocked-by A1 (needs the D subject).
+
+## Track B — upstream engagement (queued; gated on signals)
+
+- [ ] **B1 · uSWID #98** — wait for Richard Hughes to engage. *(No action until then.)*
+- [ ] **B2 · edk2 #10507 comment** — post after B1 signal; reference fork PR #6 as the example. Draft ready at
+  `engagement/issue-10507-comment.md`. ⛔ blocked-by B1.
+- [ ] **B3 · CHIPSEC [Ideas] discussion** — evidence-verification `tools/uefi/` module, framed via the
+  `reputation.py`/`scan_image.py` precedent (see DESIGN-REVIEW). Reference-first. ⛔ blocked-by A1+A3.
+
+## Track C — vuln research (parallel strength-play)
+
+- [ ] **C1 · edk2 exploratory security review** (task #40). SAST (E8) triage + targeted review of parser-heavy
+  code → a responsibly-disclosed finding. Different, orthogonal proof-of-work. Can run in parallel with Track A.
+
+## Track D — later / horizon (do NOT start now)
+
+- [ ] **D1 · R4 byte-integrity reconcile** — per-region canonical digest vs image. ⛔ blocked-by A1 (needs D).
+- [ ] **D2 · Firmware-native evidence** — fwupd `.cab`+Jcat, UEFIExtract corroborating carve, swtpm→CoRIM appraisal.
+- [ ] **D3 · Beyond-CI flash/provision gate; Ratify referrer store; SCITT receipts.** Project-scale.
+
+## Deprioritized (don't pad)
+More gate rules (diminishing returns — the gate is strong at 16). Don't add rules for coverage's sake.
