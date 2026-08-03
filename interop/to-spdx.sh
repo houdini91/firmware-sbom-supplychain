@@ -9,8 +9,10 @@
 # Install the converter once:  go install github.com/protobom/sbom-convert@latest
 # (GOBIN=./bin so it lands next to bin/opa; bin/ is gitignored).
 #
-# Note: CDX->SPDX is not fully lossless (protobom maps what maps); the SPDX is an
-# interop artifact, the CycloneDX remains the canonical SBOM.
+# Fidelity: for the bill-of-materials this is essentially lossless — verified on the
+# OVMF SBOM that names, versions, per-module hashes (-> SPDX checksums), TYPED PURL/CPE
+# refs, licenses, and the dependency graph all survive. CycloneDX stays canonical; the
+# SPDX is a faithful interop copy (regenerate + diff to re-verify).
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
