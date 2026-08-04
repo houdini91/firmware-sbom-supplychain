@@ -317,11 +317,12 @@
     <div class="hbox" style="border-color:color-mix(in srgb,var(--ok) 45%,var(--line))"><div class="lbl">declared module</div><div class="h">3b830c…7480d6f7</div></div>
   </div>
   <div class="callout ok"><span class="k" style="color:var(--ok)">RESULT</span> &nbsp;Un-rebasing makes all
-    <strong>11</strong> early-boot modules match exactly. Every module is now byte-verified —
-    <strong>122 / 122</strong> (111 directly, 11 via un-rebase) — and a same-ID swap is still caught in every
-    kind of module.</div>
-  <div class="cov" role="img" aria-label="122 of 122 modules byte-verified" style="margin-top:16px">
-    <span class="dxe" style="flex:1">122 / 122 byte-verified — whole image ✓</span>
+    <strong>11</strong> early-boot modules match exactly. Every module that carries executable code is now
+    byte-verified — <strong>122 / 123</strong> (111 directly, 11 via un-rebase). The 123rd file,
+    <code>ResetVector</code>, is a raw blob with no PE32 to hash — it's covered by the membership check instead.
+    A same-ID swap is caught in every kind of code module.</div>
+  <div class="cov" role="img" aria-label="122 of 123 code modules byte-verified" style="margin-top:16px">
+    <span class="dxe" style="flex:1">122 / 123 code modules byte-verified ✓</span>
   </div>
 </div></section>
 
