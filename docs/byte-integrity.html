@@ -1,0 +1,376 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Firmware Byte-Integrity — explained from scratch</title>
+<style>
+  :root{
+    --bg:#f6f8fb; --panel:#ffffff; --panel-2:#eef2f7; --ink:#151a21; --mut:#5a6472;
+    --line:#e2e7ee; --accent:#0a84ff; --accent-soft:#e6f0ff;
+    --ok:#12a150; --ok-soft:#e6f6ec; --bad:#e5484d; --bad-soft:#fdeaea;
+    --warn:#b8860b; --warn-soft:#fbf1dc; --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0c0f14; --panel:#141922; --panel-2:#1b212c; --ink:#e7edf5; --mut:#96a1b2;
+      --line:#242c38; --accent:#4aa8ff; --accent-soft:#12233b;
+      --ok:#3fd07a; --ok-soft:#12241a; --bad:#ff6b6f; --bad-soft:#2a1618;
+      --warn:#e0a92e; --warn-soft:#2a2212;
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#f6f8fb; --panel:#ffffff; --panel-2:#eef2f7; --ink:#151a21; --mut:#5a6472;
+    --line:#e2e7ee; --accent:#0a84ff; --accent-soft:#e6f0ff;
+    --ok:#12a150; --ok-soft:#e6f6ec; --bad:#e5484d; --bad-soft:#fdeaea; --warn:#b8860b; --warn-soft:#fbf1dc;
+  }
+  :root[data-theme="dark"]{
+    --bg:#0c0f14; --panel:#141922; --panel-2:#1b212c; --ink:#e7edf5; --mut:#96a1b2;
+    --line:#242c38; --accent:#4aa8ff; --accent-soft:#12233b;
+    --ok:#3fd07a; --ok-soft:#12241a; --bad:#ff6b6f; --bad-soft:#2a1618; --warn:#e0a92e; --warn-soft:#2a2212;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.62;
+    -webkit-font-smoothing:antialiased}
+  .wrap{max-width:900px;margin:0 auto;padding:0 22px}
+  h1,h2,h3{line-height:1.2;text-wrap:balance;margin:0}
+  code,.mono{font-family:var(--mono)}
+  code{background:var(--panel-2);padding:1px 6px;border-radius:5px;font-size:.9em}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--accent);font-weight:600}
+  abbr{border-bottom:1px dotted var(--mut);text-decoration:none;cursor:help}
+  header{padding:66px 0 34px;border-bottom:1px solid var(--line)}
+  header h1{font-size:clamp(29px,5vw,48px);font-weight:800;letter-spacing:-.02em;margin:14px 0 16px}
+  header .sub{font-size:clamp(17px,2.4vw,21px);color:var(--mut);max-width:64ch}
+  section{padding:44px 0;border-bottom:1px solid var(--line)}
+  section h2{font-size:clamp(23px,3.4vw,30px);font-weight:750;letter-spacing:-.01em}
+  section h2 .n{color:var(--accent);font-family:var(--mono);font-size:.62em;margin-right:.5em;font-weight:600}
+  .lede{font-size:17px;color:var(--mut);max-width:66ch;margin:12px 0 0}
+  p{max-width:68ch}
+  strong{color:var(--ink)}
+  .muted{color:var(--mut)}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 24px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:680px){.grid2{grid-template-columns:1fr}}
+  /* primer cards */
+  .primer{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px}
+  @media(max-width:680px){.primer{grid-template-columns:1fr}}
+  .pc{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:16px 18px}
+  .pc .t{font-weight:700;font-size:15px}
+  .pc .t .ab{font-family:var(--mono);font-size:12px;color:var(--accent);margin-left:6px}
+  .pc p{margin:6px 0 0;font-size:14.5px;color:var(--mut)}
+  .pc .an{color:var(--ink);font-style:italic}
+  /* worked example */
+  .stage{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;margin-top:18px}
+  .stage h3{font-size:15px;font-family:var(--mono);letter-spacing:.02em;margin-bottom:4px}
+  .mods{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+  @media(max-width:620px){.mods{grid-template-columns:1fr}}
+  .mod{border:1px solid var(--line);border-radius:12px;background:var(--panel-2);padding:13px 14px}
+  .mod .name{font-weight:700;font-size:14px}
+  .mod .kv{font-family:var(--mono);font-size:11.5px;color:var(--mut);margin-top:8px;line-height:1.7}
+  .mod .kv b{color:var(--ink);font-weight:600}
+  .mod.swap{border-color:var(--bad);background:var(--bad-soft)}
+  .mod.swap .name::after{content:" ⚠ swapped";color:var(--bad);font-weight:700;font-size:11px;font-family:var(--mono)}
+  .mod .hash-ok{color:var(--ok)} .mod .hash-bad{color:var(--bad);font-weight:700}
+  .badge{display:inline-block;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;
+    padding:2px 7px;border-radius:6px;margin-top:9px}
+  .badge.same{background:var(--accent-soft);color:var(--accent)}
+  /* verdict pair */
+  .verds{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+  @media(max-width:620px){.verds{grid-template-columns:1fr}}
+  .verd{border:1px solid var(--line);border-radius:12px;padding:16px 18px;background:var(--panel)}
+  .verd.pass{border-color:color-mix(in srgb,var(--ok) 45%,var(--line))}
+  .verd.fail{border-color:color-mix(in srgb,var(--bad) 50%,var(--line))}
+  .verd .h{font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px}
+  .verd .q{font-family:var(--mono);font-size:12.5px;color:var(--mut);margin:8px 0 10px}
+  .verd .r{font-family:var(--mono);font-size:13px;font-weight:700}
+  .verd.pass .r{color:var(--ok)} .verd.fail .r{color:var(--bad)}
+  .verd .note{font-size:13px;color:var(--mut);margin-top:8px}
+  .tick{width:20px;height:20px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;
+    font-size:12px;color:#fff;font-weight:800}
+  .tick.g{background:var(--ok)} .tick.r{background:var(--bad)}
+  /* flow */
+  .flow{display:flex;flex-wrap:wrap;align-items:center;gap:9px;margin-top:20px;font-family:var(--mono);font-size:12.5px}
+  .node{background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:8px 12px;white-space:nowrap}
+  .node.hi{background:var(--accent-soft);border-color:color-mix(in srgb,var(--accent) 40%,var(--line))}
+  .arr{color:var(--mut)}
+  /* hash compare */
+  .hc{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;margin-top:16px}
+  @media(max-width:640px){.hc{grid-template-columns:1fr}}
+  .hbox{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:13px 15px}
+  .hbox .lbl{font-size:11.5px;color:var(--mut);font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase}
+  .hbox .h{font-family:var(--mono);font-size:12.5px;word-break:break-all;margin-top:6px}
+  .eq{font-family:var(--mono);font-weight:700;text-align:center;font-size:20px}
+  .eq.ok{color:var(--ok)} .eq.bad{color:var(--bad)}
+  .steps{counter-reset:s;list-style:none;padding:0;margin:16px 0 0}
+  .steps li{position:relative;padding:6px 0 6px 40px;max-width:66ch}
+  .steps li::before{counter-increment:s;content:counter(s);position:absolute;left:0;top:4px;width:26px;height:26px;
+    border-radius:8px;background:var(--accent-soft);color:var(--accent);font-family:var(--mono);font-weight:700;
+    display:flex;align-items:center;justify-content:center;font-size:13px}
+  .callout{border-left:3px solid var(--accent);background:var(--panel);padding:14px 18px;border-radius:0 12px 12px 0;margin-top:18px}
+  .callout.ok{border-color:var(--ok)} .callout.warn{border-color:var(--warn)}
+  .k{font-family:var(--mono);font-size:12px;color:var(--accent);font-weight:600;letter-spacing:.06em}
+  .cov{display:flex;height:38px;border-radius:10px;overflow:hidden;border:1px solid var(--line);margin:18px 0 8px;font-family:var(--mono);font-size:12px;font-weight:600}
+  .cov span{display:flex;align-items:center;justify-content:center;color:#fff}
+  .cov .dxe{background:var(--ok)} .cov .xip{background:var(--warn)}
+  .leg{display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:var(--mut)}
+  .dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:7px;vertical-align:middle}
+  .mem{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:14px 16px;font-family:var(--mono);font-size:13px}
+  .row{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed var(--line)}
+  .row:last-child{border-bottom:0}
+  .row .a{color:var(--mut)} .b0{color:var(--ok)} .bL{color:var(--warn)}
+  .stat{display:flex;gap:26px;flex-wrap:wrap;margin-top:8px}
+  .stat .num{font-size:29px;font-weight:800;font-family:var(--mono);letter-spacing:-.02em}
+  .stat .num.ok{color:var(--ok)} .stat .num.acc{color:var(--accent)}
+  .stat .cap{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.07em}
+  /* glossary */
+  .gloss{display:grid;grid-template-columns:1fr 1fr;gap:10px 22px;margin-top:18px}
+  @media(max-width:680px){.gloss{grid-template-columns:1fr}}
+  .gl{padding:9px 0;border-bottom:1px solid var(--line)}
+  .gl .term{font-weight:700;font-size:14.5px}
+  .gl .term .ab{font-family:var(--mono);font-size:11.5px;color:var(--accent);margin-left:6px}
+  .gl p{margin:3px 0 0;font-size:14px;color:var(--mut)}
+  footer{padding:38px 0 66px;color:var(--mut);font-size:14px}
+</style>
+
+<header><div class="wrap">
+  <div class="eyebrow">Firmware security · explained from scratch</div>
+  <h1>Does the chip actually run the code the “ingredients list” says it does?</h1>
+  <div class="sub">No firmware background needed. We’ll build up from “what is firmware” to a real security
+    check — and why it catches an attack that the usual check misses.</div>
+</div></header>
+
+<section><div class="wrap">
+  <h2>Firmware in 90 seconds</h2>
+  <p class="lede">Six ideas. Everything after this is built from them — read these and the rest reads easily.</p>
+  <div class="primer">
+    <div class="pc"><div class="t">Firmware</div>
+      <p>The lowest-level software baked into a device — it runs <em>before</em> the operating system and starts
+        the machine up. On a PC this is the <abbr title="Unified Extensible Firmware Interface — the modern replacement for the old BIOS">UEFI</abbr>
+        firmware (the modern <abbr title="Basic Input/Output System — the traditional PC firmware">BIOS</abbr>).
+        <span class="an">Like the building’s wiring: it’s there before anyone moves in.</span></p></div>
+    <div class="pc"><div class="t">Module</div>
+      <p>Firmware isn’t one program — it’s a <strong>bundle of small programs</strong> (drivers, services), each
+        called a module. A firmware image contains dozens to hundreds. <span class="an">Think apps on a
+        phone — but for the chip.</span></p></div>
+    <div class="pc"><div class="t">Firmware image <span class="ab">.fd</span></div>
+      <p>The single file that gets written (“flashed”) onto the chip — all the modules packed together into one
+        blob. Our example file is <code>OVMF.fd</code>. <span class="an">One shipping container holding every
+        module.</span></p></div>
+    <div class="pc"><div class="t">Module ID <span class="ab">GUID</span></div>
+      <p>Every module carries a unique ID — a <abbr title="Globally Unique Identifier — a 128-bit unique label">GUID</abbr>,
+        like <code>2ec9da37-…</code>. It identifies <em>which</em> module something is. <span class="an">A serial
+        number, or a name badge.</span></p></div>
+    <div class="pc"><div class="t">Fingerprint <span class="ab">SHA-256</span></div>
+      <p>A hash is a short fingerprint of a file’s exact bytes. <strong>Change a single bit and the fingerprint
+        changes completely.</strong> So two files with the same fingerprint are byte-for-byte identical.
+        <span class="an">A wax seal that shatters if touched.</span></p></div>
+    <div class="pc"><div class="t">Ingredients list <span class="ab">SBOM</span></div>
+      <p>A <abbr title="Software Bill of Materials — a machine-readable inventory of everything in a build">SBOM</abbr>
+        is a signed inventory produced when the firmware is built: every module, its ID, and its fingerprint.
+        <span class="an">The recipe card that says exactly what should be inside.</span></p></div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <h2>The whole point, with a real example</h2>
+  <p class="lede">Two checks sound the same but are worlds apart. Here’s a firmware image with three modules,
+    the way the SBOM declares them:</p>
+
+  <div class="stage">
+    <h3>THE FIRMWARE IMAGE — as declared by the SBOM</h3>
+    <div class="mods">
+      <div class="mod"><div class="name">NetworkDriver</div>
+        <div class="kv">ID (GUID): <b>a1b2…</b><br>fingerprint: <span class="hash-ok">5fe7…</span></div></div>
+      <div class="mod"><div class="name">DiskDriver</div>
+        <div class="kv">ID (GUID): <b>c3d4…</b><br>fingerprint: <span class="hash-ok">9c2a…</span></div></div>
+      <div class="mod"><div class="name">SecurityModule</div>
+        <div class="kv">ID (GUID): <b>e5f6…</b><br>fingerprint: <span class="hash-ok">71a4…</span></div></div>
+    </div>
+    <p class="muted" style="margin:14px 0 0;font-size:14px">The SBOM says: “this image must contain exactly
+      these three IDs, with these three fingerprints.”</p>
+  </div>
+
+  <div class="stage" style="margin-top:14px">
+    <h3 style="color:var(--bad)">THE ATTACK — a “same-ID swap”</h3>
+    <p class="muted" style="margin:6px 0 0;font-size:14.5px">An attacker rips out the real SecurityModule and
+      drops in <strong>malware</strong> — but keeps the <strong>same ID (<code>e5f6…</code>)</strong> so the
+      inventory still looks right. Only the actual bytes changed, so its real fingerprint is now different.</p>
+    <div class="mods">
+      <div class="mod"><div class="name">NetworkDriver</div>
+        <div class="kv">ID: <b>a1b2…</b><br>fingerprint: <span class="hash-ok">5fe7…</span></div></div>
+      <div class="mod"><div class="name">DiskDriver</div>
+        <div class="kv">ID: <b>c3d4…</b><br>fingerprint: <span class="hash-ok">9c2a…</span></div></div>
+      <div class="mod swap"><div class="name">SecurityModule</div>
+        <div class="kv">ID: <b>e5f6…</b> <span class="badge same">same ID kept</span><br>
+          real fingerprint now: <span class="hash-bad">dead…</span> <span class="muted">(declared was 71a4…)</span></div></div>
+    </div>
+  </div>
+
+  <div class="verds">
+    <div class="verd pass">
+      <div class="h"><span class="tick g">✓</span> Membership check <span class="muted" style="font-weight:400;font-size:12px">— the usual one</span></div>
+      <div class="q">“Are IDs a1b2, c3d4 and e5f6 all present?”</div>
+      <div class="r">→ YES. PASS. ✓</div>
+      <div class="note"><strong>Fooled.</strong> The trojan kept the ID, so the inventory looks complete. This
+        is what most tools do — check the names, not the contents.</div>
+    </div>
+    <div class="verd fail">
+      <div class="h"><span class="tick r">✗</span> Byte-integrity check <span class="muted" style="font-weight:400;font-size:12px">— what we built</span></div>
+      <div class="q">“Does e5f6’s real fingerprint equal the declared 71a4?”</div>
+      <div class="r">→ dead… ≠ 71a4. FAIL. ✗</div>
+      <div class="note"><strong>Caught.</strong> The bytes don’t match the fingerprint the SBOM promised — so
+        the module is not genuine, whatever its ID says. The release is blocked.</div>
+    </div>
+  </div>
+  <div class="callout"><span class="k">IN ONE LINE</span> &nbsp;Membership asks <em>“is the right name on the
+    list?”</em> Byte-integrity asks <em>“is it really that module, or an impostor wearing its badge?”</em></div>
+</div></section>
+
+<section><div class="wrap">
+  <h2>How we actually check it</h2>
+  <p class="lede">The declared fingerprint comes from the SBOM. The real one we compute ourselves from the
+    shipped image — then compare.</p>
+  <div class="flow">
+    <span class="node">build → <b>SBOM</b></span><span class="arr">gives</span>
+    <span class="node">declared fingerprint</span>
+    <span class="arr" style="width:100%"></span>
+    <span class="node hi">shipped <b>OVMF.fd</b></span><span class="arr">→</span>
+    <span class="node">unpack the image</span><span class="arr">→</span>
+    <span class="node">find the module</span><span class="arr">→</span>
+    <span class="node">read its code bytes</span><span class="arr">→</span>
+    <span class="node">fingerprint it</span>
+  </div>
+  <p class="muted" style="margin-top:14px;font-size:14.5px">Unpacking means opening the container: a firmware
+    image holds <abbr title="Firmware Volume — a container region inside the image">FV</abbr> regions → each
+    holds <abbr title="Firmware File System file — one module’s file inside a volume">FFS</abbr> files (one per
+    module) → inside is the actual program, a <abbr title="Portable Executable — the code-file format; the PE32 section holds the module's executable">PE32</abbr>
+    section. <span class="muted">Image → drawers → folders → the document.</span> We pull the document’s bytes
+    and fingerprint them.</p>
+</div></section>
+
+<section><div class="wrap">
+  <h2><span class="n">Phase 1</span>Prove it works — on one kind of module</h2>
+  <p class="lede">Firmware modules run at different <strong>stages of boot</strong>; each stage stores modules a
+    bit differently. We started with the biggest group: <abbr title="Driver eXecution Environment — the main boot stage where most drivers run">DXE</abbr>
+    drivers (the “main” stage).</p>
+  <ol class="steps">
+    <li>Take the <strong>declared</strong> module the build produced (<code>AmdSevDxe</code>).</li>
+    <li>Take the <strong>real</strong> bytes of that module out of the shipped <code>OVMF.fd</code>.</li>
+    <li>Fingerprint both. For <strong>5 out of 5</strong> DXE drivers they were <strong>identical</strong>.</li>
+    <li>Flip <strong>one bit</strong> of the shipped module → fingerprints diverge → the swap is
+      <span class="mono" style="color:var(--bad)">DETECTED</span>.</li>
+  </ol>
+  <div class="callout ok"><span class="k" style="color:var(--ok)">FINDING</span> &nbsp;For this stage the two
+    sides line up <strong>directly</strong> — no adjustment needed. (An earlier report had claimed a mismatch;
+    it turned out to be reading the wrong bytes. Fixed.)</div>
+</div></section>
+
+<section><div class="wrap">
+  <h2><span class="n">Phase 2</span>Turn it into a real gate — honestly</h2>
+  <p class="lede">We made byte-integrity a hard release check and ran it over <strong>every</strong> module in
+    the image. That immediately taught us something.</p>
+  <div class="cov" role="img" aria-label="111 of 122 modules byte-verified, 11 deferred">
+    <span class="dxe" style="flex:111">111 verified — bytes match</span>
+    <span class="xip" style="flex:11">11 to-do</span>
+  </div>
+  <div class="leg">
+    <span><span class="dot" style="background:var(--ok)"></span>Match directly</span>
+    <span><span class="dot" style="background:var(--warn)"></span>Look different — for a benign reason (Phase 3)</span>
+  </div>
+  <div class="callout warn"><span class="k" style="color:var(--warn)">THE HONEST CATCH</span> &nbsp;A first run
+    called those 11 “modified” — false alarms. They’re all <strong>early-boot modules</strong>
+    (the <abbr title="Pre-EFI Initialization — an early boot stage">PEI</abbr> /
+    <abbr title="Security phase — the very first boot stage">SEC</abbr> stages) that legitimately look
+    different in the image. So the tool reports them as <strong>“needs a fair-comparison step,” never as
+    tampered</strong> — a clean image reads clean, and the number stays truthful.</div>
+</div></section>
+
+<section><div class="wrap">
+  <h2><span class="n">Phase 3</span>The last 11 — make the comparison fair</h2>
+  <p class="lede">Why do early-boot modules look different? When a module is fixed into a specific spot in the
+    chip, all its internal addresses get shifted — called <strong>rebasing</strong>. Same code, shifted numbers.</p>
+  <div class="grid2" style="margin-top:6px">
+    <div class="mem">
+      <div class="row"><span class="a">what differs</span><span>declared&nbsp;·&nbsp;in-flash</span></div>
+      <div class="row"><span class="a">base address</span><span><span class="b0">0</span> · <span class="bL">0x83dec0</span></span></div>
+      <div class="row"><span class="a">timestamp</span><span>0 · 0</span></div>
+      <div class="row"><span class="a">entry point</span><span>0x32ab · 0x32ab</span></div>
+      <div class="row"><span class="a">size</span><span>19840 · 19840</span></div>
+      <div class="row"><span class="a">everything else</span><span>identical · identical</span></div>
+    </div>
+    <div>
+      <p style="margin-top:0"><strong>Only the base address differs.</strong> Placing the module in the chip
+        added a fixed offset to every internal pointer. The image tracks exactly which bytes were shifted (a
+        “relocation” list), so the change is <strong>perfectly reversible</strong>.</p>
+      <p class="muted">The fair-comparison step (<em>“canonicalization”</em>) simply <strong>subtracts that
+        offset back out</strong> — returning the shipped module to its declared form before we fingerprint it.
+        <span class="muted">Like translating two documents into the same language before comparing them.</span></p>
+    </div>
+  </div>
+  <div class="hc" style="margin-top:18px">
+    <div class="hbox"><div class="lbl">shipped module (rebased)</div><div class="h">d75272…946710a8</div></div>
+    <div class="eq bad">≠</div>
+    <div class="hbox"><div class="lbl">declared module</div><div class="h">3b830c…7480d6f7</div></div>
+  </div>
+  <div style="text-align:center;font-family:var(--mono);color:var(--mut);margin:9px 0;font-size:13px">↓ subtract the offset (un-rebase) ↓</div>
+  <div class="hc">
+    <div class="hbox" style="border-color:color-mix(in srgb,var(--ok) 45%,var(--line))"><div class="lbl">shipped, un-rebased</div><div class="h">3b830c…7480d6f7</div></div>
+    <div class="eq ok">==</div>
+    <div class="hbox" style="border-color:color-mix(in srgb,var(--ok) 45%,var(--line))"><div class="lbl">declared module</div><div class="h">3b830c…7480d6f7</div></div>
+  </div>
+  <div class="callout ok"><span class="k" style="color:var(--ok)">RESULT</span> &nbsp;Un-rebasing makes all
+    <strong>11</strong> early-boot modules match exactly. Every module is now byte-verified —
+    <strong>122 / 122</strong> (111 directly, 11 via un-rebase) — and a same-ID swap is still caught in every
+    kind of module.</div>
+  <div class="cov" role="img" aria-label="122 of 122 modules byte-verified" style="margin-top:16px">
+    <span class="dxe" style="flex:1">122 / 122 byte-verified — whole image ✓</span>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <h2>What it all means</h2>
+  <div class="grid2">
+    <div class="panel"><h3 style="font-size:17px">Before</h3>
+      <p class="muted" style="margin:8px 0 0">Verification confirmed the right module <em>names</em> were
+        present — but not that the <em>code</em> was genuine. A same-ID trojan walked right through.</p></div>
+    <div class="panel" style="border-color:color-mix(in srgb,var(--ok) 40%,var(--line))"><h3 style="font-size:17px">After</h3>
+      <p class="muted" style="margin:8px 0 0">Every checkable module’s shipped bytes are matched to the SBOM’s
+        declared fingerprint. The release is <strong>blocked if any module’s bytes aren’t what was
+        declared.</strong></p></div>
+  </div>
+  <div class="stat" style="margin-top:22px">
+    <div><div class="num acc">122</div><div class="cap">modules reconciled</div></div>
+    <div><div class="num ok">byte-level</div><div class="cap">integrity, not just names</div></div>
+    <div><div class="num ok">1 bit</div><div class="cap">is enough to detect a swap</div></div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <h2>Glossary — every term used here</h2>
+  <div class="gloss">
+    <div class="gl"><div class="term">Firmware</div><p>Low-level software baked into a chip that runs before the operating system and boots the machine.</p></div>
+    <div class="gl"><div class="term">UEFI / BIOS</div><p>UEFI is the modern PC firmware standard; BIOS is its older name. They do the same job: start the computer.</p></div>
+    <div class="gl"><div class="term">edk2 / OVMF</div><p>edk2 is the open-source toolkit UEFI firmware is built from; <code>OVMF</code> is an open UEFI firmware we use as the test target.</p></div>
+    <div class="gl"><div class="term">Module</div><p>One small program inside the firmware (a driver or service). Firmware is a bundle of many modules.</p></div>
+    <div class="gl"><div class="term">Firmware image <span class="ab">.fd</span></div><p>The single binary file flashed onto the chip, containing all modules packed together (e.g. <code>OVMF.fd</code>).</p></div>
+    <div class="gl"><div class="term">GUID</div><p>Globally Unique Identifier — a 128-bit label that says which module something is. A serial number / name badge.</p></div>
+    <div class="gl"><div class="term">Hash <span class="ab">SHA-256</span></div><p>A fingerprint of a file’s exact bytes; changing one bit changes it completely. Same hash ⇒ identical files.</p></div>
+    <div class="gl"><div class="term">SBOM</div><p>Software Bill of Materials — a signed inventory made at build time: every module, its GUID, and its hash.</p></div>
+    <div class="gl"><div class="term">Membership check</div><p>Confirms every declared module (by GUID) is present. Doesn’t look at the bytes.</p></div>
+    <div class="gl"><div class="term">Byte-integrity</div><p>Confirms each module’s shipped bytes match the hash the SBOM declared — catches a same-GUID swap.</p></div>
+    <div class="gl"><div class="term">Same-GUID trojan</div><p>An attack that replaces a module’s code but keeps its GUID, so the inventory still looks correct.</p></div>
+    <div class="gl"><div class="term">FV / FFS / PE32</div><p>The image’s nested containers: Firmware Volume → Firmware File (one per module) → PE32 section (the actual code). Drawers → folders → document.</p></div>
+    <div class="gl"><div class="term">Boot stages <span class="ab">SEC · PEI · DXE</span></div><p>Firmware boots in phases: SEC (first), PEI (early init), DXE (main, most drivers). Modules belong to a stage.</p></div>
+    <div class="gl"><div class="term">Rebase / relocation</div><p>Adjusting a module’s internal addresses when it’s placed at a fixed spot in the chip. The image records exactly what shifted, so it’s reversible.</p></div>
+    <div class="gl"><div class="term">Canonicalization</div><p>Converting both sides to the same standard form (here: undoing the rebase) so a byte comparison is fair.</p></div>
+    <div class="gl"><div class="term">GenFw</div><p>The edk2 build tool that normalizes a module (zeroes timestamps, etc.) as it assembles the image.</p></div>
+    <div class="gl"><div class="term">SI-7(1)</div><p>A security control (“integrity checks over components”). Byte-integrity is what makes it mean “the bytes match,” not just “a hash exists.”</p></div>
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  <div class="eyebrow" style="color:var(--mut)">Honest scope</div>
+  <p style="margin-top:8px">Coverage is always reported: modules that can’t yet be byte-checked are labelled
+    <em>needs-canonicalization</em>, never silently skipped and never mislabelled “tampered.” Declared hashes
+    come from the build-time SBOM; observed bytes come from the shipped image — two independent sources, one
+    comparison.</p>
+</div></footer>
+</html>

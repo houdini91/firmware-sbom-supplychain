@@ -1,0 +1,304 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Firmware you can prove — an evidence-centric supply-chain gate</title>
+<style>
+  :root{
+    --bg:#0a0d12; --bg2:#0e131a; --panel:#141a22; --panel2:#1a212b; --line:#232c38;
+    --ink:#e9eef6; --mut:#8b97a8; --dim:#5d6777;
+    --acc:#3ddbd9; --acc2:#4aa8ff; --accsoft:#0f2b30;
+    --ok:#3fd07a; --oksoft:#122417; --bad:#ff5d6a; --badsoft:#25151a; --warn:#e2a83b; --warnsoft:#241d10;
+    --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  :root[data-theme="light"]{
+    --bg:#f4f7fb; --bg2:#eef2f8; --panel:#ffffff; --panel2:#f2f6fb; --line:#dde4ee;
+    --ink:#111722; --mut:#55627a; --dim:#8a95a8;
+    --acc:#0d9488; --acc2:#0a6fd6; --accsoft:#e2f5f4;
+    --ok:#128a43; --oksoft:#e4f6ea; --bad:#d23a49; --badsoft:#fceaec; --warn:#a9781a; --warnsoft:#f8efdb;
+  }
+  @media(prefers-color-scheme:light){:root:not([data-theme="dark"]){
+    --bg:#f4f7fb; --bg2:#eef2f8; --panel:#ffffff; --panel2:#f2f6fb; --line:#dde4ee;
+    --ink:#111722; --mut:#55627a; --dim:#8a95a8;
+    --acc:#0d9488; --acc2:#0a6fd6; --accsoft:#e2f5f4;
+    --ok:#128a43; --oksoft:#e4f6ea; --bad:#d23a49; --badsoft:#fceaec; --warn:#a9781a; --warnsoft:#f8efdb;
+  }}
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.6;
+    -webkit-font-smoothing:antialiased}
+  .wrap{max-width:960px;margin:0 auto;padding:0 24px}
+  h1,h2,h3{margin:0;line-height:1.15;text-wrap:balance}
+  code,.mono{font-family:var(--mono)}
+  .kicker{font-family:var(--mono);font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--acc)}
+  a{color:var(--acc2);text-decoration:none}
+  /* hero */
+  header{position:relative;overflow:hidden;border-bottom:1px solid var(--line);
+    background:radial-gradient(1200px 500px at 78% -10%, color-mix(in srgb,var(--acc) 14%, transparent), transparent 60%), var(--bg)}
+  .hero{padding:78px 0 56px}
+  .hero h1{font-size:clamp(34px,6.4vw,66px);font-weight:800;letter-spacing:-.03em;margin:16px 0 18px}
+  .hero h1 .g{background:linear-gradient(90deg,var(--acc),var(--acc2));-webkit-background-clip:text;
+    background-clip:text;color:transparent}
+  .hero .sub{font-size:clamp(17px,2.3vw,22px);color:var(--mut);max-width:62ch}
+  .stats{display:flex;flex-wrap:wrap;gap:14px;margin-top:30px}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:14px 18px;min-width:150px}
+  .stat .n{font-family:var(--mono);font-size:26px;font-weight:800;letter-spacing:-.02em}
+  .stat .n.ok{color:var(--ok)} .stat .n.acc{color:var(--acc)}
+  .stat .l{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+  .cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px;font-family:var(--mono);font-size:13px}
+  .cta a{border:1px solid var(--line);background:var(--panel);padding:9px 15px;border-radius:9px;color:var(--ink)}
+  .cta a.p{background:linear-gradient(90deg,color-mix(in srgb,var(--acc) 22%,var(--panel)),var(--panel));
+    border-color:color-mix(in srgb,var(--acc) 45%,var(--line))}
+  /* sections */
+  section{padding:56px 0;border-bottom:1px solid var(--line)}
+  section h2{font-size:clamp(24px,3.6vw,34px);font-weight:750;letter-spacing:-.015em}
+  .lede{font-size:18px;color:var(--mut);max-width:66ch;margin:14px 0 0}
+  p{max-width:70ch;color:var(--ink)}
+  .muted{color:var(--mut)}
+  strong{color:var(--ink)}
+  /* problem: two checks */
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:26px}
+  @media(max-width:700px){.split{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:20px 22px}
+  .card.fooled{border-color:color-mix(in srgb,var(--bad) 40%,var(--line))}
+  .card.caught{border-color:color-mix(in srgb,var(--ok) 45%,var(--line))}
+  .card .tag{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+  .card.fooled .tag{color:var(--bad)} .card.caught .tag{color:var(--ok)}
+  .card h3{font-size:17px;margin:6px 0 8px}
+  /* the model — evidence pipeline */
+  .flow{margin-top:28px;display:grid;grid-template-columns:1.1fr auto 1fr auto 1fr;gap:12px;align-items:center}
+  @media(max-width:820px){.flow{grid-template-columns:1fr;gap:10px}.flow .ar{display:none}}
+  .lane{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 15px}
+  .lane .h{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin-bottom:9px}
+  .ev{display:flex;align-items:center;gap:8px;font-size:13px;padding:5px 0;border-bottom:1px dashed var(--line)}
+  .ev:last-child{border-bottom:0}
+  .ev .d{width:7px;height:7px;border-radius:2px;flex:none;background:var(--acc)}
+  .ev.hot .d{background:var(--ok);box-shadow:0 0 0 3px var(--oksoft)}
+  .ev b{color:var(--ink);font-weight:600}
+  .ar{font-family:var(--mono);color:var(--dim);text-align:center;font-size:18px}
+  .gatebox{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid color-mix(in srgb,var(--acc) 35%,var(--line));
+    border-radius:14px;padding:16px;text-align:center}
+  .gatebox .t{font-family:var(--mono);font-weight:700;font-size:14px}
+  .gatebox .s{font-size:12px;color:var(--mut);margin-top:4px}
+  .vsa{background:var(--panel);border:1px solid color-mix(in srgb,var(--ok) 40%,var(--line));border-radius:14px;padding:16px;text-align:center}
+  .vsa .t{font-family:var(--mono);font-weight:700;color:var(--ok);font-size:14px}
+  .vsa .s{font-size:12px;color:var(--mut);margin-top:4px}
+  .modelnote{font-family:var(--mono);font-size:12.5px;color:var(--mut);margin-top:18px;text-align:center}
+  /* evidence lane cards grid */
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:24px}
+  @media(max-width:760px){.grid{grid-template-columns:1fr 1fr}}
+  @media(max-width:480px){.grid{grid-template-columns:1fr}}
+  .ec{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:15px 16px;position:relative}
+  .ec.star{border-color:color-mix(in srgb,var(--acc) 45%,var(--line));background:linear-gradient(180deg,var(--accsoft),var(--panel))}
+  .ec .nm{font-weight:700;font-size:15px;display:flex;align-items:center;gap:7px}
+  .ec .badge{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--acc);
+    border:1px solid color-mix(in srgb,var(--acc) 40%,var(--line));border-radius:5px;padding:1px 6px}
+  .ec p{font-size:13.5px;color:var(--mut);margin:7px 0 0}
+  .ec .rep{font-family:var(--mono);font-size:11.5px;color:var(--acc2);margin-top:9px}
+  /* two controls */
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:24px}
+  @media(max-width:700px){.two{grid-template-columns:1fr}}
+  .ctl{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:22px}
+  .ctl .k{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--acc)}
+  .ctl h3{font-size:19px;margin:8px 0 10px}
+  .hashrow{font-family:var(--mono);font-size:12px;display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed var(--line)}
+  .hashrow:last-child{border:0}
+  .b0{color:var(--ok)} .bl{color:var(--warn)}
+  /* frameworks */
+  .fw{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+  .chip{background:var(--panel);border:1px solid color-mix(in srgb,var(--ok) 32%,var(--line));border-radius:999px;
+    padding:7px 14px;font-size:13px}
+  .chip .c{font-family:var(--mono);color:var(--ok);font-weight:700;margin-right:6px}
+  /* scope */
+  .scope{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:22px}
+  @media(max-width:700px){.scope{grid-template-columns:1fr}}
+  .sc{border:1px solid var(--line);border-radius:13px;padding:15px 17px;background:var(--panel)}
+  .sc h4{margin:0 0 6px;font-size:14px;font-family:var(--mono);letter-spacing:.04em}
+  .sc.en h4{color:var(--ok)} .sc.ev h4{color:var(--acc)} .sc.pl h4{color:var(--warn)}
+  .sc ul{margin:0;padding-left:18px;font-size:13.5px;color:var(--mut)} .sc li{margin:3px 0}
+  footer{padding:44px 0 72px;color:var(--mut);font-size:14px}
+  .fnote{font-family:var(--mono);font-size:12px;color:var(--dim);margin-top:20px}
+  @media(prefers-reduced-motion:no-preference){
+    .reveal{opacity:0;transform:translateY(10px);animation:rise .6s ease forwards}
+    @keyframes rise{to{opacity:1;transform:none}}
+  }
+</style>
+
+<header><div class="wrap hero">
+  <div class="kicker reveal">Firmware supply-chain security · v0.1.0</div>
+  <h1 class="reveal">Firmware you can <span class="g">prove</span>.</h1>
+  <div class="sub reveal">Every claim about a firmware build becomes <strong>signed evidence</strong>. A policy
+    engine ANDs it into one verdict. The release is <strong>blocked unless the actual bytes on the chip match
+    the signed bill of materials</strong> — catching a same-GUID trojan that signatures and inventories miss.</div>
+  <div class="stats reveal">
+    <div class="stat"><div class="n acc">18</div><div class="l">signed checks, one gate</div></div>
+    <div class="stat"><div class="n ok">122 / 122</div><div class="l">modules byte-verified</div></div>
+    <div class="stat"><div class="n ok">1 bit</div><div class="l">is enough to block a swap</div></div>
+    <div class="stat"><div class="n acc">6</div><div class="l">frameworks, per-control</div></div>
+  </div>
+  <div class="cta reveal">
+    <a class="p" href="#model">▸ How it works</a>
+    <a href="#three">The three core checks</a>
+    <a href="#controls">The two novel controls</a>
+  </div>
+</div></header>
+
+<section><div class="wrap">
+  <div class="kicker">The gap</div>
+  <h2>Signatures prove <em>who built it</em>. Not <em>what's inside</em>.</h2>
+  <p class="lede">A signed SBOM is an ingredients list. But does the chip actually contain those exact modules,
+    byte-for-byte? Most pipelines never check — they trust the list. That's the hole.</p>
+  <div class="split">
+    <div class="card fooled">
+      <div class="tag">Membership check — the usual one</div>
+      <h3>“Is every declared module present, by ID?”</h3>
+      <p class="muted" style="margin:0">A <strong>same-GUID trojan</strong> keeps a module's identity but swaps
+        its code. The inventory still looks complete. <span style="color:var(--bad)">Fooled.</span></p>
+    </div>
+    <div class="card caught">
+      <div class="tag">Byte-integrity — what this adds</div>
+      <h3>“Do the shipped bytes hash to what was declared?”</h3>
+      <p class="muted" style="margin:0">The fingerprint comes from the bytes themselves. Change the code and it
+        changes. <span style="color:var(--ok)">Caught — release blocked.</span></p>
+    </div>
+  </div>
+</div></section>
+
+<section id="model"><div class="wrap">
+  <div class="kicker">The model</div>
+  <h2>Evidence-centric attestation → one gated policy → a signed verdict</h2>
+  <p class="lede">Producers derive <strong>facts from real artifacts</strong> and sign them. The gate only
+    <em>decides</em> — it ANDs every check. Nothing is trusted that isn't independently derived.</p>
+  <div class="flow">
+    <div class="lane">
+      <div class="h">Producers → signed evidence</div>
+      <div class="ev"><span class="d"></span><b>SBOM</b> — declared composition</div>
+      <div class="ev"><span class="d"></span><b>SLSA L2</b> provenance</div>
+      <div class="ev"><span class="d"></span><b>Reconcile</b> — carve vs SBOM</div>
+      <div class="ev hot"><span class="d"></span><b>Byte-integrity</b> — shipped bytes</div>
+      <div class="ev hot"><span class="d"></span><b>CHIPSEC</b> — platform posture</div>
+      <div class="ev"><span class="d"></span><b>CVE + VEX</b> · build-tools · signatures</div>
+    </div>
+    <div class="ar">→</div>
+    <div class="gatebox">
+      <div class="t">OPA gate</div>
+      <div class="s">18 verifier reports<br/>AND → allow / deny</div>
+    </div>
+    <div class="ar">→</div>
+    <div class="vsa">
+      <div class="t">Signed verdict ✓</div>
+      <div class="s">per-control results,<br/>all frameworks — portable</div>
+    </div>
+  </div>
+  <div class="modelnote">in-toto / DSSE envelope · cosign keyless (Fulcio + Rekor) · Open Policy Agent · signed as a
+    <b>policy-verdict predicate</b> — OSCAL-shaped per-control findings + RATS Attestation-Result framing; the SLSA VSA is one profile</div>
+</div></section>
+
+<section id="three"><div class="wrap">
+  <div class="kicker">The three core checks</div>
+  <h2>Reconcile · byte-integrity · CHIPSEC — three questions, three levels</h2>
+  <p class="lede">"Does the firmware match its bill of materials?" splits into three <em>different</em> questions.
+    Most tools ask only the first.</p>
+  <div class="grid" style="grid-template-columns:repeat(3,1fr)">
+    <div class="ec"><div class="nm">① Reconcile <span class="badge" style="color:var(--mut);border-color:var(--line)">composition</span></div>
+      <p><strong>Are the declared modules present?</strong> Carve the real image; match every module by its ID (GUID).</p>
+      <p style="color:var(--mut);font-size:12.5px;margin-top:8px">catches a missing module — or an undeclared one that shouldn't be there.</p>
+      <div class="rep">reconcile-membership → SI-7 · CM-8(3)</div></div>
+    <div class="ec star"><div class="nm">② Byte-integrity <span class="badge">content</span></div>
+      <p><strong>Do the shipped bytes match?</strong> Hash each module's actual PE32 bytes; compare to the SBOM's declared hash.</p>
+      <p style="color:var(--mut);font-size:12.5px;margin-top:8px">catches a <b style="color:var(--bad)">same-GUID trojan</b> — same ID, swapped code — that membership misses.</p>
+      <div class="rep">component-byte-integrity → SI-7(1) · SR-4(3)</div></div>
+    <div class="ec star"><div class="nm">③ CHIPSEC <span class="badge">platform</span></div>
+      <p><strong>Are the chip's defenses on?</strong> Assess platform-firmware protections on the target.</p>
+      <p style="color:var(--mut);font-size:12.5px;margin-top:8px">catches BIOS-write-protect / SPI-lock / SMM / Secure-Boot <b>misconfiguration</b>.</p>
+      <div class="rep">chipsec-posture → SP 800-193 §4.2 · SP 800-147</div></div>
+  </div>
+  <div class="modelnote" style="margin-top:22px">the right parts are <b>present</b> (reconcile) · the parts are
+    <b>genuine</b> (byte-integrity) · the chip's defenses are <b>on</b> (CHIPSEC) — three complementary layers, one gate</div>
+</div></section>
+
+<section id="evidence"><div class="wrap">
+  <div class="kicker">The evidence lanes</div>
+  <h2>Eight kinds of evidence, each with its own gate check</h2>
+  <p class="lede">Every lane answers a different question about the release. Two are highlighted — they're where
+    this project goes past the standard stack.</p>
+  <div class="grid">
+    <div class="ec"><div class="nm">SBOM</div><p>The declared composition — every module + its hash (CycloneDX).</p><div class="rep">sbom-present · component-integrity</div></div>
+    <div class="ec"><div class="nm">Provenance</div><p>Platform-generated proof of how/where it was built (SLSA L2).</p><div class="rep">slsa-provenance · provenance-identity</div></div>
+    <div class="ec"><div class="nm">Signature</div><p>Keyless signer identity extracted from the cert, not trusted from env.</p><div class="rep">attestation-signature · signer-identity-pinned</div></div>
+    <div class="ec"><div class="nm">Reconcile</div><p>Carve the real image; confirm every declared module is present.</p><div class="rep">reconcile · reconcile-membership</div></div>
+    <div class="ec star"><div class="nm">Byte-integrity <span class="badge">novel</span></div><p>Each module's shipped PE32 bytes match the declared hash — a same-GUID swap is caught (122/122).</p><div class="rep">component-byte-integrity</div><div class="rep" style="color:var(--mut)">→ NIST SI-7(1) · SR-4(3) · S2C2F AUD-3</div></div>
+    <div class="ec star"><div class="nm">CHIPSEC posture <span class="badge">platform</span></div><p>Platform-firmware protections assessed on the target (config-level, honest about N/A on QEMU).</p><div class="rep">chipsec-posture</div><div class="rep" style="color:var(--mut)">→ SP 800-193 §4.2 · SP 800-147</div></div>
+    <div class="ec"><div class="nm">CVE + VEX</div><p>No un-triaged critical vulnerability ships; every high/critical carries a justification.</p><div class="rep">cve-triage · vex-adjudicated</div></div>
+    <div class="ec"><div class="nm">Build-tools</div><p>The CI toolchain itself is inventoried, SHA-pinned, and signed.</p><div class="rep">build-tools-signed</div></div>
+    <div class="ec"><div class="nm">Firmware anchor</div><p>Ties the whole evidence set to the deployed <code>.fd</code> bytes, not a detached JSON.</p><div class="rep">firmware-digest-anchor</div></div>
+  </div>
+</div></section>
+
+<section id="controls"><div class="wrap">
+  <div class="kicker">The two novel controls</div>
+  <h2>Where this goes past the standard stack</h2>
+  <div class="two">
+    <div class="ctl">
+      <div class="k">Byte-integrity · reconcile-to-bytes</div>
+      <h3>Prove the chip runs the declared code</h3>
+      <p class="muted" style="margin:0 0 12px">The hard part was PEI modules: they're <strong>rebased</strong>
+        in flash (addresses shifted), so a naïve hash never matches. The relocation table records exactly what
+        shifted — so it's reversible.</p>
+      <div class="hashrow"><span class="muted">shipped (rebased)</span><span class="mono bl">d75272…946710a8 ✗</span></div>
+      <div class="hashrow"><span class="muted">un-rebase → compare</span><span class="mono b0">3b830c…7480d6f7 ✓</span></div>
+      <p class="muted" style="margin:12px 0 0;font-size:13px">DXE directly, PEI via un-rebase → <strong>122/122</strong>.
+        A real tamper changes code the relocations don't cover, so it still fails.</p>
+    </div>
+    <div class="ctl">
+      <div class="k">Firmware-digest anchor</div>
+      <h3>Bind the evidence to <em>these</em> bytes</h3>
+      <p class="muted" style="margin:0 0 12px">Three independently-sourced digests of the firmware must agree —
+        so the whole evidence set is about the image you're about to flash, not a document someone handed you.</p>
+      <div class="hashrow"><span class="muted">① build-time SBOM digest</span><span class="mono b0">D</span></div>
+      <div class="hashrow"><span class="muted">② reconcile's own re-hash</span><span class="mono b0">D</span></div>
+      <div class="hashrow"><span class="muted">③ deployed .fd (flash-time)</span><span class="mono b0">D</span></div>
+      <p class="muted" style="margin:12px 0 0;font-size:13px">A consumer CLI re-runs this on <em>their</em>
+        firmware and degrades honestly to <span class="mono">MISSING_EVIDENCE</span> when there's no attestation.</p>
+    </div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="kicker">Compliance, honestly</div>
+  <h2>Mapped to real controls — not "we comply with everything"</h2>
+  <p class="lede">The signed verdict is scored per-control across six frameworks. Each check is tagged with the
+    exact control it earns; nothing claims whole-framework compliance.</p>
+  <div class="fw">
+    <span class="chip"><span class="c">✓</span>SLSA v1.0 — Build L2</span>
+    <span class="chip"><span class="c">✓</span>NIST SSDF (800-218)</span>
+    <span class="chip"><span class="c">✓</span>NIST SP 800-53</span>
+    <span class="chip"><span class="c">✓</span>SP 800-193 (firmware)</span>
+    <span class="chip"><span class="c">✓</span>OpenSSF S2C2F</span>
+    <span class="chip"><span class="c">✓</span>EU CRA · BSI · CISA</span>
+  </div>
+  <p class="muted" style="margin-top:16px;font-size:14px">e.g. byte-integrity earns <span class="mono">SI-7(1)</span>
+    "integrity checks over components" — the real thing (<em>the bytes match</em>), not merely "a hash exists".</p>
+</div></section>
+
+<section><div class="wrap">
+  <div class="kicker">Honest scope</div>
+  <h2>What's enforced, what's evidence, what's next</h2>
+  <div class="scope">
+    <div class="sc en"><h4>ENFORCED — hard-blocks a release</h4>
+      <ul><li>18 signed checks incl. byte-integrity + CHIPSEC posture</li><li>SLSA L2 provenance (CI hard-gate)</li><li>membership + byte-level integrity, 122/122</li></ul></div>
+    <div class="sc ev"><h4>EVIDENCE — produced, mapped</h4>
+      <ul><li>SAST (CodeQL), OpenSSF Scorecard</li><li>CDX↔SPDX / coSWID interop</li><li>controls satisfiable but not yet a gate rule</li></ul></div>
+    <div class="sc pl"><h4>OUT OF SCOPE — named, not hidden</h4>
+      <ul><li>TE-format / compressed module sections</li><li>runtime / measured-boot attestation</li><li>offline <code>DEV_ASSUME</code> opt-ins (never in CI)</li></ul></div>
+  </div>
+  <p class="fnote">Firmware-derived evidence is produced offline against the real <code>.fd</code> and consumed
+    (not regenerated) by CI. Every check has an isolating negative fixture; the producers and the assembler are
+    unit-tested; a skip is never a pass.</p>
+</div></section>
+
+<footer><div class="wrap">
+  <div class="kicker" style="color:var(--mut)">Reference target: OVMF / edk2</div>
+  <p style="margin-top:10px">Build-time SBOM generator (edk2 <code>-Y SBOM</code>) → FMMT carve + reconcile →
+    byte-integrity → CHIPSEC → CVE/VEX → cosign keyless attest → OPA gate → signed SLSA VSA → a consumer CLI
+    that verifies it against your own firmware. One engine — <em>firmware → components → a verdict you can prove.</em></p>
+</div></footer>
+</html>
