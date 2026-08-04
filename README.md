@@ -17,7 +17,8 @@ chip** match the signed bill of materials.
 > 🖼 **Prefer a visual?** A 2-minute [**plain-language primer (PRIMER.md)**](PRIMER.md) explains it from scratch;
 > a hosted **[solution showcase](https://claude.ai/code/artifact/008ea1c6-9058-43ad-b5f1-f99139f8cfce)** and a
 > [**byte-integrity explainer**](https://claude.ai/code/artifact/b4fd79dd-f3aa-4848-82a8-133942401f69) walk the
-> whole thing with graphics.
+> whole thing with graphics. &nbsp;▶ **[See real output (docs/DEMO.md)](docs/DEMO.md)** — the gate ALLOW/DENY, the
+> same-GUID-trojan block, and the consumer scorecard.
 
 ---
 
