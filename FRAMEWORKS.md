@@ -7,6 +7,28 @@
 > the next evidence worth producing. Companion to [`DESIGN.md`](./DESIGN.md); the enforced subset lives in
 > [`oss-lane/compliance-map.md`](./oss-lane/compliance-map.md).
 
+> **In plain terms.** This document is a *map*. On one side are the pieces of **evidence** we produce about a
+> firmware release — its ingredients list (an SBOM), who signed it, a record of how it was built, a
+> byte-for-byte integrity result, a vulnerability scan, and more. On the other side are the specific
+> **controls** that security-compliance frameworks (SLSA, NIST, EU CRA, BSI, CISA…) actually ask for. Every row
+> below connects one piece of evidence to the exact control it satisfies — and, honestly, *how far*: some
+> controls are **enforced now** (the release is hard-blocked if they fail), some are **satisfiable from
+> evidence we already emit** but not yet wired into an automated gate, and some are **not yet possible** because
+> they need a kind of evidence we don't produce. New here? Read [`PRIMER.md`](PRIMER.md) first — it explains
+> firmware, SBOMs, and byte-integrity from scratch.
+
+The chain each row walks — from a piece of evidence, through the check that consumes it, to the control it
+satisfies, to the signed verdict:
+
+```mermaid
+flowchart LR
+    EV["<b>Evidence we produce</b><br/>SBOM · signature · build provenance<br/>byte-integrity · CVE + VEX scan"] --> CHK["<b>The check that consumes it</b><br/>an OPA verifier report<br/>e.g. reconcile · cve-triage"]
+    CHK --> CTL["<b>The control(s) it satisfies</b><br/>e.g. NIST SI-7 · SLSA L2<br/>EU CRA Annex I · BSI TR-03183-2"]
+    CTL --> GATE{"<b>OPA gate</b><br/>do all checks pass?"}
+    GATE -->|yes| VSA(["<b>Signed verdict — VSA</b><br/>portable, anyone can re-check it"])
+    GATE -->|no| BLK(["Release blocked<br/>routed to triage"])
+```
+
 ## Posture in three tiers
 
 - **Enforced today** — the deploy pipeline **hard-blocks the release** on **eighteen OPA verifier reports** (SBOM
