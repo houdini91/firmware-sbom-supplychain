@@ -225,7 +225,7 @@ edk2 firmware build. L3 is the honest remaining gap.
 | Control | Ask | Evidence | Status | Note |
 |---|---|---|:--:|---|
 | **SR-4 / SR-4(3)** Provenance / genuine-and-not-altered | valid provenance; validate not-altered | E2, E1, E3 | **ENFORCED** *(gate)* | `slsa-level-floor` (level ≥2) + `evidence-chain-bound` (SBOM↔attestation↔provenance one digest) + `reconcile-membership`. |
-| **SR-4(3)** Validate as Genuine and Not Altered | received components are genuine + unaltered | E5, E2, E3 | **PARTIAL** | E5/E2 validate the build output; **E3 is membership-only → "not altered" at byte level unproven.** |
+| **SR-4(3)** Validate as Genuine and Not Altered | received components are genuine + unaltered | E5, E2, E3 | **ENFORCED** | E5/E2 validate the build output; **E3 byte-integrity (R4) proves "not altered" at the byte level — 122/122 modules' shipped bytes match the declared hash** (`component-byte-integrity` + `firmware-digest-anchor`). |
 | **SR-4(4)** Supply Chain Integrity — Pedigree | validate internal composition + provenance of critical products | E1, E3 | **PARTIAL** | Composition touched; no critical-component pedigree; E1 omits submodules. |
 | **SI-7** Software/Firmware/Information Integrity | detect unauthorized changes to software/firmware | E1, E3, E5, E2 | **ENFORCED** *(gate)* | `reconcile-membership` (declared==observed, no undeclared artifact) + `component-integrity` (every hashable module hashed). Byte-level integrity of each region is R4. |
 | **SI-7(15) / CM-14** Code Authentication / Signed Components | authenticate the signed component by a trusted identity | E5 | **ENFORCED** *(gate)* | `signer-identity-pinned`: signature verified **and** cert SAN in `data.trusted_signer_identities`. (Signed subject is the SBOM/attestation; firmware-byte authentication is R4. OIDC-issuer pinning is a documented enhancement.) |
@@ -242,7 +242,7 @@ edk2 firmware build. L3 is the honest remaining gap.
 |---|---|---|:--:|---|
 | **INV-1** | automated inventory of all OSS used | E1, E7 | **PARTIAL** | E1 build-generated but no submodules; E7 direct-only. |
 | **SCA-1** | scan OSS for known vulnerabilities | E4 | **ENFORCED** *(gate)* | Direct hit (`cve-triage`). |
-| **AUD-3** | validate integrity of OSS consumed into the build | E3 | **PARTIAL** | Reconcile is membership-only — partial integrity signal. |
+| **AUD-3** | validate integrity of OSS consumed into the build | E3 | **ENFORCED** | Byte-integrity (R4) matches each module's shipped bytes to the declared hash — 122/122 (`component-byte-integrity`). |
 | **SCA-2** | scan OSS for licenses | E1 | **ENFORCED** *(gate)* | `thirdparty-identifiers` requires a license on every third-party component. |
 | **SCA-3** | scan OSS for end-of-life | — | **PLANNED** | Needs an EOL feed. |
 | **AUD-1** | verify provenance of **ingested** OSS | — | **N/A / not-forced** | E2/E5 is provenance of *our own output*, a different subject — do not map. |

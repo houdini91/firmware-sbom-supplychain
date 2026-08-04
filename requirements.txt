@@ -1,8 +1,8 @@
 # Python dependencies for this repo's tooling.
 #   pip install -r requirements.txt   (or: make deps)
 #
-# Only verify-initiative.py needs a third-party package; the reconcile and
-# interop scripts are stdlib-only.
+# verify-initiative.py needs PyYAML; byte-integrity.py needs pefile (XIP un-rebase).
+# The other reconcile/interop scripts are stdlib-only.
 PyYAML>=6.0
 pefile>=2023.2.7   # byte-integrity.py — PE parsing for XIP/PEI un-rebase (R4 phase 3)
 
