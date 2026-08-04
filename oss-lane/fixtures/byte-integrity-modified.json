@@ -34,8 +34,8 @@
     "added": [],
     "modified": [],
     "declared": 123,
-    "matched": 120,
-    "missing_count": 3,
+    "matched": 123,
+    "missing_count": 0,
     "undeclared_observed": 0
   },
   "cve": {
@@ -58,7 +58,7 @@
   "byte_integrity": {
     "ran": true,
     "checked": 10,
-    "verified": 10,
-    "modified_count": 0
+    "verified": 9,
+    "modified_count": 1
   }
 }

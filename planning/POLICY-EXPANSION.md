@@ -1,6 +1,6 @@
 # Policy expansion — new rego rules to enforce conformance (careful review)
 
-The deploy gate now enforces **17 verifier_reports** (the original 7 plus the 10 in the table below, since
+The deploy gate now enforces **18 verifier_reports** (the original 7 plus the 11 in the table below, since
 implemented). This is the **honest, deduplicated set of rego rules** that moved named controls from
 `EVIDENCE`/`PARTIAL` → `ENFORCED`, over the evidence set E1–E10. Produced by a control-by-control review of SLSA, NIST SSDF/800-53/800-161, S2C2F, CISA/NTIA, CRA,
 BSI, SP 800-190, and the firmware-platform frameworks — reviewers instructed to be **skeptical and refuse
@@ -24,6 +24,7 @@ rubber-stamp; drop the clause and the rule is theater.
 | **`slsa-level-floor`** | SR-4, SR-4(3) | E2 | `slsa_level ≥ 2` | floor **`≥2`, never L3** — E2 is L2 (hosted), not hermetic/isolated | **implemented** |
 | **`build-tools-signed`** | SSDF PO.3.2, S2C2F REB-3 | E7 | `build_tools.present ∧ signature_verified ∧ count(unpinned)==0` (direct only) | map to **PO.3.x, NOT PW.6.1** — this proves *which* tools, not hardening flags | **implemented** |
 | **`evidence-chain-bound`** | SLSA subject binding | E1/E2/E5 | SBOM↔attestation↔provenance one digest | the **VSA is excluded** (it is the gate's own output — circular) | **implemented** |
+| **`component-byte-integrity`** | SI-7(1), SR-4(3), S2C2F AUD-3 | E3 (byte-integrity producer) | each byte-checkable module's shipped PE32 bytes == the SBOM's declared hash; `modified_count==0` over `checked>0` | this is the **actual** SI-7(1) (bytes match), not merely "a hash is present"; catches a same-GUID trojan reconcile-membership passes. XIP/PEI (rebased) reported as needs-canon, **never** as tampered (R4 phase 3) — no false positives, honest coverage | **implemented (R4 phase 2)** |
 | **`firmware-digest-anchor`** | firmware-image-binding, SI-7, SR-4(3), CISA Hash | E1↔E3↔image | three digests of the firmware bytes agree: **(1)** the build-time generator hash in `SBOM.metadata.component`, **(2)** `sbom-reconcile --image`'s own independent hash of the carved image, **(3)** the deployed `.fd` hashed at flash/verify time (`FW_IMAGE`) | legs 1+2 are **independent-source** measurements (two tools, two stages) — a tampered SBOM self-claim diverges from the reconcile hash. Leg 3 is the fresh measurement that makes it tamper-evident; **CI + the offline demo assume it** (`DEV_ASSUME_FWIMAGE`, no separately-built image), a real flash-time verifier supplies it. Digests normalized (`lower(alg:hex)`); SHA-256 gated, SHA-512 recorded. Demonstrated against the real `OVMF.fd` via `FW_IMAGE` | **implemented** |
 
 ## Rules we deliberately do NOT write (refusing conformance theater)

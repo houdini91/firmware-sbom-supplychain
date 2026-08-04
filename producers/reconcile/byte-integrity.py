@@ -30,9 +30,16 @@ import sys
 import tempfile
 
 
+# XIP / execute-in-place module types: stored rebased to their flash address in
+# the FV, so the in-image PE32 differs from the declared (un-rebased) .efi. Naive
+# byte comparison does NOT apply — deferred to R4 phase 3 (rebase canonicalization),
+# NOT reported as tampered. (Same set sbom-reconcile marks modified_skipped.)
+XIP_TYPES = {"SEC", "PEI_CORE", "PEIM"}
+
+
 def load_sbom_hashes(sbom_path):
-    """{guid(lower,no-dashes): (name, declared_sha256)} for components with a GUID
-    bom-ref and a declared SHA-256."""
+    """{guid(lower,no-dashes): (name, declared_sha256, module_type)} for components
+    with a GUID bom-ref and a declared SHA-256."""
     with open(sbom_path) as f:
         sbom = json.load(f)
     out = {}
@@ -40,9 +47,13 @@ def load_sbom_hashes(sbom_path):
         ref = (c.get("bom-ref") or "").replace("-", "").lower()
         if len(ref) != 32:
             continue
+        mtype = ""
+        for p in c.get("properties", []) or []:
+            if p.get("name") == "edk2:moduleType":
+                mtype = p.get("value", "")
         for h in c.get("hashes", []) or []:
             if h.get("alg") == "SHA-256" and h.get("content"):
-                out[ref] = (c.get("name"), h["content"].lower())
+                out[ref] = (c.get("name"), h["content"].lower(), mtype)
     return out
 
 
@@ -104,7 +115,11 @@ def main():
 
     verified, modified, skipped = [], [], []
     with tempfile.TemporaryDirectory() as td:
-        for guid, (name, dhash) in sorted(targets.items(), key=lambda kv: kv[1][0] or ""):
+        for guid, (name, dhash, mtype) in sorted(targets.items(), key=lambda kv: kv[1][0] or ""):
+            if mtype in XIP_TYPES:
+                skipped.append({"name": name, "guid": guid,
+                                "reason": "XIP/rebased %s — needs canonicalization (R4 phase 3)" % mtype})
+                continue
             dst = os.path.join(td, guid + ".ffs")
             if not fmmt_extract(fmmt_py, a.edk2, a.image, guid, dst):
                 skipped.append({"name": name, "guid": guid, "reason": "not extractable from image"})

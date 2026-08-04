@@ -24,10 +24,30 @@ Findings that simplified the plan:
   while the untouched IoMmuDxe stays verified. Membership reconcile passes this; byte-integrity
   does not.
 
-**Net:** `modified` is now real for the uncompressed-DXE class. Phase 2 = fold this into the
-reconcile verdict + a `component-byte-integrity` gate report; Phase 3 = TE/PEI (rebased) and
-compressed sections. The rebase "crux" is resolved for DXE (it doesn't occur); it returns only
-for TE/PEI in Phase 3.
+**Net:** `modified` is now real for the uncompressed-DXE class.
+
+## ✅ Phase 2 — RESULTS (2026-08-04)
+
+Byte-integrity is now **enforced as an 18th gate report** (`component-byte-integrity`), with honest
+coverage over the whole image:
+
+- Ran over all **122** module components with a GUID + declared hash on the real OVMF.fd:
+  **111 byte-verified · 0 modified · 11 deferred**, `clean=true`.
+- The 11 deferred are **all XIP/rebased PEI-phase modules** (9 PEIM, 1 PEI_CORE, 1 SEC) — classified from the
+  SBOM's `edk2:moduleType` and reported as *needs-canonicalization (phase 3)*, **never as tampered**. This
+  matters: an initial run without the classifier flagged those 11 as `modified` (false positives); the fix is
+  the honest classification, so a clean image is clean.
+- Producer `byte-integrity.py` emits the verdict → `inputs/byte-integrity.json` (committed evidence, like
+  `chipsec.json`). The Python assembler derives `byte_integrity {ran, checked, verified, modified_count}`; the
+  rego `component-byte-integrity` report requires `ran ∧ checked>0 ∧ modified_count==0` (non-vacuous), tagged
+  SI-7(1)/SR-4(3)/S2C2F-AUD-3 and wired into `frameworks.yaml`. Negative fixture `byte-integrity-modified`
+  isolates it. Pipeline (run.sh, CI, pipeline-negative) passes `BYTE_INTEGRITY_JSON`.
+- **Same-GUID trojan, end to end:** the Phase-1 FMMT-swap demo (1-bit-flipped AmdSevDxe under the same
+  FILE_GUID) → `modified_count>0` → the gate DENYs. Membership passes it; byte-integrity + the gate do not.
+
+**Coverage is honest:** 111/122 enforced, 11 XIP deferred with the reason recorded — the SI-7(1) control now
+means *the bytes match*, not merely *a hash is present*. Phase 3 = rebase-canonicalization for XIP/PEI (+ any
+compressed sections), moving the 11 into the enforced set.
 
 ---
 
