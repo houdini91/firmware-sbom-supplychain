@@ -31,6 +31,11 @@ coverage: ## Per-framework, per-control coverage from a fresh signed VSA (opa+py
 gate: ## Run the gate on one fixture: make gate FIXTURE=oss-lane/fixtures/clean.json
 	bash oss-lane/gate.sh $(or $(FIXTURE),$(FIX)/clean.json)
 
+.PHONY: verify
+verify: ## Consumer CLI on your firmware: make verify FW=<image.fd> VSA=<vsa.json>
+	@test -n "$(FW)" || { echo "usage: make verify FW=<image.fd> [VSA=<vsa.json>]"; exit 2; }
+	cli/fw-supplychain-verify --firmware "$(FW)" $(if $(VSA),--vsa "$(VSA)",)
+
 .PHONY: demo
 demo: ## Full OSS lane end to end (needs cosign + grype + opa)
 	bash oss-lane/run.sh

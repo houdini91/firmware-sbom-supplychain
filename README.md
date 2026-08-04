@@ -29,6 +29,16 @@ make demo      # the full OSS lane end to end (needs cosign + grype)
 [`oss-lane/policy/firmware.rego`](oss-lane/policy/firmware.rego) — **17 verifier reports** ANDed into a signed
 SLSA VSA, each with an isolating negative fixture under [`oss-lane/fixtures/`](oss-lane/fixtures).
 
+**Consumer side** — run the gate on *your own* firmware:
+
+```bash
+make verify FW=path/to/OVMF.fd VSA=vsa.intoto.json   # hash it, bind it, per-framework scorecard
+```
+
+[`cli/fw-supplychain-verify`](cli/README.md) hashes the image itself, checks the evidence is bound to *those
+bytes*, and prints a `PASS / FAIL / MISSING_EVIDENCE` scorecard — degrading honestly to `MISSING_EVIDENCE` on
+unattested firmware it has never seen.
+
 ## Documentation
 
 Read in this order:

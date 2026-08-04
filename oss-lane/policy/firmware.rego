@@ -401,7 +401,7 @@ deny contains msg if {
 vsa_predicate := {
 	"verifier": {"id": "https://github.com/houdini91/firmware-sbom-supplychain/oss-lane"},
 	"policy": {"uri": "https://github.com/houdini91/firmware-sbom-supplychain/blob/main/oss-lane/policy/firmware.rego"},
-	"resourceUri": object.get(input, ["artifact", "uri"], "firmware-image"),
+	"resourceUri": object.get(input, ["artifact", "uri"], "firmware-sbom-attestation"),
 	"verificationResult": _result,
 	"verifiedLevels": _levels,
 	"slsaVersion": "1.0",

@@ -1,0 +1,246 @@
+#!/usr/bin/env python3
+"""fw-supplychain-verify — the consumer-side supply-chain gate.
+
+One command a firmware engineer runs on THEIR firmware image to answer the
+questions the supply-chain evidence exists to answer — and to degrade *honestly*
+when there is no evidence at all:
+
+  1. IDENTITY  — hash the image myself (never trust a digest I was handed).
+  2. BINDING   — is the evidence actually about THESE bytes? (compare my hash to
+                 the VSA's firmware-image subject — the anchor, consumer side)
+  3. COVERAGE  — which frameworks does it satisfy? Map the VSA's verifier reports
+                 to controls: PASS / FAIL / MISSING_EVIDENCE. No evidence for a
+                 control is MISSING_EVIDENCE — a supply-chain gap — never a silent
+                 pass and never conflated with a real FAIL.
+
+Designed to run on firmware it has never seen: point it at a stock OVMF or a
+vendor UEFI image with no attestation and it will still hash the bytes and report
+every framework as MISSING_EVIDENCE, honestly. It assumes nothing — there are no
+DEV_ASSUME shortcuts in this path; an unverifiable signature is an error, not a
+warning.
+
+  fw-supplychain-verify --firmware OVMF.fd --vsa vsa.intoto.json
+  fw-supplychain-verify --firmware OVMF.fd --vsa vsa.intoto.json --verify-bundle vsa.sig.bundle \\
+                        --signer-identity https://github.com/ORG/REPO/.github/workflows/wf.yml@refs/heads/main
+  fw-supplychain-verify --firmware unknown-vendor.fd        # no evidence -> all MISSING_EVIDENCE
+  fw-supplychain-verify --firmware OVMF.fd --vsa vsa.json --require ssdf,sp-800-53 --show-controls --json
+"""
+import argparse
+import hashlib
+import json
+import os
+import shutil
+import subprocess
+import sys
+
+try:
+    import yaml
+except ImportError:
+    sys.exit("PyYAML required: pip install pyyaml  (or: make deps)")
+
+PASS, FAIL, MISSING = "PASS", "FAIL", "MISSING_EVIDENCE"
+MARK = {PASS: "✅", FAIL: "⛔", MISSING: "❔"}
+HERE = os.path.dirname(os.path.abspath(__file__))
+DEFAULT_MANIFEST = os.path.normpath(os.path.join(HERE, "..", "oss-lane", "initiatives", "frameworks.yaml"))
+
+
+def _load_json(path, what):
+    try:
+        with open(path) as f:
+            return json.load(f)
+    except FileNotFoundError:
+        sys.exit("error: %s not found: %s" % (what, path))
+    except ValueError as e:
+        sys.exit("error: %s is not valid JSON (%s): %s" % (what, path, e))
+
+
+def sha256_file(path):
+    h = hashlib.sha256()
+    try:
+        with open(path, "rb") as f:
+            for chunk in iter(lambda: f.read(1 << 20), b""):
+                h.update(chunk)
+    except OSError as e:
+        sys.exit("error: cannot read firmware image %s: %s" % (path, e))
+    return "sha256:" + h.hexdigest()
+
+
+def firmware_subject(vsa):
+    """The digest the VSA claims to be about, from its firmware-image subject."""
+    for s in vsa.get("subject", []):
+        if s.get("name") == "firmware-image":
+            for alg, hexd in s.get("digest", {}).items():
+                return "%s:%s" % (alg.lower(), hexd.lower())
+    return None
+
+
+def reports_map(vsa):
+    reports = vsa.get("predicate", {}).get("verifierReports", []) or vsa.get("verifierReports", [])
+    return {r["name"]: bool(r.get("isSuccess")) for r in reports if r.get("name")}
+
+
+def evaluate(control, present):
+    need = control.get("satisfied_by", [])
+    absent = [r for r in need if r not in present]
+    if absent:
+        return MISSING, absent
+    failed = [r for r in need if not present[r]]
+    return (FAIL, failed) if failed else (PASS, [])
+
+
+def verify_bundle(vsa_path, bundle_path, identity):
+    """Cryptographically verify the VSA before trusting it. Assumes nothing:
+    a missing cosign, a bad signature, or (when given) an identity mismatch is a
+    hard error — not a warning."""
+    cosign = shutil.which("cosign")
+    if not cosign:
+        sys.exit("error: --verify-bundle needs cosign on PATH (https://docs.sigstore.dev/cosign/installation/)")
+    cmd = [cosign, "verify-blob", "--bundle", bundle_path]
+    if identity:
+        cmd += ["--certificate-identity", identity,
+                "--certificate-oidc-issuer", "https://token.actions.githubusercontent.com"]
+    else:
+        cmd += ["--certificate-identity-regexp", ".*",
+                "--certificate-oidc-issuer-regexp", ".*"]
+    cmd.append(vsa_path)
+    r = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+    if r.returncode != 0:
+        sys.exit("error: VSA signature verification FAILED:\n%s" % (r.stderr.strip() or r.stdout.strip()))
+
+
+def main():
+    ap = argparse.ArgumentParser(
+        prog="fw-supplychain-verify", description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--firmware", help="the firmware image (.fd) to verify (hashed independently)")
+    ap.add_argument("--vsa", help="the signed SLSA VSA (oss-lane gate output); omit if you have no evidence")
+    ap.add_argument("--verify-bundle", help="cosign bundle for the VSA; if given, its signature is verified first")
+    ap.add_argument("--signer-identity", help="required cert identity (SAN) for --verify-bundle")
+    ap.add_argument("--manifest", default=DEFAULT_MANIFEST, help="framework->control manifest (frameworks.yaml)")
+    ap.add_argument("--require", help="comma-separated framework ids that MUST fully pass (default: all)")
+    ap.add_argument("--show-controls", action="store_true", help="print per-control detail")
+    ap.add_argument("--json", action="store_true", help="machine-readable output")
+    args = ap.parse_args()
+
+    if not args.firmware and not args.vsa:
+        ap.error("give at least --firmware (to identify the image) and/or --vsa (the evidence)")
+    if args.verify_bundle and not args.vsa:
+        ap.error("--verify-bundle needs --vsa")
+
+    if args.verify_bundle:
+        verify_bundle(args.vsa, args.verify_bundle, args.signer_identity)
+
+    vsa = _load_json(args.vsa, "VSA") if args.vsa else {}
+    with open(args.manifest) as f:
+        manifest = yaml.safe_load(f)
+    initiatives = manifest.get("initiatives", {})
+    required = set(x.strip() for x in args.require.split(",")) if args.require else set(initiatives)
+    unknown = required - set(initiatives)
+    if unknown:
+        sys.exit("error: unknown framework(s): %s" % ", ".join(sorted(unknown)))
+
+    # 1+2. identity + binding
+    actual = sha256_file(args.firmware) if args.firmware else None
+    claimed = firmware_subject(vsa) if vsa else None
+    if not vsa:
+        binding = "NO_EVIDENCE"
+    elif claimed is None:
+        binding = "NO_SUBJECT"
+    elif actual is None:
+        binding = "SKIPPED"
+    elif actual == claimed:
+        binding = "BOUND"
+    else:
+        binding = "MISMATCH"
+
+    # 3. coverage
+    present = reports_map(vsa)
+    result = vsa.get("predicate", {}).get("verificationResult", "") if vsa else ""
+    frameworks = []
+    for key, ini in initiatives.items():
+        controls = [dict(id=c["id"], name=c["name"],
+                         status=evaluate(c, present)[0], detail=evaluate(c, present)[1])
+                    for c in ini.get("controls", [])]
+        frameworks.append(dict(id=key, name=ini["name"], required=key in required,
+                               ok=all(c["status"] == PASS for c in controls), controls=controls))
+
+    required_ok = all(f["ok"] for f in frameworks if f["required"])
+    accept = binding == "BOUND" and required_ok
+
+    if args.json:
+        print(json.dumps(dict(
+            firmware=args.firmware, firmware_digest=actual, vsa_claims=claimed,
+            binding=binding, verificationResult=result, frameworks=frameworks,
+            verdict="ACCEPT" if accept else "REJECT"), indent=2))
+        sys.exit(0 if accept else 1)
+
+    _render(args, actual, claimed, binding, result, frameworks, accept)
+    sys.exit(0 if accept else 1)
+
+
+def _render(args, actual, claimed, binding, result, frameworks, accept):
+    line = "─" * 66
+    print("fw-supplychain-verify — consumer-side supply-chain gate")
+    print(line)
+    if args.firmware:
+        print("Firmware image : %s  (%d bytes)" % (os.path.basename(args.firmware), os.path.getsize(args.firmware)))
+        print("  sha256       : %s" % actual.split(":", 1)[1])
+    else:
+        print("Firmware image : (none given)")
+    if args.vsa:
+        print("Evidence (VSA) : %s   verificationResult=%s%s"
+              % (os.path.basename(args.vsa), result or "unset",
+                 "   (signature verified)" if args.verify_bundle else ""))
+    else:
+        print("Evidence (VSA) : none — no supply-chain evidence supplied")
+    print()
+
+    print("▶ Binding — is this evidence about THESE bytes?")
+    msg = {
+        "BOUND": "  ✅ BOUND — the VSA's firmware-image subject matches your image.",
+        "MISMATCH": "  ⛔ MISMATCH — the VSA is about %s\n     but your image is %s.\n"
+                    "     This evidence does NOT describe the firmware you hold. Refusing." % (claimed, actual),
+        "NO_SUBJECT": "  ⚠ the VSA carries no firmware-image subject (predates the anchor) — cannot bind.",
+        "SKIPPED": "  ⚠ skipped — no --firmware given to hash.",
+        "NO_EVIDENCE": "  ❔ no evidence supplied — this firmware is unattested (see coverage below).",
+    }[binding]
+    print(msg)
+    print()
+
+    print("▶ Framework coverage (from the signed VSA's verifier reports)" if args.vsa
+          else "▶ Framework coverage — no evidence, so every control is MISSING_EVIDENCE")
+    for fw in frameworks:
+        n = len(fw["controls"])
+        passed = sum(1 for c in fw["controls"] if c["status"] == PASS)
+        missing = sum(1 for c in fw["controls"] if c["status"] == MISSING)
+        state = MARK[PASS] if fw["ok"] else (MARK[MISSING] if missing == n else MARK[FAIL])
+        tag = "  [required]" if fw["required"] else ""
+        print("  %s %-42s %d/%d%s" % (state, fw["name"], passed, n, tag))
+        if args.show_controls:
+            for c in fw["controls"]:
+                note = ("  ← missing: %s" % ", ".join(c["detail"])) if c["status"] == MISSING else \
+                       ("  ← failed: %s" % ", ".join(c["detail"])) if c["status"] == FAIL else ""
+                print("      %s %-22s %s%s" % (MARK[c["status"]], c["id"], c["name"], note))
+    print()
+
+    print(line)
+    if accept:
+        print("VERDICT: ✅ ACCEPT — firmware bound + all required frameworks pass.")
+    else:
+        reasons = []
+        if binding == "MISMATCH":
+            reasons.append("firmware not bound to the evidence")
+        elif binding == "NO_EVIDENCE":
+            reasons.append("no evidence — cannot attest this firmware (frameworks MISSING_EVIDENCE)")
+        elif binding == "NO_SUBJECT":
+            reasons.append("evidence has no firmware-image subject to bind")
+        elif binding == "SKIPPED":
+            reasons.append("no firmware supplied to bind")
+        bad = [f["name"] for f in frameworks if f["required"] and not f["ok"]]
+        if bad and binding not in ("NO_EVIDENCE",):
+            reasons.append("required framework(s) not fully passing: " + ", ".join(bad))
+        print("VERDICT: ⛔ REJECT — " + ("; ".join(reasons) or "requirements not met") + ".")
+
+
+if __name__ == "__main__":
+    main()
