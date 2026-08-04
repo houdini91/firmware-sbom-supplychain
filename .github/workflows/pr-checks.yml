@@ -37,6 +37,7 @@ jobs:
           python3 tests/test_reconcile.py
           python3 tests/test_chipsec.py
           python3 tests/test_interop.py
+          python3 tests/test_initiatives_sync.py
 
       - name: In-pipeline negative test (post-sign tamper must be blocked)
         run: |

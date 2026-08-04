@@ -432,15 +432,65 @@ deny contains msg if {
 # platform-generated (attest-build-provenance) and hard-gated by
 # `gh attestation verify` before this gate runs (see the _levels note below).
 # ---------------------------------------------------------------------------
-vsa_predicate := {
+# --- Per-control assessment (OSCAL Assessment-Results-shaped) -----------------
+# Each verifier report is an OSCAL "observation"; each framework control becomes a
+# "finding" whose status is satisfied / not-satisfied / not-applicable, derived from
+# the reports that satisfy it (data.initiatives, generated from frameworks.yaml).
+_report_present(name) if {
+	some r in verifier_reports
+	r.name == name
+}
+
+_report_pass(name) if {
+	some r in verifier_reports
+	r.name == name
+	r.isSuccess
+}
+
+_control_status(need) := "not-applicable" if {
+	some r in need
+	not _report_present(r)
+}
+
+_control_status(need) := "not-satisfied" if {
+	every r in need {_report_present(r)}
+	some r in need
+	not _report_pass(r)
+}
+
+_control_status(need) := "satisfied" if {
+	every r in need {_report_pass(r)}
+}
+
+control_assessments := [ca |
+	some fwkey, fw in data.initiatives
+	some ctrl in fw.controls
+	ca := {
+		"framework": fwkey,
+		"controlId": ctrl.id,
+		"name": ctrl.name,
+		"status": _control_status(ctrl.satisfied_by),
+		"relatedObservations": ctrl.satisfied_by,
+	}
+]
+
+# --- The signed verdict -------------------------------------------------------
+# A generalized policy-verdict predicate: RATS Attestation-Result framing (this gate
+# is the Verifier; the CLI/deploy step is the Relying Party) with OSCAL-shaped
+# controlAssessments. This gate verifies MANY frameworks, so the SLSA VSA is demoted
+# to one profile rather than being the whole predicate.
+policy_verdict_predicate := {
 	"verifier": {"id": "https://github.com/houdini91/firmware-sbom-supplychain/oss-lane"},
 	"policy": {"uri": "https://github.com/houdini91/firmware-sbom-supplychain/blob/main/oss-lane/policy/firmware.rego"},
 	"resourceUri": object.get(input, ["artifact", "uri"], "firmware-sbom-attestation"),
 	"verificationResult": _result,
-	"verifiedLevels": _levels,
-	"slsaVersion": "1.0",
-	"verifierReports": verifier_reports,
+	"verifierReports": verifier_reports, # OSCAL observations (unchanged shape)
+	"controlAssessments": control_assessments, # OSCAL findings across frameworks
+	"profiles": {"slsa-vsa": {"verifiedLevels": _levels, "slsaVersion": "1.0"}},
 }
+
+# Backward-compatible alias: the old SLSA-VSA shape (verifiedLevels at top level).
+vsa_predicate := object.union(policy_verdict_predicate, {"verifiedLevels": _levels, "slsaVersion": "1.0"})
 
 _result := "PASSED" if allow
 _result := "FAILED" if not allow

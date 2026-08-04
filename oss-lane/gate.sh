@@ -23,7 +23,7 @@ command -v jq >/dev/null 2>&1 || { echo "jq not found on PATH — required (http
 
 # load only the deploy policy + its data (NOT the whole dir — testdata/ and other packages would collide)
 result="$("$OPA" eval -I -f json \
-  -d "$POLICY/firmware.rego" -d "$POLICY/data.json" -d "$POLICY/cve-allowlist.json" \
+  -d "$POLICY/firmware.rego" -d "$POLICY/data.json" -d "$POLICY/cve-allowlist.json" -d "$POLICY/initiatives.json" \
   'data.firmware.deploy' < "$INPUT")"
 
 val="$(printf '%s' "$result" | jq -c '.result[0].expressions[0].value')"
@@ -58,10 +58,10 @@ vsa_stmt="$(printf '%s' "$val" | jq -c --arg alg "$alg" --arg hex "$hex" --arg t
   --arg fwalg "$fw_alg" --arg fwhex "$fw_hex" '
   {
     "_type": "https://in-toto.io/Statement/v1",
-    "subject": ([ { "name": .vsa_predicate.resourceUri, "digest": { ($alg): $hex } } ]
+    "subject": ([ { "name": .policy_verdict_predicate.resourceUri, "digest": { ($alg): $hex } } ]
                 + (if $fwhex != "" then [ { "name": "firmware-image", "digest": { ($fwalg): $fwhex } } ] else [] end)),
-    "predicateType": "https://slsa.dev/verification_summary/v1",
-    "predicate": (.vsa_predicate + { "timeVerified": $ts })
+    "predicateType": "https://oats.tech/policy-verdict/v0.1",
+    "predicate": (.policy_verdict_predicate + { "timeVerified": $ts })
   }')"
 if [ -n "$VSA_OUT" ]; then
   mkdir -p "$(dirname "$VSA_OUT")"
