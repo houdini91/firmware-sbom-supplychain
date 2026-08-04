@@ -24,9 +24,10 @@ bin: ## Fetch + SHA-verify the pinned CLI tools (opa) into bin/
 	bash scripts/fetch-tools.sh
 
 .PHONY: test
-test: ## Gate honesty tests (opa+jq) + assembler unit tests (python)
+test: ## Gate honesty tests (opa+jq) + assembler + byte-integrity unit tests (python)
 	bash tests/run.sh
 	python3 tests/test_assemble.py
+	python3 tests/test_byte_integrity.py
 
 .PHONY: coverage
 coverage: ## Per-framework, per-control coverage from a fresh signed VSA (opa+python+PyYAML)

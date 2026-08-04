@@ -68,9 +68,13 @@ def load_sbom_hashes(sbom_path):
 
 def pe32_from_ffs(ffs):
     """Return the PE32 (section type 0x10) payload bytes from an FFS blob, or None.
-    FFS header is 24 bytes; sections are 4-byte-aligned with a 4-byte common header
+    FFS header is 24 bytes (EFI_FFS_FILE_HEADER), or 32 bytes when the
+    FFS_ATTRIB_LARGE_FILE bit (0x01) is set (EFI_FFS_FILE_HEADER2 adds an 8-byte
+    ExtendedSize). Sections are 4-byte-aligned with a 4-byte common header
     (3-byte size + 1-byte type), or an 8-byte header when size==0xFFFFFF."""
-    off = 24
+    if len(ffs) < 24:
+        return None
+    off = 32 if (ffs[0x13] & 0x01) else 24   # ffs[0x13] = Attributes; bit0 = LARGE_FILE
     while off + 4 <= len(ffs):
         size = ffs[off] | (ffs[off + 1] << 8) | (ffs[off + 2] << 16)
         stype = ffs[off + 3]
@@ -109,18 +113,32 @@ def canon_unrebase(pe_bytes):
     pe.parse_data_directories(directories=[pefile.DIRECTORY_ENTRY['IMAGE_DIRECTORY_ENTRY_BASERELOC']])
     base = pe.OPTIONAL_HEADER.ImageBase
     buf = bytearray(pe.__data__)
-    if base and hasattr(pe, "DIRECTORY_ENTRY_BASERELOC"):
+    if base:
+        if not hasattr(pe, "DIRECTORY_ENTRY_BASERELOC"):
+            # rebased (non-zero base) but no relocation table — we cannot faithfully
+            # un-rebase; fail closed rather than emit a wrong (possibly passing) hash.
+            raise ValueError("non-zero ImageBase %#x with no relocation table" % base)
         for blk in pe.DIRECTORY_ENTRY_BASERELOC:
             for e in blk.entries:
                 if e.type == 0:            # IMAGE_REL_BASED_ABSOLUTE — padding, skip
                     continue
                 off = pe.get_offset_from_rva(e.rva)
+                if off is None:
+                    raise ValueError("relocation rva %#x maps to no file offset" % e.rva)
                 if e.type == 3:            # HIGHLOW (32-bit)
+                    if off + 4 > len(buf):
+                        raise ValueError("HIGHLOW reloc past end of image")
                     v = struct.unpack_from("<I", buf, off)[0]
                     struct.pack_into("<I", buf, off, (v - base) & 0xFFFFFFFF)
                 elif e.type == 10:         # DIR64 (64-bit)
+                    if off + 8 > len(buf):
+                        raise ValueError("DIR64 reloc past end of image")
                     v = struct.unpack_from("<Q", buf, off)[0]
                     struct.pack_into("<Q", buf, off, (v - base) & ((1 << 64) - 1))
+                else:
+                    # HIGH/LOW/HIGHADJ/ARM/etc. — not handled; fail closed so we never
+                    # emit a partially-un-rebased (wrong) image as if it were canonical.
+                    raise ValueError("unsupported relocation type %d" % e.type)
     pe2 = pefile.PE(data=bytes(buf), fast_load=True)
     pe2.OPTIONAL_HEADER.ImageBase = 0
     pe2.FILE_HEADER.TimeDateStamp = 0
@@ -154,30 +172,31 @@ def main():
         want = {m.strip() for m in a.modules.split(",")}
         targets = {g: v for g, v in declared.items() if v[0] in want}
 
-    verified, modified, skipped = [], [], []
+    verified, modified, skipped, errored = [], [], [], []
     with tempfile.TemporaryDirectory() as td:
         for guid, (name, dhash, mtype) in sorted(targets.items(), key=lambda kv: kv[1][0] or ""):
-            dst = os.path.join(td, guid + ".ffs")
-            if not fmmt_extract(fmmt_py, a.edk2, a.image, guid, dst):
-                skipped.append({"name": name, "guid": guid, "reason": "not extractable from image"})
-                continue
-            with open(dst, "rb") as f:
-                pe = pe32_from_ffs(f.read())
-            if pe is None:
-                skipped.append({"name": name, "guid": guid, "reason": "no PE32 section (TE / compressed)"})
-                continue
-            method = "direct"
-            if mtype in XIP_TYPES:
-                # XIP/PEI: rebased in flash — un-rebase to the declared (base 0) form first
-                canon = canon_unrebase(pe)
-                if canon is None:
-                    skipped.append({"name": name, "guid": guid,
-                                    "reason": "XIP/rebased %s — pefile required for un-rebase canonicalization" % mtype})
+            try:  # one bad module must not abort the whole run — fail closed, keep going
+                dst = os.path.join(td, guid + ".ffs")
+                if not fmmt_extract(fmmt_py, a.edk2, a.image, guid, dst):
+                    skipped.append({"name": name, "guid": guid, "reason": "not extractable from image"})
                     continue
-                pe, method = canon, "un-rebase"
-            ohash = hashlib.sha256(pe).hexdigest()
-            (verified if ohash == dhash else modified).append(
-                {"name": name, "guid": guid, "declared": dhash, "observed": ohash, "method": method})
+                with open(dst, "rb") as f:
+                    pe = pe32_from_ffs(f.read())
+                if pe is None:
+                    skipped.append({"name": name, "guid": guid, "reason": "no PE32 section (TE / compressed)"})
+                    continue
+                method = "direct"
+                if mtype in XIP_TYPES:
+                    if pefile is None:
+                        skipped.append({"name": name, "guid": guid,
+                                        "reason": "XIP/rebased %s — pefile required for un-rebase" % mtype})
+                        continue
+                    pe, method = canon_unrebase(pe), "un-rebase"  # raises on malformed / unsupported reloc
+                ohash = hashlib.sha256(pe).hexdigest()
+                (verified if ohash == dhash else modified).append(
+                    {"name": name, "guid": guid, "declared": dhash, "observed": ohash, "method": method})
+            except Exception as e:  # noqa: BLE001 — fail closed, record, continue
+                errored.append({"name": name, "guid": guid, "error": str(e)[:200]})
 
     verdict = {
         "tool": "byte-integrity",
@@ -188,18 +207,23 @@ def main():
         "verified_unrebase": sum(1 for v in verified if v.get("method") == "un-rebase"),
         "modified": modified,
         "skipped": skipped,
-        "clean": len(modified) == 0,
+        "errored": errored,
+        # clean requires EVERY checked module byte-verified — a skip or an error is
+        # NOT clean (an un-checked module is not a passed module).
+        "clean": len(verified) == len(targets) and len(targets) > 0,
     }
     out = json.dumps(verdict, indent=2)
     if a.out:
         with open(a.out, "w") as f:
             f.write(out + "\n")
     print(out if not a.out else
-          "byte-integrity: verified=%d modified=%d skipped=%d -> %s"
-          % (len(verified), len(modified), len(skipped), a.out))
+          "byte-integrity: verified=%d modified=%d skipped=%d errored=%d -> %s"
+          % (len(verified), len(modified), len(skipped), len(errored), a.out))
     for m in modified:
         sys.stderr.write("  ⛔ MODIFIED %s: declared %s != observed %s\n"
                          % (m["name"], m["declared"][:16], m["observed"][:16]))
+    for e in errored:
+        sys.stderr.write("  ⚠ ERRORED %s: %s\n" % (e["name"], e["error"]))
     sys.exit(0 if verdict["clean"] else 1)
 
 

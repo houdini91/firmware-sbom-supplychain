@@ -7,5 +7,6 @@
   "verified_unrebase": 11,
   "modified": [],
   "skipped": [],
-  "clean": true
+  "clean": true,
+  "errored": []
 }

@@ -55,6 +55,7 @@
     "ran": true,
     "checked": 10,
     "verified": 10,
-    "modified_count": 0
+    "modified_count": 0,
+    "skipped_count": 0
   }
 }
