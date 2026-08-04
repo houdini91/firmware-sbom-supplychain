@@ -46,8 +46,30 @@ coverage over the whole image:
   FILE_GUID) → `modified_count>0` → the gate DENYs. Membership passes it; byte-integrity + the gate do not.
 
 **Coverage is honest:** 111/122 enforced, 11 XIP deferred with the reason recorded — the SI-7(1) control now
-means *the bytes match*, not merely *a hash is present*. Phase 3 = rebase-canonicalization for XIP/PEI (+ any
-compressed sections), moving the 11 into the enforced set.
+means *the bytes match*, not merely *a hash is present*.
+
+## ✅ Phase 3 — RESULTS (2026-08-04)
+
+**Full-image byte-integrity: 122/122.** The 11 XIP/PEI modules are now byte-verified via un-rebase
+canonicalization, not deferred.
+
+- The only difference between a declared PEI `.efi` and its in-flash copy is the **rebase**: placing the module
+  at its flash load address `L` adds `L` to every relocation-listed field, and sets `ImageBase = L`. Everything
+  else is identical (confirmed with pefile: same entrypoint, same size, same 65 relocations; only `ImageBase`
+  differs, e.g. `0` vs `0x83dec0`).
+- `canon_unrebase()` (in `byte-integrity.py`, using `pefile`) undoes it: for each base-relocation entry subtract
+  `L` from the target dword/qword, then zero `ImageBase`/`TimeDateStamp`/`CheckSum`. The relocation table lists
+  exactly which bytes were shifted, so this is **exact and reversible** — and a real tamper changes code the
+  relocation table doesn't cover, so it still fails.
+- Verified: all **11** XIP modules (9 PEIM + 1 PEI_CORE + 1 SEC) match their declared hash after un-rebase.
+  Full run over the real OVMF.fd: **checked 122 · verified 122 (111 direct + 11 un-rebase) · 0 modified ·
+  0 skipped · clean**. A same-GUID swap is still caught in every class.
+- Only genuinely different formats remain out of scope: **TE-format** sections and **compressed** sections
+  (none in this image's checkable set). `pefile` added to `requirements.txt`; the gate report and evidence are
+  unchanged in shape (the coverage number simply went to 100%).
+
+**Net:** the reconcile-to-*bytes* claim — the project's central novel control — is now real for the **entire**
+firmware image, with the rebase "crux" solved.
 
 ---
 
