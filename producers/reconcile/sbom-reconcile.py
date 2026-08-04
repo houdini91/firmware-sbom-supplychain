@@ -152,14 +152,18 @@ def main():
         if path and not __import__("os").path.isfile(path):
             sys.exit("sbom-reconcile: --%s not found: %s" % (label, path))
     try:
-        sbom = json.load(open(a.sbom))
+        with open(a.sbom) as f:
+            sbom = json.load(f)
+        with open(a.fmmt) as f:
+            fmmt_text = f.read()
     except (ValueError, OSError) as e:
-        sys.exit("sbom-reconcile: --sbom is not readable JSON: %s" % e)
+        sys.exit("sbom-reconcile: could not read inputs: %s" % e)
     image_digest = sha256_file(a.image) if a.image else None
-    verdict = reconcile(sbom, open(a.fmmt).read(), image_digest)
+    verdict = reconcile(sbom, fmmt_text, image_digest)
     out = json.dumps(verdict, indent=1)
     if a.out:
-        open(a.out, "w").write(out + "\n")
+        with open(a.out, "w") as f:
+            f.write(out + "\n")
     print(out if not a.out else "reconcile: clean=%s validated=%d missing=%d suspicious=%d -> %s"
           % (verdict["clean"], verdict["summary"]["validated"], verdict["summary"]["missing"],
              verdict["summary"]["added_suspicious"], a.out))

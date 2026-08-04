@@ -28,19 +28,27 @@ command -v "$UW" >/dev/null 2>&1 || { echo "uswid not found — set USWID=/path/
 "$UW" --load "$IN" --save "$CONTAINER"
 echo "✓ coSWID/uSWID container -> ${CONTAINER#$ROOT/} ($(wc -c < "$CONTAINER") bytes)"
 
+# private temp dir, cleaned on exit (portable — no GNU mktemp --suffix)
+TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
+
+_count() { # <in.cdx.json> <out.cdx.json> <label> — component counts, paths via argv (not interpolated)
+  python3 -c 'import json,sys
+a=len(json.load(open(sys.argv[1])).get("components",[]))
+b=len(json.load(open(sys.argv[2])).get("components",[]))
+print("  %s: %d -> %d components" % (sys.argv[3], a, b))' "$1" "$2" "$3"
+}
+
 # 2) round-trip: container -> CycloneDX (prove components survive)
-RT="$(mktemp --suffix=.cdx.json)"
+RT="$TMP/roundtrip.cdx.json"
 "$UW" --load "$CONTAINER" --save "$RT"
-python3 -c "import json,sys;a=len(json.load(open('$IN'))['components']);b=len(json.load(open('$RT')).get('components',[]));print('  round-trip components: %d -> %d'%(a,b))"
-rm -f "$RT"
+_count "$IN" "$RT" "round-trip"
 
 # 3) optional: embed into a PE .sbom section + re-extract
 if [ "${1:-}" ]; then
-  CAR="$(mktemp --suffix=.efi)"; cp "$1" "$CAR"
+  CAR="$TMP/carrier.efi"; cp "$1" "$CAR"
   "$UW" --load "$IN" --save "$CAR" --objcopy /usr/bin/objcopy --cc gcc
   objdump -h "$CAR" 2>/dev/null | grep -i sbom | sed 's/^/  section: /'
-  EX="$(mktemp --suffix=.cdx.json)"
+  EX="$TMP/extracted.cdx.json"
   "$UW" --load "$CAR" --save "$EX" --objcopy /usr/bin/objcopy
-  python3 -c "import json;print('  extracted from PE .sbom:', len(json.load(open('$EX')).get('components',[])), 'components')"
-  rm -f "$CAR" "$EX"
+  _count "$IN" "$EX" "PE .sbom re-extract"
 fi
