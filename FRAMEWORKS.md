@@ -76,7 +76,7 @@ not asserted.
 |---|---|---|---|---|---|
 | **E1** | **CycloneDX 1.6 SBOM** | in-toto SBOM predicate | declared composition of the firmware | 311 components (3 app / 108 driver / 12 firmware / 188 lib **incl. `openssl` as an in-image third-party dep with PURL/CPE/Apache-2.0**, R1); **SHA-256+512 on 122 of the 123 non-library modules** (`ResetVector`, a raw blob, is the one skip); `metadata` timestamp/authors/tools/`lifecycle:build` populated; edk2 FFS modules carry no PURL/license (no sensible PURL — N/A by design) | `sbom-present` *(gate)* — presence only |
 | **E2** | **SLSA Build L2 provenance** | `slsa.dev/provenance/v1` | build origin is authentic (platform-generated) | GitHub `attest-build-provenance`, **verified green in CI** with `gh attestation verify` | `slsa-provenance` *(gate)* backed by `gh attestation verify` *(CI)*; `provenance-identity` *(gate, identity)* |
-| **E3** | **Reconcile verdict** | custom in-toto predicate | shipped bytes match the declared component set | FMMT-carved FFS vs SBOM by GUID, **123/123 module-granular; membership only** (no per-component byte hash yet) | `reconcile` *(gate)* |
+| **E3** | **Reconcile verdict + byte-integrity** | custom in-toto predicates | shipped bytes match the declared components | FMMT-carved FFS vs SBOM by GUID (**123/123 membership**) **plus byte-integrity: 122/122 modules'** shipped PE32 bytes match the declared SHA-256 (R4 — DXE direct, XIP/PEI via un-rebase canonicalization); a same-GUID swap is caught | `reconcile` + `component-byte-integrity` *(gate)* |
 | **E4** | **CVE + VEX** | grype JSON + OpenVEX | no un-triaged critical vulnerability ships | scan over E1 + OpenVEX triage allowlist | `cve-triage` *(gate)* |
 | **E5** | **Signature + signer identity** | cosign keyless (Fulcio/Rekor) DSSE | the signed artifact came from the expected build identity | OIDC SAN extracted from the Fulcio cert and **checked**, not asserted; **signed subject is the SBOM/attestation, not the firmware image** | `attestation-signature` + `sbom-binding` *(gate)* |
 | **E6** | **VSA** | `slsa.dev/verification_summary/v1` | the gate's verdict, as portable signed evidence | `verifier.id`/`policy.uri`/`verificationResult:PASSED`/`verifiedLevels:[L2]` populated; `resourceUri` generic; no `dependencyLevels` | output artifact |
@@ -140,8 +140,8 @@ project's differentiator — but there *is* adjacent prior art, so the claim mus
 
 **Precise claim:** *reconciliation of a declared **build** SBOM against the **observed firmware bytes**, gated by
 policy* — ahead of vendor practice, matching cutting-edge research. **Not** "we analyze firmware bytes" (many do),
-**not** "first firmware SBOM." Today it is **membership-granular** (all 123 modules present by GUID); byte-level
-integrity is *Gap → value* item #2.
+**not** "first firmware SBOM." It verifies **byte-level integrity** of all 122 hashable modules (R4 — DXE
+directly, XIP/PEI via un-rebase canonicalization) on top of GUID membership, so a same-GUID trojan is caught.
 
 ## Gap → value: the case for the next evidence to produce
 
@@ -382,7 +382,8 @@ enforcement it asks for is still futuristic.)*
 - **CRA is field-light** — do not attribute the license/PURL asks to CRA; they are BSI/CISA.
 - **TCG PC Client RIM exact §/Table numbers are unverified** (primary PDF was gated) — read them off the spec
   before publishing anything that cites a specific RIM subsection.
-- **E3 is membership-only** today — every "not altered / byte-integrity" claim is `PARTIAL` until Gap #2 lands.
+- **E3 now includes byte-integrity** (R4 — 122/122 modules byte-verified) — the "not altered" claims are
+  enforced by `component-byte-integrity`, not `PARTIAL`. Only TE-format / compressed sections stay out of scope.
 - **SAST is enforced by a separate CI gate** (`codeql-sast` fails on high/critical ≥7.0), not by the deploy
   gate; make it a required status check to hard-block merges/deploys on it too.
 - **The gate's per-report `.controls` tags are a representative subset**, not the exhaustive mapping — this
