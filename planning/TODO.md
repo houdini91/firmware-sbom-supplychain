@@ -41,7 +41,9 @@ The actionable next steps, in execution order. Detail lives in [`DESIGN-REVIEW.m
 
 ## Track D — later / horizon (do NOT start now)
 
-- [ ] **D1 · R4 byte-integrity reconcile** — per-region canonical digest vs image. ⛔ blocked-by A1 (needs D).
+- [ ] **D1 · R4 byte-integrity reconcile** — canonicalize both sides (GenFw normal form) → detect a same-GUID
+  trojan membership misses. **Plan: [`R4-BYTE-INTEGRITY.md`](R4-BYTE-INTEGRITY.md).** Promoted to the top depth
+  item by the portfolio review (turns the GenFw *diagnosis* into a *solution*). Phase 1 = one DXE driver end-to-end.
 - [ ] **D2 · Firmware-native evidence** — fwupd `.cab`+Jcat, UEFIExtract corroborating carve, swtpm→CoRIM appraisal.
 - [ ] **D3 · Beyond-CI flash/provision gate; Ratify referrer store; SCITT receipts.** Project-scale.
 
