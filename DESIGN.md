@@ -23,9 +23,15 @@ At a glance — who produces what, and how it reaches a signed yes/no:
 flowchart LR
     BLD["<b>Builder</b><br/>builds firmware<br/>+ ingredients list (SBOM)"] --> EV["<b>Evidence</b><br/>SBOM · signature · provenance<br/>reconcile · CVE triage"]
     EV --> GATE{"<b>Automated gate</b><br/>do all rules pass?"}
-    GATE -->|yes| OK(["✓ Approved to deploy<br/>signed verdict (VSA)"])
+    GATE -->|yes| OK(["✓ Approved to deploy<br/>signed policy verdict"])
     GATE -->|no| NO(["✕ Blocked → triage"])
 ```
+
+> **The signed verdict is framework-agnostic.** Because this gate verifies many frameworks (not just SLSA), the
+> output isn't a SLSA-specific VSA — it's a **`policy-verdict`** in-toto predicate (RATS Attestation-Result
+> framing; the gate is the *Verifier*, the deploy step is the *Relying Party*) carrying **OSCAL-shaped
+> `controlAssessments`** — 25 per-control findings (`satisfied` / `not-satisfied` / `not-applicable`) across six
+> frameworks — with the SLSA VSA demoted to one `profile`. See E6 in [`FRAMEWORKS.md`](FRAMEWORKS.md).
 
 **Terms used below:** *SBOM* software bill of materials; *CycloneDX/SPDX* SBOM formats; *coSWID / uSWID*
 Concise SWID tags and the tool that writes/embeds them (fwupd reads them on-device); *SLSA* supply-chain
