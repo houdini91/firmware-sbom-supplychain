@@ -35,6 +35,8 @@ jobs:
           python3 tests/test_assemble.py
           python3 tests/test_byte_integrity.py
           python3 tests/test_reconcile.py
+          python3 tests/test_chipsec.py
+          python3 tests/test_interop.py
 
       - name: In-pipeline negative test (post-sign tamper must be blocked)
         run: |
