@@ -52,6 +52,11 @@ reconcile: ## Carve a real image + reconcile: make reconcile EDK2=<tree> IMG=<im
 	@test -n "$(EDK2)" -a -n "$(IMG)" || { echo "usage: make reconcile EDK2=<edk2 tree> IMG=<image.fd>"; exit 2; }
 	EDK2=$(EDK2) bash producers/reconcile/carve.sh $(IMG)
 
+.PHONY: byte-integrity
+byte-integrity: ## Regenerate byte-integrity: make byte-integrity EDK2=<tree> IMG=<image.fd> (needs pefile+FMMT, ~6min)
+	@test -n "$(EDK2)" -a -n "$(IMG)" || { echo "usage: make byte-integrity EDK2=<edk2 tree> IMG=<image.fd>"; exit 2; }
+	python3 producers/reconcile/byte-integrity.py --sbom inputs/sbom.cdx.json --image "$(IMG)" --edk2 "$(EDK2)" -o inputs/byte-integrity.json
+
 .PHONY: clean
 clean: ## Remove generated local artifacts (keys, gate inputs, VSAs)
 	rm -f inputs/gate-input.json inputs/sbom.att.bundle inputs/build-tools.cdx.json $(VSA) inputs/grype.json
