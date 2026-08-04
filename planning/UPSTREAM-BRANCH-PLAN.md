@@ -87,10 +87,10 @@ Each commit: builds clean, one concern, imperative subject prefixed `BaseTools:`
 
 - [ ] **Precondition met:** Richard Hughes has engaged on uSWID #98. Until then, STOP.
 - [ ] PR #6 (in-tree `-Y SBOM`) actually exists, applies to current edk2 `master`, and builds.
-- [ ] A clean `OvmfPkgX64` DEBUG/GCC build with `-Y COMPILE_INFO -Y SBOM` produces the SBOM end-to-end on
-      a fresh checkout (not just from committed example data).
-- [ ] The **component count in the comment matches a real clean generator run** (resolve the 310 vs 311 /
-      submodules-emitted-or-not divergence — see the #10507 draft's reviewer notes).
+- [x] A clean `OvmfPkgX64` DEBUG/GCC build with `-Y COMPILE_INFO -Y SBOM` produces the SBOM end-to-end
+      (regenerated 2026-08-04 on the generator tree @ `4adf9f35`).
+- [x] The **component count matches a real clean generator run** — **311**, with `openssl` emitted natively
+      (no demo enrichment). Resolved.
 - [ ] Generated example validates (CycloneDX 1.6) — `validate.py` clean, and ideally an external validator.
 - [ ] Every new file: `BSD-2-Clause-Patent` header + copyright line.
 - [ ] Every commit: `git commit -s` sign-off, real identity, `BaseTools:` subject prefix.

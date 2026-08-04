@@ -66,9 +66,10 @@ count that doesn't reproduce.
 **Preempt (resolve BEFORE posting — these are real gaps in the current state):**
 - **Submodule / component-count divergence.** `generate.py` says it emits third-party submodule components
   with versions; `DESIGN.md` + the prior draft say submodules are "not emitted yet"; the committed example
-  has 311 components while the narrative says the generator emits 310 (openssl added as a demo). **Pick the
-  true number from a clean run and state it once.** A maintainer who counts 311 against a claimed 310 will
-  distrust everything else.
+  has 311 components while the *old* narrative said the generator emits 310 (openssl added as a demo).
+  **✅ RESOLVED 2026-08-04:** a fresh clean `OvmfPkgX64` DEBUG/GCC `-Y SBOM` run emits **311** with `openssl`
+  emitted natively (commit `dd1c57a6`); the demo-enrichment framing is retired and every doc now states 311
+  consistently.
 - **CPE identities are DRAFT.** The curated CPE map in `generate.py` is explicitly
   `firmware:cpe_source=curated` + `firmware:cpe_review=unverified`. Do not present CPEs as CVE-ready.
   Recommended: **omit CPE emission from the first upstream cut** (per branch plan §3) so the patch makes
@@ -109,7 +110,7 @@ sensitive territory (vendor internals, ME/undisclosed-parser claims, unreleased 
 ## Cross-cutting: the single biggest self-inflicted risk
 
 Posting **before** the state is reconciled. Two things would undercut the whole engagement on contact:
-1. the **310/311 + submodules-or-not** inconsistency (R4), and
+1. ~~the **310/311 + submodules-or-not** inconsistency (R4)~~ — **✅ resolved 2026-08-04** (clean run = 311, openssl native), and
 2. pointing at a **fork PR #6 that isn't actually reviewable / green** against edk2's real CI (branch plan
    §0 — the in-tree form isn't on this machine to confirm).
 

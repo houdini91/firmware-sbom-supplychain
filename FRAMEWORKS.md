@@ -287,7 +287,7 @@ Tiers (§5.2): **Required** = always mandatory · **Additional** = mandatory *wh
 |---|---|:--:|---|:--:|---|
 | **§4** | format = CycloneDX **≥1.6** (or SPDX) | Req | E1 | **EVIDENCE** | E1 is CDX 1.6 — meets the floor exactly. |
 | **§5.2.1 / Table 2** | SBOM creator + timestamp | Req | E1 metadata | **EVIDENCE** | `metadata.authors`=TianoCore + `metadata.timestamp` populated (verified). |
-| **§5.2.2 / Table 3** | component name + version | Req | E1 | **PARTIAL** | Names present; ~291/310 versions default to `1.0` (weak). |
+| **§5.2.2 / Table 3** | component name + version | Req | E1 | **PARTIAL** | Names present; ~291/311 versions default to `1.0` (weak). |
 | **§5.2.2 / Table 3** | **hash of deployable component — SHA-512** | Req | E1 | **EVIDENCE** | Strong match: SHA-512 on 122 of the 123 modules (GenFw rebase-0 canonical, deployable form). |
 | **§5.2.2 / Table 3** | dependencies (with completeness flag) | Req | E1, E3 | **PARTIAL** | Module→library edges exist; **submodule dependency graph absent**; no completeness flag. |
 | **§5.2.2 / Table 3** | distribution licences (SPDX IDs) | Req | — | **PLANNED** | E1 has no licenses. |

@@ -90,7 +90,8 @@ summary returned to the caller):
    *does* emit submodule components (openssl, mbedtls, brotli…) *with versions*. The prior draft and
    `DESIGN.md` say submodules are "not emitted yet," and the "310 vs 311" story frames openssl as a
    *demo enrichment*, not generator output. The committed example (`inputs/sbom.cdx.json`) has **311**
-   components. Decide the true generator output and state one number consistently before posting.
+   components. **✅ RESOLVED 2026-08-04:** the clean generator run emits **311** with `openssl` native
+   (`dd1c57a6`); stated consistently across docs, demo-enrichment framing retired.
 2. **Component count.** Use whatever a *clean* generator run emits (310 or 311), not the enriched demo
    count, and label it "for this specific OvmfPkgX64 DEBUG/GCC build; varies by platform/target"
    (already the `DESIGN.md` posture).

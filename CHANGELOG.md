@@ -4,6 +4,24 @@ All notable changes to this project. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com/); this is a research/portfolio project, so "releases" mark
 coherent milestones rather than shipped products.
 
+## [Unreleased]
+
+### Fixed
+- **byte-integrity: rebased modules with no relocation table.** `canon_unrebase` now correctly
+  canonicalizes an XIP/PEI module that was rebased but has no `.reloc` table (e.g.
+  `StatusCodeHandlerPei`, ImageBase `0x8452c0`): with no relocations to reverse, header
+  normalization alone reproduces the declared base-0 hash (empirically verified against the SBOM
+  digest). The prior code failed closed and undercounted (121/122 with one ERRORED); byte-integrity
+  is a true **122/122** again. Added a regression test for the no-reloc path (+ its tamper case) and a
+  committed fixture — the case that previously had no coverage.
+
+### Changed
+- **SBOM + derived artifacts regenerated from the current generator.** `openssl` is now emitted
+  natively by `-Y SBOM` (retiring the "demo enrichment" framing), every built firmware device is
+  enumerated as a `firmware:fd-image` property (incl. `MEMFD.fd`), and `reconcile-verdict` /
+  `byte-integrity` / `sbom.uswid` / `sbom.spdx` / `vex.csaf` were refreshed. Component count (**311**)
+  and firmware image digest `D` (`374472f0…`) are unchanged.
+
 ## [0.1.0] — 2026-08-04
 
 First tagged milestone: an end-to-end firmware supply-chain verification gate on the OVMF/edk2 reference target,

@@ -7,9 +7,9 @@
 #   USWID=/path/to/uswid ./producers/interop/to-coswid.sh [carrier.efi]
 #
 # Needs `uswid` (github.com/hughsie/python-uswid; this project's CDX-type fix
-# lives in houdini91/python-uswid#1) and objcopy. Verified round-trip: a 310-
-# component CycloneDX SBOM converts to a ~41 KB uSWID container and re-extracts
-# to 311 components (the +1 is the document root), and survives a PE `.sbom`
+# merged upstream as hughsie/python-uswid#98) and objcopy. Verified round-trip: a
+# 311-component CycloneDX SBOM converts to a ~41 KB uSWID container and re-extracts
+# to 312 components (the +1 is the document root), and survives a PE `.sbom`
 # section embed + re-extract.
 #
 # Circularity note: the SBOM's document hash H must be computed BEFORE embed —

@@ -3,7 +3,7 @@
   "specVersion": "1.6",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-08-01T15:49:53Z",
+    "timestamp": "2026-08-04T17:23:22Z",
     "lifecycles": [
       {
         "phase": "build"
@@ -31,16 +31,6 @@
       "bom-ref": "edk2-platform",
       "name": "Ovmf",
       "version": "0.1",
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "374472f026fc4948b00bdcb4d3deb2d8f71d725fec24d2f4ee21dfb396c8e0ce"
-        },
-        {
-          "alg": "SHA-512",
-          "content": "1941bb8bcc1f932d9e24d88290039fa151a80da04fe0d159824bb137d138f2e86e155819235029e9d4982d1514816eb5ce7435d539bba22c812d0efdfe2d5796"
-        }
-      ],
       "properties": [
         {
           "name": "firmware:primary-image",
@@ -52,15 +42,25 @@
         },
         {
           "name": "firmware:fd-image",
-          "value": "OVMF_CODE.fd sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37 size:3653632"
-        },
-        {
-          "name": "firmware:fd-image",
           "value": "OVMF_VARS.fd sha256:5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e size:540672"
         },
         {
           "name": "firmware:fd-image",
+          "value": "OVMF_CODE.fd sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37 size:3653632"
+        },
+        {
+          "name": "firmware:fd-image",
           "value": "MEMFD.fd sha256:57dd1576ebc8570eddc3e78d2a39c1576b60d742019f8fe786079c594646fde9 size:16252928"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "374472f026fc4948b00bdcb4d3deb2d8f71d725fec24d2f4ee21dfb396c8e0ce"
+        },
+        {
+          "alg": "SHA-512",
+          "content": "1941bb8bcc1f932d9e24d88290039fa151a80da04fe0d159824bb137d138f2e86e155819235029e9d4982d1514816eb5ce7435d539bba22c812d0efdfe2d5796"
         }
       ]
     },
@@ -10596,25 +10596,9 @@
       "type": "library",
       "bom-ref": "pkg:github/openssl/openssl@openssl-3.5.7",
       "name": "openssl",
-      "version": "openssl-3.5.7",
-      "purl": "pkg:github/openssl/openssl@openssl-3.5.7",
-      "cpe": "cpe:2.3:a:openssl:openssl:3.5.7:*:*:*:*:*:*:*",
       "supplier": {
         "name": "openssl"
       },
-      "externalReferences": [
-        {
-          "type": "vcs",
-          "url": "https://github.com/openssl/openssl"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "id": "Apache-2.0"
-          }
-        }
-      ],
       "properties": [
         {
           "name": "edk2:submodulePath",
@@ -10623,6 +10607,22 @@
         {
           "name": "edk2:vendored",
           "value": "true"
+        }
+      ],
+      "version": "openssl-3.5.7",
+      "purl": "pkg:github/openssl/openssl@openssl-3.5.7",
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/openssl/openssl"
+        }
+      ],
+      "cpe": "cpe:2.3:a:openssl:openssl:3.5.7:*:*:*:*:*:*:*",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
         }
       ]
     }
@@ -13450,6 +13450,12 @@
       ]
     },
     {
+      "ref": "E29FC209-8B64-4500-BD20-AF4EAE47EA0E",
+      "dependsOn": [
+        "pkg:github/openssl/openssl@openssl-3.5.7"
+      ]
+    },
+    {
       "ref": "E4F61863-FE2C-4b56-A8F4-08519BC439DF",
       "dependsOn": [
         "032A8E0D-0C27-40C0-9CAA-23B731C1B223",
@@ -14118,12 +14124,6 @@
         "f6ef2763-ca3b-4c6f-a931-2a48de3ce352",
         "fa177ff7-1fc7-458d-a358-d9d62ae61cec",
         "fd565572-5195-4113-9018-113b33939e91"
-      ]
-    },
-    {
-      "ref": "E29FC209-8B64-4500-BD20-AF4EAE47EA0E",
-      "dependsOn": [
-        "pkg:github/openssl/openssl@openssl-3.5.7"
       ]
     }
   ]

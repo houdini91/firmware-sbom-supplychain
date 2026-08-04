@@ -101,7 +101,7 @@ data — no build-system surgery, no binary parsing, no new heavy dependency (Cy
 `-Y SBOM` report type in `BuildReport.py`, reusing the same data.
 
 *(Implemented as a native `-Y SBOM` report type — [edk2 PR #6]. A full OvmfPkgX64 DEBUG/GCC build produces a
-310-component CycloneDX 1.6 SBOM: one component per built module and resolved library instance, a
+311-component CycloneDX 1.6 SBOM: one component per built module and resolved library instance, a
 module→library `dependsOn` graph (122 edges), per-component `edk2:moduleType`/`edk2:arch`/`edk2:isLibrary`
 properties, and a workspace-relative `externalReference` to each module `.inf`. A generated example is
 committed in the PR for direct review. Per-component binary digests, third-party submodule versions, and FV
@@ -184,7 +184,7 @@ Reconcile is what turns a signed *claim* into a checked *fact*.
 PE32, yielding the observable **module** set. But that granularity matters:
 
 - **Modules, not libraries.** Library instances are statically linked *into* their consuming module's PE32 —
-  they have no separate byte range and are not independently carvable. So of the 310 declared components,
+  they have no separate byte range and are not independently carvable. So of the 311 declared components,
   reconcile directly observes the ~120 FFS **modules**; the library instances and the 122-edge dependsOn
   graph are checked only *transitively* (present inside the module that links them), not one-by-one.
 - **Membership vs integrity.** The current SBOM carries no per-component binary digest, so the SBOM *alone*
