@@ -6,13 +6,17 @@ Reconcile checks *membership* (declared GUID observed as an FFS). This checks
 SHA-256 the SBOM declares — so a same-GUID trojan (swap a module for a malicious
 one with the same FILE_GUID) that membership misses is DETECTED.
 
-Phase 1 finding (uncompressed DXE drivers): NO canonicalization is needed. The
-SBOM's declared per-module hash is the build's GenFw-normalized `.efi`
-(TimeDateStamp=0, CheckSum=0, ImageBase=0), and OVMF does not rebase DXE drivers
-in flash — so the PE32 section extracted from the deployed `.fd` is byte-identical
-to the declared image. (This corrects the earlier "in-image != declared" note,
-which compared the wrong bytes — the FFS section header, or the debug image.)
-TE/PEI (rebased) and compressed sections are out of scope here — see R4 phase 3.
+Two module classes, both covered:
+  * DXE drivers (phase 1): NO canonicalization needed. The SBOM's declared hash is
+    the build's GenFw-normalized `.efi` (TimeDateStamp=0, CheckSum=0, ImageBase=0),
+    and OVMF does not rebase DXE drivers in flash — so the PE32 extracted from the
+    deployed `.fd` is byte-identical to the declared image (method="direct").
+  * XIP/PEI modules (phase 3): rebased to their flash load address, so the in-image
+    bytes differ from the declared (base-0) image ONLY by the relocation. We
+    un-rebase back to base 0 before hashing (method="un-rebase"; needs pefile).
+Only TE-format and compressed sections remain out of scope. (The earlier "in-image
+!= declared" note compared the wrong bytes — the FFS section header, or a rebased
+image without un-rebasing.)
 
   byte-integrity.py --sbom sbom.cdx.json --image OVMF.fd --edk2 <edk2 tree> \
                     [--modules AmdSevDxe,IoMmuDxe | --guids <g1,g2>] [-o verdict.json]
@@ -28,6 +32,11 @@ import struct
 import subprocess
 import sys
 import tempfile
+
+try:
+    import pefile  # only needed for XIP/PEI un-rebase canonicalization (phase 3)
+except ImportError:
+    pefile = None
 
 
 # XIP / execute-in-place module types: stored rebased to their flash address in
@@ -87,6 +96,38 @@ def fmmt_extract(fmmt_py, edk2, image, guid, dst):
     return r.returncode == 0 and os.path.isfile(dst) and os.path.getsize(dst) > 0
 
 
+def canon_unrebase(pe_bytes):
+    """Un-rebase a PE image back to ImageBase 0 (undo the flash relocation) and
+    zero ImageBase/TimeDateStamp/CheckSum — so an XIP/PEI module's rebased in-flash
+    bytes can be fairly compared to the declared (un-rebased) .efi (R4 phase 3).
+    The relocation table records exactly which fields were shifted, so this is
+    exact and reversible. A real tamper changes code the relocations don't cover,
+    so it still fails. Returns canonical bytes, or None if pefile is unavailable."""
+    if pefile is None:
+        return None
+    pe = pefile.PE(data=pe_bytes, fast_load=True)
+    pe.parse_data_directories(directories=[pefile.DIRECTORY_ENTRY['IMAGE_DIRECTORY_ENTRY_BASERELOC']])
+    base = pe.OPTIONAL_HEADER.ImageBase
+    buf = bytearray(pe.__data__)
+    if base and hasattr(pe, "DIRECTORY_ENTRY_BASERELOC"):
+        for blk in pe.DIRECTORY_ENTRY_BASERELOC:
+            for e in blk.entries:
+                if e.type == 0:            # IMAGE_REL_BASED_ABSOLUTE — padding, skip
+                    continue
+                off = pe.get_offset_from_rva(e.rva)
+                if e.type == 3:            # HIGHLOW (32-bit)
+                    v = struct.unpack_from("<I", buf, off)[0]
+                    struct.pack_into("<I", buf, off, (v - base) & 0xFFFFFFFF)
+                elif e.type == 10:         # DIR64 (64-bit)
+                    v = struct.unpack_from("<Q", buf, off)[0]
+                    struct.pack_into("<Q", buf, off, (v - base) & ((1 << 64) - 1))
+    pe2 = pefile.PE(data=bytes(buf), fast_load=True)
+    pe2.OPTIONAL_HEADER.ImageBase = 0
+    pe2.FILE_HEADER.TimeDateStamp = 0
+    pe2.OPTIONAL_HEADER.CheckSum = 0
+    return pe2.write()
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--sbom", required=True)
@@ -116,10 +157,6 @@ def main():
     verified, modified, skipped = [], [], []
     with tempfile.TemporaryDirectory() as td:
         for guid, (name, dhash, mtype) in sorted(targets.items(), key=lambda kv: kv[1][0] or ""):
-            if mtype in XIP_TYPES:
-                skipped.append({"name": name, "guid": guid,
-                                "reason": "XIP/rebased %s — needs canonicalization (R4 phase 3)" % mtype})
-                continue
             dst = os.path.join(td, guid + ".ffs")
             if not fmmt_extract(fmmt_py, a.edk2, a.image, guid, dst):
                 skipped.append({"name": name, "guid": guid, "reason": "not extractable from image"})
@@ -127,17 +164,28 @@ def main():
             with open(dst, "rb") as f:
                 pe = pe32_from_ffs(f.read())
             if pe is None:
-                skipped.append({"name": name, "guid": guid, "reason": "no uncompressed PE32 section (TE/compressed — R4 phase 3)"})
+                skipped.append({"name": name, "guid": guid, "reason": "no PE32 section (TE / compressed)"})
                 continue
+            method = "direct"
+            if mtype in XIP_TYPES:
+                # XIP/PEI: rebased in flash — un-rebase to the declared (base 0) form first
+                canon = canon_unrebase(pe)
+                if canon is None:
+                    skipped.append({"name": name, "guid": guid,
+                                    "reason": "XIP/rebased %s — pefile required for un-rebase canonicalization" % mtype})
+                    continue
+                pe, method = canon, "un-rebase"
             ohash = hashlib.sha256(pe).hexdigest()
             (verified if ohash == dhash else modified).append(
-                {"name": name, "guid": guid, "declared": dhash, "observed": ohash})
+                {"name": name, "guid": guid, "declared": dhash, "observed": ohash, "method": method})
 
     verdict = {
         "tool": "byte-integrity",
         "granularity": "module/PE32-bytes",
         "checked": len(targets),
         "byte_verified": len(verified),
+        "verified_direct": sum(1 for v in verified if v.get("method") == "direct"),
+        "verified_unrebase": sum(1 for v in verified if v.get("method") == "un-rebase"),
         "modified": modified,
         "skipped": skipped,
         "clean": len(modified) == 0,

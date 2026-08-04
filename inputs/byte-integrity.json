@@ -2,64 +2,10 @@
   "tool": "byte-integrity",
   "granularity": "module/PE32-bytes",
   "checked": 122,
-  "byte_verified": 111,
+  "byte_verified": 122,
+  "verified_direct": 111,
+  "verified_unrebase": 11,
   "modified": [],
-  "skipped": [
-    {
-      "name": "CpuMpPei",
-      "guid": "280251c41d0940359062839acb5f18c1",
-      "reason": "XIP/rebased PEIM \u2014 needs canonicalization (R4 phase 3)"
-    },
-    {
-      "name": "CpuMpPei",
-      "guid": "edadeb9dddba48bd9d22c1c169c8c5c6",
-      "reason": "XIP/rebased PEIM \u2014 needs canonicalization (R4 phase 3)"
-    },
-    {
-      "name": "DxeIpl",
-      "guid": "86d70125baa34296a62f602bebbb9081",
-      "reason": "XIP/rebased PEIM \u2014 needs canonicalization (R4 phase 3)"
-    },
-    {
-      "name": "PcdPeim",
-      "guid": "9b3ada4fae564c248deaf03b7558ae50",
-      "reason": "XIP/rebased PEIM \u2014 needs canonicalization (R4 phase 3)"
-    },
-    {
-      "name": "PeiCore",
-      "guid": "52c05b140b98496cbc3b04b50211d680",
-      "reason": "XIP/rebased PEI_CORE \u2014 needs canonicalization (R4 phase 3)"
-    },
-    {
-      "name": "PlatformPei",
-      "guid": "222c386d5abc4fb4b124fbb82488acf4",
-      "reason": "XIP/rebased PEIM \u2014 needs canonicalization (R4 phase 3)"
-    },
-    {
-      "name": "ReportStatusCodeRouterPei",
-      "guid": "a3610442e69f4df382ca2360c4031a23",
-      "reason": "XIP/rebased PEIM \u2014 needs canonicalization (R4 phase 3)"
-    },
-    {
-      "name": "S3Resume2Pei",
-      "guid": "89e549b07cfe449d9ba310d8b2312d71",
-      "reason": "XIP/rebased PEIM \u2014 needs canonicalization (R4 phase 3)"
-    },
-    {
-      "name": "SecMain",
-      "guid": "df1ccef6f3014a639661fc6030dcc880",
-      "reason": "XIP/rebased SEC \u2014 needs canonicalization (R4 phase 3)"
-    },
-    {
-      "name": "StatusCodeHandlerPei",
-      "guid": "9d225237fa01464ca949baabc02d31d0",
-      "reason": "XIP/rebased PEIM \u2014 needs canonicalization (R4 phase 3)"
-    },
-    {
-      "name": "TdTcg2Pei",
-      "guid": "fcb3a3d66274411ca548bd0e717d533a",
-      "reason": "XIP/rebased PEIM \u2014 needs canonicalization (R4 phase 3)"
-    }
-  ],
+  "skipped": [],
   "clean": true
 }
