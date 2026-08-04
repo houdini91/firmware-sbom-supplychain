@@ -12,6 +12,11 @@ The **Valint lane runs the same compliance intent keyless** (via its rule/initia
 in **report mode** (non-blocking), so it demonstrates the same evidence being checked by an independent
 tool, not a second enforcement point. Honest scope, stated up front.
 
+> **In plain language:** this project builds a signed "ingredients list" (an **SBOM**) for a firmware image,
+> then *proves* the shipped chip really contains those exact bytes — and blocks the release if it doesn't.
+>
+> **New to firmware? Start with [PRIMER.md](PRIMER.md)** — it explains everything from scratch.
+
 > **Design & rationale:** [`DESIGN.md`](DESIGN.md) — a discussion-framed write-up of the security /
 > functional / operational design and the who-does-what boundary, written to double as the note that would
 > attach to the upstream generator discussion (edk2 #10507). A proposal to open a conversation, not a mandate.
@@ -43,13 +48,14 @@ unattested firmware it has never seen.
 
 Read in this order:
 
-1. **README** (this file) — what it is, how to run it.
-2. [`DESIGN.md`](DESIGN.md) — the security / functional / operational design + the upstream-generator rationale.
-3. [`FRAMEWORKS.md`](FRAMEWORKS.md) — the honest evidence→control map (exact section numbers; the 18 enforced
+1. **[`PRIMER.md`](PRIMER.md)** — start here if you're new to firmware: what this does and why, from scratch.
+2. **README** (this file) — what it is, how to run it.
+3. [`DESIGN.md`](DESIGN.md) — the security / functional / operational design + the upstream-generator rationale.
+4. [`FRAMEWORKS.md`](FRAMEWORKS.md) — the honest evidence→control map (exact section numbers; the 18 enforced
    reports over evidence atoms E1–E10).
-4. [`oss-lane/compliance-map.md`](oss-lane/compliance-map.md) — the enforced subset + the two-lane story.
-5. [`oss-lane/README.md`](oss-lane/README.md) — how the enforcing lane fits together (gate, assembler, fixtures).
-6. [`EDK2-DEPENDENCY-RISK.md`](EDK2-DEPENDENCY-RISK.md) — the edk2 vendored-submodule risk map: maintenance /
+5. [`oss-lane/compliance-map.md`](oss-lane/compliance-map.md) — the enforced subset + the two-lane story.
+6. [`oss-lane/README.md`](oss-lane/README.md) — how the enforcing lane fits together (gate, assembler, fixtures).
+7. [`EDK2-DEPENDENCY-RISK.md`](EDK2-DEPENDENCY-RISK.md) — the edk2 vendored-submodule risk map: maintenance /
    security posture of each dependency and the stale-pin / org-mirror attack surface.
 
 Internal worklog (not product docs): [`DESIGN-REVIEW.md`](planning/DESIGN-REVIEW.md) (architecture review + verdict),
@@ -58,9 +64,23 @@ Internal worklog (not product docs): [`DESIGN-REVIEW.md`](planning/DESIGN-REVIEW
 
 ## The pipeline
 
+```mermaid
+flowchart LR
+    A["1. Generate SBOM<br/>the ingredients list of<br/>every firmware module"]
+    B["2. Verify signature<br/>+ build provenance<br/>who built it, really?"]
+    C["3. Reconcile<br/>membership + byte-integrity<br/>does the chip contain<br/>exactly those bytes?"]
+    D["4. CVE scan<br/>any known<br/>vulnerabilities?"]
+    E{"5. Policy gate<br/>do all rules pass?"}
+    F["6. Signed VSA<br/>the signed verdict,<br/>re-checkable downstream"]
+    G["Deploy"]
+    H["Block"]
+    A --> B --> C --> D --> E
+    E -->|all pass| F --> G
+    E -->|any fail| H
 ```
-generate → verify(sig+provenance) → reconcile(bytes==SBOM) → CVE map → attest → OPA/compliance gate → deploy
-```
+
+In one line: `generate → verify(sig+provenance) → reconcile(bytes==SBOM) → CVE map → attest → OPA/compliance
+gate → deploy`.
 
 ### Implementation status
 
@@ -106,6 +126,13 @@ The two lanes below run over the *same* signed evidence — one with cosign+OPA 
 Valint (the same compliance checks, currently reporting) — so the result isn't tied to a single tool.
 
 ## Two lanes, side by side
+
+```mermaid
+flowchart TD
+    EV["Same signed evidence<br/>SBOM + attestations + reconcile verdict"]
+    EV --> OSS["OSS lane — cosign + OPA<br/><b>enforcing gate</b>:<br/>a policy violation fails the run"]
+    EV --> VAL["Valint lane — same compliance checks<br/><b>report mode</b>:<br/>independent check, non-blocking"]
+```
 
 | Step | `oss-lane/` | `valint-lane/` |
 |---|---|---|
