@@ -119,8 +119,8 @@ This was the hardest and most novel check. A short version of the journey (full 
    "needs a fair-comparison step," **never** "tampered." A clean image stays clean; the number stays truthful.
 3. **The last 11** — early-boot modules are **rebased**: when fixed into a spot in the chip, their internal
    addresses get shifted (same code, shifted numbers). The shift is recorded and fully **reversible**, so we
-   subtract it back out (*"canonicalization"*) before fingerprinting. That makes them match too → **full-image
-   coverage**, with a same-ID swap still caught in every kind of module.
+   subtract it back out (*"canonicalization"*) before fingerprinting. That makes them match too → **all 122
+   code modules covered**, with a same-ID swap still caught in every kind of module.
 
 ```mermaid
 flowchart LR
@@ -137,7 +137,7 @@ the actual code, which no offset-subtraction can paper over — so it still fail
 
 ## The bigger picture — the other checks
 
-Byte-integrity is the headline, but the release gate ANDs **18** signed checks. The three that matter most:
+Byte-integrity is the headline, but the release gate ANDs **19** signed checks. The three that matter most:
 
 - **Reconcile** — the project's name for the *membership* check above: carve the real image and confirm every
   declared module is **present** (and that nothing undeclared snuck in). "Are the right parts there?"

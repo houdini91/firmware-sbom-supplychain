@@ -10,11 +10,11 @@ First tagged milestone: an end-to-end firmware supply-chain verification gate on
 with byte-level integrity.
 
 ### Added
-- **Enforcing OSS-lane gate** — 18 OPA `verifier_reports` ANDed into a signed SLSA **VSA**; each report has an
+- **Enforcing OSS-lane gate** — 19 OPA `verifier_reports` ANDed into a signed SLSA **VSA**; each report has an
   isolating negative fixture. Covers SBOM presence, keyless signature + signer identity, SLSA L2 provenance,
   reconcile membership, component + third-party integrity, VEX adjudication, CHIPSEC posture, build-tools
   signing, the firmware-digest anchor, and byte-integrity.
-- **R4 byte-integrity (122/122)** — `producers/reconcile/byte-integrity.py` matches each module's shipped PE32
+- **R4 byte-integrity (122 of 123)** — `producers/reconcile/byte-integrity.py` matches each module's shipped PE32
   bytes to the SBOM's declared hash: DXE drivers directly, XIP/PEI modules via **un-rebase canonicalization**.
   Catches a same-GUID trojan that membership checks miss. Gate report `component-byte-integrity`.
 - **Firmware-digest anchor** — evidence bound to the deployed `.fd` bytes (SBOM digest == reconcile re-hash ==

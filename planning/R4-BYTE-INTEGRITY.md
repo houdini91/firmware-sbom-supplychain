@@ -28,8 +28,8 @@ Findings that simplified the plan:
 
 ## ✅ Phase 2 — RESULTS (2026-08-04)
 
-Byte-integrity is now **enforced as an 18th gate report** (`component-byte-integrity`), with honest
-coverage over the whole image:
+Byte-integrity is now **enforced as a gate report** (`component-byte-integrity`), with honest
+coverage over the PE32-carrying modules:
 
 - Ran over all **122** module components with a GUID + declared hash on the real OVMF.fd:
   **111 byte-verified · 0 modified · 11 deferred**, `clean=true`.
@@ -50,8 +50,9 @@ means *the bytes match*, not merely *a hash is present*.
 
 ## ✅ Phase 3 — RESULTS (2026-08-04)
 
-**Full-image byte-integrity: 122/122.** The 11 XIP/PEI modules are now byte-verified via un-rebase
-canonicalization, not deferred.
+**Byte-integrity now verifies all 122 PE32-carrying modules (122/122 checked) — 122 of the 123 non-library
+modules; the 123rd, `ResetVector`, is a raw blob with no PE32, covered by membership.** The 11 XIP/PEI modules
+are now byte-verified via un-rebase canonicalization, not deferred.
 
 - The only difference between a declared PEI `.efi` and its in-flash copy is the **rebase**: placing the module
   at its flash load address `L` adds `L` to every relocation-listed field, and sets `ImageBase = L`. Everything

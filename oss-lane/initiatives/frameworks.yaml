@@ -1,7 +1,7 @@
 # Initiative manifests — framework → control → the verifier report(s) that satisfy it.
 #
 # This is the declarative layer over the enforcing gate (adopted from the Valint/Scribe
-# "initiative" model). The 18 rego verifier_reports stay the source of truth; this maps
+# "initiative" model). The 19 rego verifier_reports stay the source of truth; this maps
 # them to framework control IDs so a run can report per-control, per-framework coverage
 # (and surface MISSING_EVIDENCE — a control whose satisfying report is absent from the VSA).
 #

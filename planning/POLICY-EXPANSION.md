@@ -1,7 +1,8 @@
 # Policy expansion — new rego rules to enforce conformance (careful review)
 
-The deploy gate now enforces **18 verifier_reports** (the original 7 plus the 11 in the table below, since
-implemented). This is the **honest, deduplicated set of rego rules** that moved named controls from
+The deploy gate now enforces **19 verifier_reports** — the original 7, the **11** enforced rules in the table
+below (its 12th row, `sast-gate`, is still **planned**, not enforced), and `binary-hardening` (R8), added after
+this table. This is the **honest, deduplicated set of rego rules** that moved named controls from
 `EVIDENCE`/`PARTIAL` → `ENFORCED`, over the evidence set E1–E10. Produced by a control-by-control review of SLSA, NIST SSDF/800-53/800-161, S2C2F, CISA/NTIA, CRA,
 BSI, SP 800-190, and the firmware-platform frameworks — reviewers instructed to be **skeptical and refuse
 rubber-stamps**. Companion to [`FRAMEWORKS.md`](../FRAMEWORKS.md) (the control map) and
@@ -39,8 +40,8 @@ rubber-stamp; drop the clause and the rule is theater.
   SA-11(2) (threat modeling), SA-15 base (documented process), PS.1.1 (access control), PO.5 (secure build env),
   RV.1.3 (disclosure policy), PW.7.1 (human code review). Documented as `N/A (process)` in FRAMEWORKS.
 - **PW.6.1 (build-tool hardening flags) — needs evidence we don't produce.** Requires per-binary compiler/linker
-  hardening records (RELRO, stack canary, CFI, `_FORTIFY_SOURCE`). That is roadmap **R7** (binary-hardening
-  posture), not an E7 rule. Mapping E7 to PW.6.1 would over-claim.
+  hardening records (RELRO, stack canary, CFI, `_FORTIFY_SOURCE`). The **R8** binary-hardening posture checks the built binaries but does not
+  emit the per-build-tool flag records PW.6.1 wants, so PW.6.1 stays unclaimed as an E7 rule. Mapping E7 to PW.6.1 would over-claim.
 
 ## Curated policy data the rules require (must be authored + reviewed)
 

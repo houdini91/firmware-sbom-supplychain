@@ -42,7 +42,7 @@ declared hash.
    • byte-integrity: 1 module(s) MODIFIED — shipped bytes differ from the SBOM's declared hash (possible same-GUID swap)
 ```
 
-Real coverage over the whole image (from the committed `inputs/byte-integrity.json`):
+Real coverage over the shipped PE32 modules (from the committed `inputs/byte-integrity.json`):
 
 ```
 checked=122  byte_verified=122  (direct 111 + un-rebase 11)  modified=0  skipped=0  clean=true

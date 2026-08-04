@@ -61,7 +61,7 @@ Read in this order:
 1. **[`PRIMER.md`](PRIMER.md)** — start here if you're new to firmware: what this does and why, from scratch.
 2. **README** (this file) — what it is, how to run it.
 3. [`DESIGN.md`](DESIGN.md) — the security / functional / operational design + the upstream-generator rationale.
-4. [`FRAMEWORKS.md`](FRAMEWORKS.md) — the evidence→control map (exact section numbers; the 18 enforced
+4. [`FRAMEWORKS.md`](FRAMEWORKS.md) — the evidence→control map (exact section numbers; the 19 enforced
    reports over evidence atoms E1–E10).
 5. [`oss-lane/compliance-map.md`](oss-lane/compliance-map.md) — the enforced subset + the two-lane story.
 6. [`oss-lane/README.md`](oss-lane/README.md) — how the enforcing lane fits together (gate, assembler, fixtures).
@@ -137,7 +137,7 @@ shape; this table says what exists. ✅ implemented · ⚠️ canned/stubbed · 
 |---|---|---|
 | 1 — Generate declared SBOM | edk2 `-Y SBOM` | ✅ implemented (edk2 fork PR #6; CycloneDX 1.6, per-module SHA-256/512, firmware-image digest in `metadata.component`, CISA/BSI Tier-1 metadata; **311-component example committed** — the upstream generator emits 310, the demo enriches it with `openssl` as an in-image third-party dep, R1) |
 | 2 — Observed carve → observed FFS | edk2 FMMT | ✅ implemented (`producers/reconcile/carve.sh` — FMMT decompresses the FVs and lists FFS `FILE_GUID`s) |
-| 3 — Reconcile declared vs observed | `producers/reconcile/sbom-reconcile.py` + `byte-integrity.py` | ✅ **generated** (not canned) — real carve → verdict: 123/123 modules validated, 0 missing, 0 suspicious (*membership*). **Byte-integrity (R4) now covers the whole image — 122/122 modules:** `byte-integrity.py` extracts each module's PE32 from the deployed `.fd` and matches it to the SBOM's declared hash — a **same-GUID trojan is detected** (gate report `component-byte-integrity`). DXE drivers match directly (111); XIP/PEI modules (rebased) are byte-verified via un-rebase canonicalization (11). |
+| 3 — Reconcile declared vs observed | `producers/reconcile/sbom-reconcile.py` + `byte-integrity.py` | ✅ **generated** (not canned) — real carve → verdict: 123/123 modules validated, 0 missing, 0 suspicious (*membership*). **Byte-integrity (R4) now covers 122 of the 123 code modules:** `byte-integrity.py` extracts each module's PE32 from the deployed `.fd` and matches it to the SBOM's declared hash — a **same-GUID trojan is detected** (gate report `component-byte-integrity`). DXE drivers match directly (111); XIP/PEI modules (rebased) are byte-verified via un-rebase canonicalization (11). |
 | 4 — CDX → SPDX | protobom `sbom-convert` | ✅ implemented (`producers/interop/to-spdx.sh` + `inputs/sbom.spdx.json`) |
 | 4b — CDX → coSWID + embed | uSWID | ✅ implemented (`producers/interop/to-coswid.sh` + `inputs/sbom.uswid`) — CDX→coSWID round-trips (310→311), and embeds into a PE `.sbom` section + re-extracts, verified |
 | 5 — CVE map | grype | ✅ implemented (CI) |
@@ -147,7 +147,7 @@ shape; this table says what exists. ✅ implemented · ⚠️ canned/stubbed · 
 | runtime — measured boot / RIM bind | TCG RIM / RATS | ⛔ aspirational, documented in DESIGN (not implemented) |
 
 The enforcing gate (stages 5–8), the SPDX interop (4), and now the real observed-carve + reconcile (2/3) run
-here; the generator (1) is edk2 fork PR #6. **Byte-integrity (R4) is now enforced over the whole image (122/122 modules)** — DXE directly, XIP/PEI via un-rebase canonicalization; a same-GUID trojan is caught (`component-byte-integrity`). Every other designed
+here; the generator (1) is edk2 fork PR #6. **Byte-integrity (R4) is now enforced over 122 of the 123 code modules** — DXE directly, XIP/PEI via un-rebase canonicalization; a same-GUID trojan is caught (`component-byte-integrity`). Every other designed
 stage now runs.
 
 ## The tools, in one line each

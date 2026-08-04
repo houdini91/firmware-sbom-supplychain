@@ -11,7 +11,7 @@ without a full firmware build:
 | `sbom.spdx.json` | SPDX 2.3 view of the same BOM | `producers/interop/to-spdx.sh` (protobom) |
 | `sbom.uswid` | coSWID view + embed carrier | `producers/interop/to-coswid.sh` (uSWID) |
 | `reconcile-verdict.json` | declared-vs-observed **membership** verdict (+ `image_digest`, anchor leg 2) | `producers/reconcile/carve.sh` |
-| `byte-integrity.json` | **byte-integrity** verdict — each module's shipped PE32 bytes vs the SBOM hash (R4, 122/122) | `producers/reconcile/byte-integrity.py` |
+| `byte-integrity.json` | **byte-integrity** verdict — each module's shipped PE32 bytes vs the SBOM hash (R4, 122 of 123) | `producers/reconcile/byte-integrity.py` |
 | `chipsec.json` | CHIPSEC platform-posture predicate | `producers/chipsec/to-predicate.py` |
 | `vex.openvex.json` / `vex.csaf.json` | CVE triage (OpenVEX) + BSI CSAF view | authored / `producers/interop/to-csaf.py` |
 

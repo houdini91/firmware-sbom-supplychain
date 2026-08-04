@@ -258,7 +258,7 @@ signed **build-tools SBOM** so the toolchain is evidence too. **Honest limitatio
 now *generated* by `producers/reconcile/sbom-reconcile.py` from a real FMMT carve (membership: 123/123 modules
 validated, 0 missing) and committed as the example. **Byte-integrity is now done** (R4):
 `producers/reconcile/byte-integrity.py` matches each module's shipped PE32 bytes to the SBOM's declared hash —
-DXE directly, XIP/PEI via un-rebase canonicalization (122/122) — so a same-GUID swap is caught; only
+DXE directly, XIP/PEI via un-rebase canonicalization (122 of the 123 non-library modules; the 123rd, `ResetVector`, is a raw blob covered by membership) — so a same-GUID swap is caught; only
 TE-format/compressed sections remain out of scope. reconcile is module-granular (libraries verified transitively); the build-tools SBOM
 lists direct tools, not transitive deps; one lane runs compliance
 in report mode, not as a gate; and the measured-boot bind is aspirational. These are documented, not hidden.

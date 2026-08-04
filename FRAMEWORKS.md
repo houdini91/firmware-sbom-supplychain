@@ -91,7 +91,7 @@ not asserted.
 > `gh attestation verify` CI hard-gate), `reconcile` (E3), `cve-triage` (E4), `chipsec-posture` (E10),
 > `reconcile-membership` (E3, SI-7/CM-8(3)), `component-integrity` (E1, SI-7(1)),
 > `component-byte-integrity` (E3, SI-7(1)/SR-4(3) — the shipped PE32 bytes of each byte-checkable module match
-> the SBOM's declared hash; catches a same-GUID swap; XIP/PEI modules verified via un-rebase canonicalization (122/122); reported
+> the SBOM's declared hash; catches a same-GUID swap; XIP/PEI modules verified via un-rebase canonicalization (122 of 123 modules); reported
 > honestly), `vex-adjudicated` (E4, RV.1.1 —
 > every high/critical CVE needs a non-empty justification), `thirdparty-identifiers` (E1, CISA License/PURL),
 > `build-tools-signed` (E7, SSDF PO.3.2 / S2C2F REB-3 — the build toolchain is signed + SHA/version-pinned),
@@ -226,7 +226,7 @@ edk2 firmware build. L3 is the honest remaining gap.
 | Control | Ask | Evidence | Status | Note |
 |---|---|---|:--:|---|
 | **SR-4 / SR-4(3)** Provenance / genuine-and-not-altered | valid provenance; validate not-altered | E2, E1, E3 | **ENFORCED** *(gate)* | `slsa-level-floor` (level ≥2) + `evidence-chain-bound` (SBOM↔attestation↔provenance one digest) + `reconcile-membership`. |
-| **SR-4(3)** Validate as Genuine and Not Altered | received components are genuine + unaltered | E5, E2, E3 | **ENFORCED** | E5/E2 validate the build output; **E3 byte-integrity (R4) proves "not altered" at the byte level — 122/122 modules' shipped bytes match the declared hash** (`component-byte-integrity` + `firmware-digest-anchor`). |
+| **SR-4(3)** Validate as Genuine and Not Altered | received components are genuine + unaltered | E5, E2, E3 | **ENFORCED** | E5/E2 validate the build output; **E3 byte-integrity (R4) proves "not altered" at the byte level — 122 of the 123 modules' shipped bytes match the declared hash** (`component-byte-integrity` + `firmware-digest-anchor`). |
 | **SR-4(4)** Supply Chain Integrity — Pedigree | validate internal composition + provenance of critical products | E1, E3 | **PARTIAL** | Composition touched; no critical-component pedigree; E1 omits submodules. |
 | **SI-7** Software/Firmware/Information Integrity | detect unauthorized changes to software/firmware | E1, E3, E5, E2 | **ENFORCED** *(gate)* | `reconcile-membership` (declared==observed, no undeclared artifact) + `component-integrity` (every hashable module hashed). Byte-level integrity of each region is R4. |
 | **SI-7(15) / CM-14** Code Authentication / Signed Components | authenticate the signed component by a trusted identity | E5 | **ENFORCED** *(gate)* | `signer-identity-pinned`: signature verified **and** cert SAN in `data.trusted_signer_identities`. (Signed subject is the SBOM/attestation; firmware-byte authentication is R4. OIDC-issuer pinning is a documented enhancement.) |
@@ -243,7 +243,7 @@ edk2 firmware build. L3 is the honest remaining gap.
 |---|---|---|:--:|---|
 | **INV-1** | automated inventory of all OSS used | E1, E7 | **PARTIAL** | E1 build-generated but no submodules; E7 direct-only. |
 | **SCA-1** | scan OSS for known vulnerabilities | E4 | **ENFORCED** *(gate)* | Direct hit (`cve-triage`). |
-| **AUD-3** | validate integrity of OSS consumed into the build | E3 | **ENFORCED** | Byte-integrity (R4) matches each module's shipped bytes to the declared hash — 122/122 (`component-byte-integrity`). |
+| **AUD-3** | validate integrity of OSS consumed into the build | E3 | **ENFORCED** | Byte-integrity (R4) matches each module's shipped bytes to the declared hash — 122 of 123 (`component-byte-integrity`). |
 | **SCA-2** | scan OSS for licenses | E1 | **ENFORCED** *(gate)* | `thirdparty-identifiers` requires a license on every third-party component. |
 | **SCA-3** | scan OSS for end-of-life | — | **PLANNED** | Needs an EOL feed. |
 | **AUD-1** | verify provenance of **ingested** OSS | — | **N/A / not-forced** | E2/E5 is provenance of *our own output*, a different subject — do not map. |
@@ -383,7 +383,7 @@ enforcement it asks for is still futuristic.)*
 - **CRA is field-light** — do not attribute the license/PURL asks to CRA; they are BSI/CISA.
 - **TCG PC Client RIM exact §/Table numbers are unverified** (primary PDF was gated) — read them off the spec
   before publishing anything that cites a specific RIM subsection.
-- **E3 now includes byte-integrity** (R4 — 122/122 modules byte-verified) — the "not altered" claims are
+- **E3 now includes byte-integrity** (R4 — 122 of 123 modules byte-verified) — the "not altered" claims are
   enforced by `component-byte-integrity`, not `PARTIAL`. Only TE-format / compressed sections stay out of scope.
 - **SAST is enforced by a separate CI gate** (`codeql-sast` fails on high/critical ≥7.0), not by the deploy
   gate; make it a required status check to hard-block merges/deploys on it too.

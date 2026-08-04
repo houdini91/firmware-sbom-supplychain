@@ -67,7 +67,7 @@ Each commit: builds clean, one concern, imperative subject prefixed `BaseTools:`
 - **All signing material & local artifacts** — none should exist in an edk2 branch anyway, but note the
   operator repo has demo keys on disk (`oss-lane/.keys/`, `valint-lane/.keys/*.pem`, `.key`/`.pub`).
   They are `.gitignore`d there; make sure none are copied into the edk2 branch.
-- **Personal/portfolio framing** — no "portfolio", no Anthropic-submission language, no
+- **Personal/portfolio framing** — no "portfolio", no role-application or employer-submission language, no
   `firmware-sbom-supplychain` repo URL in commit messages or the PR body. Cite only public #10507.
 
 ## 4. Licensing & DCO (edk2 hard requirements)
@@ -95,7 +95,7 @@ Each commit: builds clean, one concern, imperative subject prefixed `BaseTools:`
 - [ ] Every new file: `BSD-2-Clause-Patent` header + copyright line.
 - [ ] Every commit: `git commit -s` sign-off, real identity, `BaseTools:` subject prefix.
 - [ ] Exclusion list (§3) verified — grep the branch for `valint`, `reconcile`, `.pem`, `.key`, MIT,
-      `firmware-sbom-supplychain`, `Anthropic`, `portfolio` → zero hits.
+      `firmware-sbom-supplychain`, `portfolio` → zero hits.
 - [ ] Patch series generated with `git format-patch` / `git send-email --dry-run`, maintainers from
       `Maintainers.txt` confirmed current.
 - [ ] The #10507 comment text finalized (one draft chosen, not both) and its claims reconciled.
