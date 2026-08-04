@@ -15,12 +15,12 @@ help: ## List targets
 	  | awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
 
 .PHONY: deps
-deps: ## Install Python deps (PyYAML) + fetch the pinned tools (opa, SHA-verified)
+deps: ## Install Python deps (PyYAML) + fetch pinned opa (SHA-verified) — the test path
 	pip install -r requirements.txt
-	bash scripts/fetch-tools.sh
+	ONLY=opa bash scripts/fetch-tools.sh
 
 .PHONY: bin
-bin: ## Fetch + SHA-verify the pinned CLI tools (opa) into bin/
+bin: ## Fetch + SHA-verify ALL pinned CLI tools (opa, cosign, grype) into bin/ — needed for `make demo`
 	bash scripts/fetch-tools.sh
 
 .PHONY: test

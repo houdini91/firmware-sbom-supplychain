@@ -10,9 +10,12 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$HERE/.." && pwd)"
 IN="$ROOT/inputs"; BIN="$ROOT/bin"
-OPA="${OPA:-$BIN/opa}"; COSIGN="${COSIGN:-cosign}"
+OPA="${OPA:-$BIN/opa}"
+# prefer the pinned, SHA-verified bin/ tools (make bin) over whatever's on PATH
+COSIGN="${COSIGN:-$([ -x "$BIN/cosign" ] && echo "$BIN/cosign" || echo cosign)}"
+GRYPE="${GRYPE:-$([ -x "$BIN/grype" ] && echo "$BIN/grype" || echo grype)}"
 # preflight: fail with an actionable message, not a cryptic set -e abort mid-step
-for tool in "$COSIGN" grype; do
+for tool in "$COSIGN" "$GRYPE"; do
   command -v "$tool" >/dev/null 2>&1 || { echo "error: '$tool' not found on PATH — this lane needs it (see requirements.txt); set the matching env var or install it." >&2; exit 2; }
 done
 KEYS="$HERE/.keys"
@@ -40,8 +43,8 @@ echo "== 4. CVE scan (grype over the SBOM) =="
 if [ "${SKIP_CVE:-0}" = "1" ]; then
   echo "   ⚠ SKIP_CVE=1 → CVE gate DISABLED (not a clean scan; findings forced empty)"
   echo '{"matches":[]}' > "$IN/grype.json"
-elif command -v grype >/dev/null 2>&1 \
-     && grype "sbom:$SBOM" -o json > "$IN/grype.json" 2>/dev/null \
+elif command -v "$GRYPE" >/dev/null 2>&1 \
+     && "$GRYPE" "sbom:$SBOM" -o json > "$IN/grype.json" 2>/dev/null \
      && jq -e 'has("matches")' "$IN/grype.json" >/dev/null 2>&1; then
   : # scanned OK
 else
