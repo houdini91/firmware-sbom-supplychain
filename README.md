@@ -1,8 +1,27 @@
 # firmware-sbom-supplychain
 
-A working demo of a **firmware supply-chain verification gate** for a fleet operator, on the OVMF / edk2
-reference target. It takes a build-time SBOM through the full pipeline and refuses to "deploy" anything that
-fails policy — shown **two ways over the same evidence**:
+[![pr-checks](https://github.com/houdini91/firmware-sbom-supplychain/actions/workflows/pr-checks.yml/badge.svg)](https://github.com/houdini91/firmware-sbom-supplychain/actions/workflows/pr-checks.yml)
+![license](https://img.shields.io/badge/license-MIT-blue.svg)
+![release](https://img.shields.io/badge/release-v0.1.0-3ddbd9.svg)
+![byte-integrity](https://img.shields.io/badge/byte--integrity-122%2F122-3fb950.svg)
+![gate](https://img.shields.io/badge/gate-18%20signed%20checks-4aa8ff.svg)
+
+> ### Prove a firmware image runs the exact code its signed SBOM declares — and block a same-GUID trojan that signatures and inventories miss.
+
+An **evidence-centric supply-chain gate** for firmware (OVMF / edk2): every claim about a build becomes signed
+evidence, a policy engine ANDs it into one verdict, and the release is blocked unless the **actual bytes on the
+chip** match the signed bill of materials.
+
+`18 signed checks → one gate` &nbsp;·&nbsp; `122 / 122 modules byte-verified` &nbsp;·&nbsp; `6 frameworks, per-control` &nbsp;·&nbsp; `a signed verdict anyone can re-check`
+
+> 🖼 **Prefer a visual?** A 2-minute [**plain-language primer (PRIMER.md)**](PRIMER.md) explains it from scratch;
+> a hosted **[solution showcase](https://claude.ai/code/artifact/008ea1c6-9058-43ad-b5f1-f99139f8cfce)** and a
+> [**byte-integrity explainer**](https://claude.ai/code/artifact/b4fd79dd-f3aa-4848-82a8-133942401f69) walk the
+> whole thing with graphics.
+
+---
+
+Shown **two ways over the same evidence**:
 
 - an **OSS lane** — `cosign` + Open Policy Agent (reproducible today with community-standard tools), and
 - a **Valint lane** — signing + compliance policy with [Valint], the supply-chain evidence/policy tool.
@@ -81,6 +100,35 @@ flowchart LR
 
 In one line: `generate → verify(sig+provenance) → reconcile(bytes==SBOM) → CVE map → attest → OPA/compliance
 gate → deploy`.
+
+## Three checks, three questions
+
+Many checks run, but three are the heart of *"does the firmware match its bill of materials?"* — and each
+answers a **different question at a different level**:
+
+| Check | Question it answers | Level | Catches |
+|---|---|---|---|
+| **Reconcile** (membership) | Are all the declared modules actually **present**? | composition — by module ID (GUID) | a missing module, or an **undeclared** one that shouldn't be there |
+| **Byte-integrity** | Do the shipped module **bytes** match the declared hash? | content — per module, byte-for-byte | a **same-GUID trojan**: same ID, swapped code |
+| **CHIPSEC** (platform posture) | Are the platform's firmware **protections** switched on? | platform config — the chip's defenses | BIOS write-protect / SPI-lock / SMM / Secure-Boot **misconfiguration** |
+
+Three complementary layers: **the right parts are present** (reconcile), **the parts are genuine**
+(byte-integrity), and **the chip's defenses are on** (CHIPSEC). Membership alone is fooled by a same-GUID swap;
+byte-integrity catches it. Each maps to specific controls — e.g. byte-integrity → NIST `SI-7(1)`/`SR-4(3)`,
+CHIPSEC → `SP 800-193 §4.2`/`SP 800-147` — carried per-control in the signed verdict.
+
+```mermaid
+flowchart TB
+    FW["🔩 Firmware image (.fd)"]
+    FW --> R["① Reconcile — <b>composition</b><br/>are the declared modules present?"]
+    FW --> B["② Byte-integrity — <b>content</b><br/>do the shipped bytes match the SBOM?"]
+    FW --> C["③ CHIPSEC — <b>platform</b><br/>are the firmware protections enabled?"]
+    R --> G{"Policy gate<br/>(18 signed checks)"}
+    B --> G
+    C --> G
+    G -->|all pass| OK["✅ signed verdict → deploy"]
+    G -->|any fail| NO["⛔ blocked"]
+```
 
 ### Implementation status
 
