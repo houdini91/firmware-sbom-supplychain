@@ -54,7 +54,7 @@ Per-evidence target (`_type` is always `https://in-toto.io/Statement/v1`):
 | E7 | Build-tools SBOM | `https://cyclonedx.org/bom` | image digest (toolchain-tagged) | `attest-blob` (**not** sign-blob) | ⚠ sign-blob |
 | E8 | CodeQL SARIF | in-toto **test-result/v0.1** (SARIF embedded) | **source commit** | `attest-blob` | ⚠ sign-blob |
 | E9 | Scorecard SARIF | in-toto **SVR** (Simple Verification Result) | source commit | `attest-blob` | ⚠ sign-blob |
-| E10 | CHIPSEC posture | custom `…/chipsec-posture/v1` (or SCAI) | image digest | `attest-blob` | ⚠ unsigned JSON |
+| E10 | CHIPSEC posture | custom `…/chipsec-posture/v1` (or SCAI) | image digest | `attest-blob` (keyless-signed in CI) | ✓ signed |
 
 Two honest spec findings: **there is no registered in-toto predicate that carries SARIF** — E8/E9 use the
 generic test-result/SVR predicates (a standardized SARIF predicate would be an *upstream in-toto proposal*, not

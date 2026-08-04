@@ -26,11 +26,12 @@ MARK = {PASS: "✅", FAIL: "⛔", MISSING: "❔"}
 
 def load_reports(vsa_path):
     """name -> isSuccess, from the VSA predicate's verifierReports (or a raw gate value)."""
-    doc = json.load(open(vsa_path))
+    with open(vsa_path) as f:
+        doc = json.load(f)
     reports = (doc.get("predicate", {}).get("verifierReports")
                or doc.get("verifierReports")
                or doc.get("verifier_reports") or [])
-    return {r["name"]: bool(r.get("isSuccess")) for r in reports}
+    return {r["name"]: bool(r.get("isSuccess")) for r in reports if r.get("name")}
 
 
 def evaluate(control, present):
@@ -51,7 +52,8 @@ def main():
     args = ap.parse_args()
 
     present = load_reports(args.vsa)
-    manifest = yaml.safe_load(open(args.manifest))
+    with open(args.manifest) as f:
+        manifest = yaml.safe_load(f)
     initiatives = manifest.get("initiatives", {})
     if args.framework:
         initiatives = {k: v for k, v in initiatives.items() if k == args.framework}
