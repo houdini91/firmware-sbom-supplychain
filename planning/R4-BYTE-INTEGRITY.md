@@ -1,4 +1,37 @@
-# R4 — byte-integrity reconcile (plan)
+# R4 — byte-integrity reconcile (plan + Phase 1 results)
+
+## ✅ Phase 1 — RESULTS (2026-08-04, branch `r4-byte-integrity-phase1`)
+
+**Byte-integrity works for uncompressed DXE drivers with NO canonicalization — and a
+same-GUID trojan is detected.** Tool: [`../producers/reconcile/byte-integrity.py`](../producers/reconcile/byte-integrity.py).
+
+Findings that simplified the plan:
+- The declared side is the SBOM's per-module SHA-256, which is the build's
+  `OUTPUT/<mod>.efi` — **already GenFw-normalized** (`TimeDateStamp=0`, `CheckSum=0`,
+  `ImageBase=0`, verified with pefile). OVMF does **not** rebase DXE drivers in flash
+  (they keep `ImageBase=0` + `.reloc`, relocated at load by the DXE core). So the
+  feared `canon()` (timestamp/checksum/debug/**rebase**) is **unnecessary for this class**.
+- The observed side is the `EFI_SECTION_PE32` (type `0x10`) payload inside the module's
+  FFS in the **deployed `.fd`** (FMMT decompresses the DXEFV; a hand-written FFS/section
+  walker pulls the PE32). The earlier "in-image `50172c36` != declared `5fe71c0c`" note was
+  an **extraction artifact** — it included the 4-byte `EFI_COMMON_SECTION_HEADER` (or hashed
+  the debug image). Corrected: strip the section header and the PE32 payload is exact.
+- **5/5 DXE drivers byte-identical** declared vs extracted-from-deployed-`.fd`
+  (AmdSevDxe, IoMmuDxe, PlatformDxe, VirtioGpuDxe, VirtHstiDxe), and each equals the SBOM's
+  already-declared hash — so integration needs **no new declared-side data**.
+- **Same-GUID trojan detected:** FMMT-replaced AmdSevDxe with a 1-bit-flipped PE32 (same
+  FILE_GUID) → `byte-integrity.py` reports it `MODIFIED` (`5fe71c0c` != `e0d3ec71`), exit 1,
+  while the untouched IoMmuDxe stays verified. Membership reconcile passes this; byte-integrity
+  does not.
+
+**Net:** `modified` is now real for the uncompressed-DXE class. Phase 2 = fold this into the
+reconcile verdict + a `component-byte-integrity` gate report; Phase 3 = TE/PEI (rebased) and
+compressed sections. The rebase "crux" is resolved for DXE (it doesn't occur); it returns only
+for TE/PEI in Phase 3.
+
+---
+
+## Original plan
 
 **Goal:** turn the reconcile verdict's `modified` field from *always-skipped* into a real
 check for a tractable subset of modules, so the project's central claim — *"the SBOM
