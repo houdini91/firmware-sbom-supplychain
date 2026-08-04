@@ -36,7 +36,9 @@ jobs:
           python3 tests/test_byte_integrity.py
 
       - name: In-pipeline negative test (post-sign tamper must be blocked)
-        run: OPA=/usr/local/bin/opa ./tests/pipeline-negative.sh || echo "note: needs a signed bundle; skipped if absent"
+        run: |
+          # self-skips if no signed bundle is present (bundles are gitignored / built in the heavy workflow)
+          OPA=/usr/local/bin/opa ./tests/pipeline-negative.sh
 
       - name: Framework coverage from a fresh VSA (initiative layer)
         run: |
