@@ -48,11 +48,17 @@ printf '%s' "$val" | jq -r '
 # --- emit the VSA (in-toto Statement wrapping the SLSA VSA predicate) ---
 subject_digest="$(jq -r '.attestation.subject_digest // "sha256:unknown"' "$INPUT")"
 alg="${subject_digest%%:*}"; hex="${subject_digest#*:}"
+# Also carry the FIRMWARE image digest as a subject, so a consumer can verify the
+# VSA is about the bytes they hold (the anchor, consumer-side). Empty -> omitted.
+fw_digest="$(jq -r '.firmware.sbom_digest // ""' "$INPUT")"
+fw_alg="${fw_digest%%:*}"; fw_hex="${fw_digest#*:}"
 ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-vsa_stmt="$(printf '%s' "$val" | jq -c --arg alg "$alg" --arg hex "$hex" --arg ts "$ts" '
+vsa_stmt="$(printf '%s' "$val" | jq -c --arg alg "$alg" --arg hex "$hex" --arg ts "$ts" \
+  --arg fwalg "$fw_alg" --arg fwhex "$fw_hex" '
   {
     "_type": "https://in-toto.io/Statement/v1",
-    "subject": [ { "name": .vsa_predicate.resourceUri, "digest": { ($alg): $hex } } ],
+    "subject": ([ { "name": .vsa_predicate.resourceUri, "digest": { ($alg): $hex } } ]
+                + (if $fwhex != "" then [ { "name": "firmware-image", "digest": { ($fwalg): $fwhex } } ] else [] end)),
     "predicateType": "https://slsa.dev/verification_summary/v1",
     "predicate": (.vsa_predicate + { "timeVerified": $ts })
   }')"
