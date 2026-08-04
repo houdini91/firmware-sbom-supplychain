@@ -126,13 +126,15 @@ _evidence_chain_bound if {
 	input.provenance.subject_digest == input.attestation.subject_digest
 }
 
-# Firmware-image anchor (the keystone). Three independently-derived digests of
-# the FIRMWARE BYTES agree: (1) the SBOM's own metadata.component digest D — what
-# the build says it shipped; (2) the reconcile verdict's image_digest — what the
-# observed carve was taken from; (3) the digest of the .fd actually deployed —
-# what a verifier hashes off the flash/build output. Equal ⇒ the whole evidence
-# set is about THESE bytes, not a detached JSON file. In the demo all three are
-# the real OVMF.fd digest; in production a flash-time verifier supplies (3).
+# Firmware-image anchor (the keystone). Three digests of the FIRMWARE BYTES agree:
+# (1) the SBOM's own metadata.component digest D — what the build says it shipped;
+# (2) the reconcile verdict's image_digest — an INDEPENDENT re-hash of the carved
+# image (distinct measurement from (1)); (3) the digest of the deployed .fd — a
+# fresh hash a flash-time verifier supplies via FW_IMAGE. Legs (1)+(2) are the two
+# independent build/analysis-time measurements; leg (3) is what makes it tamper-
+# evident at deploy time, BUT the offline demo + CI set DEV_ASSUME_FWIMAGE (they do
+# not rebuild/flash OVMF), so there (3) is copied from (1) — the anchor there proves
+# (1)==(2) consistency, not a fresh deploy-time comparison. Do not overstate it.
 # Normalize a digest to lower(alg:hex) so leg comparison is immune to case /
 # formatting differences between the three independent producers.
 _dnorm(d) := lower(d)
@@ -192,7 +194,7 @@ verifier_reports := [
 	),
 	_report(
 		"firmware-digest-anchor", _firmware_anchored,
-		"evidence bound to the firmware bytes (build-time SBOM digest == reconcile's independent hash == deployed .fd)",
+		"firmware-image digest consistent: build-time SBOM digest == reconcile's independent re-hash (== deployed image when a flash-time verifier supplies FW_IMAGE; assumed equal otherwise)",
 		_firmware_anchor_msg,
 		["firmware-image-binding", "SI-7", "SR-4(3)", "CISA-2026-hash"],
 	),
