@@ -20,13 +20,13 @@ tool, not a second enforcement point. Honest scope, stated up front.
 
 ```bash
 make deps      # Python deps (PyYAML); see requirements.txt for the CLI tools (opa, jq, cosign, grype)
-make test      # gate honesty tests — ALLOW a clean release, DENY each failure mode (15 negative fixtures + clean + triaged-allow, exercising all 17 reports)
+make test      # gate honesty tests — ALLOW a clean release, DENY each failure mode (16 negative fixtures + clean + triaged-allow, exercising all 18 reports)
 make coverage  # per-framework, per-control compliance coverage from a fresh signed VSA
 make demo      # the full OSS lane end to end (needs cosign + grype)
 ```
 
 `make test` and `make coverage` are self-contained (opa + jq + python3/PyYAML). The gate itself is
-[`oss-lane/policy/firmware.rego`](oss-lane/policy/firmware.rego) — **17 verifier reports** ANDed into a signed
+[`oss-lane/policy/firmware.rego`](oss-lane/policy/firmware.rego) — **18 verifier reports** ANDed into a signed
 SLSA VSA, each with an isolating negative fixture under [`oss-lane/fixtures/`](oss-lane/fixtures).
 
 **Consumer side** — run the gate on *your own* firmware:
@@ -45,7 +45,7 @@ Read in this order:
 
 1. **README** (this file) — what it is, how to run it.
 2. [`DESIGN.md`](DESIGN.md) — the security / functional / operational design + the upstream-generator rationale.
-3. [`FRAMEWORKS.md`](FRAMEWORKS.md) — the honest evidence→control map (exact section numbers; the 17 enforced
+3. [`FRAMEWORKS.md`](FRAMEWORKS.md) — the honest evidence→control map (exact section numbers; the 18 enforced
    reports over evidence atoms E1–E10).
 4. [`oss-lane/compliance-map.md`](oss-lane/compliance-map.md) — the enforced subset + the two-lane story.
 5. [`oss-lane/README.md`](oss-lane/README.md) — how the enforcing lane fits together (gate, assembler, fixtures).
@@ -71,7 +71,7 @@ shape; this table says what exists. ✅ implemented · ⚠️ canned/stubbed · 
 |---|---|---|
 | 1 — Generate declared SBOM | edk2 `-Y SBOM` | ✅ implemented (edk2 fork PR #6; CycloneDX 1.6, per-module SHA-256/512, firmware-image digest in `metadata.component`, CISA/BSI Tier-1 metadata; **311-component example committed** — the upstream generator emits 310, the demo enriches it with `openssl` as an in-image third-party dep, R1) |
 | 2 — Observed carve → observed FFS | edk2 FMMT | ✅ implemented (`producers/reconcile/carve.sh` — FMMT decompresses the FVs and lists FFS `FILE_GUID`s) |
-| 3 — Reconcile declared vs observed | `producers/reconcile/sbom-reconcile.py` | ✅ **generated** (not canned) — real carve → verdict: 123/123 modules validated, 0 missing, 0 suspicious. *Membership* is real; *byte-integrity* (`modified`) is deferred with a **feasibility finding**: extracting a module's in-FV PE32 and rebasing to 0 does not match the declared build-`.efi` hash even for a DXE driver (FDF-assembly GenFw strips debug / zeroes timestamp+checksum), so real integrity needs *matched* canonicalization on both sides — a characterized research problem, not just a TODO |
+| 3 — Reconcile declared vs observed | `producers/reconcile/sbom-reconcile.py` + `byte-integrity.py` | ✅ **generated** (not canned) — real carve → verdict: 123/123 modules validated, 0 missing, 0 suspicious (*membership*). **Byte-integrity (R4) now real for the byte-checkable subset:** `byte-integrity.py` extracts each module's PE32 from the deployed `.fd` and matches it to the SBOM's declared hash — a **same-GUID trojan is detected** (gate report `component-byte-integrity`). XIP/PEI modules (rebased) are honestly reported as needs-canonicalization (R4 phase 3), never as tampered. |
 | 4 — CDX → SPDX | protobom `sbom-convert` | ✅ implemented (`producers/interop/to-spdx.sh` + `inputs/sbom.spdx.json`) |
 | 4b — CDX → coSWID + embed | uSWID | ✅ implemented (`producers/interop/to-coswid.sh` + `inputs/sbom.uswid`) — CDX→coSWID round-trips (310→311), and embeds into a PE `.sbom` section + re-extracts, verified |
 | 5 — CVE map | grype | ✅ implemented (CI) |
@@ -81,9 +81,10 @@ shape; this table says what exists. ✅ implemented · ⚠️ canned/stubbed · 
 | runtime — measured boot / RIM bind | TCG RIM / RATS | ⛔ aspirational, documented in DESIGN (not implemented) |
 
 The enforcing gate (stages 5–8), the SPDX interop (4), and now the real observed-carve + reconcile (2/3) run
-here; the generator (1) is edk2 fork PR #6. Remaining: reconcile's `modified` (byte-integrity) — feasibility-tested and found to need *matched*
-canonicalization (the in-image PE differs from the build `.efi` after FDF-assembly GenFw processing), so it
-stays deferred with that finding recorded. Every other designed stage now runs.
+here; the generator (1) is edk2 fork PR #6. **Byte-integrity (R4) is now enforced** for the byte-checkable
+module subset — a same-GUID trojan is caught (`component-byte-integrity`); XIP/PEI modules (rebased) await
+canonicalization (R4 phase 3), reported honestly as needs-canon rather than tampered. Every other designed
+stage now runs.
 
 ## The tools, in one line each
 

@@ -106,6 +106,7 @@ jobs:
           BUILDER_ID="$BUILDER_ID" SOURCE_REPO="$SOURCE_REPO" \
           SLSA_VERIFIED=true \
           CHIPSEC_JSON=inputs/chipsec.json \
+          BYTE_INTEGRITY_JSON=inputs/byte-integrity.json \
           BUILD_TOOLS_JSON=inputs/build-tools.cdx.json BUILD_TOOLS_SIG=true \
           PROVENANCE_SUBJECT="sha256:$(sha256sum inputs/sbom.cdx.json | cut -d' ' -f1)" \
           DEV_ASSUME_FWIMAGE=1 \

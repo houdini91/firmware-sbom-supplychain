@@ -48,4 +48,4 @@ The actionable next steps, in execution order. Detail lives in [`DESIGN-REVIEW.m
 - [ ] **D3 · Beyond-CI flash/provision gate; Ratify referrer store; SCITT receipts.** Project-scale.
 
 ## Deprioritized (don't pad)
-More gate rules (diminishing returns — the gate is strong at 17). Don't add rules for coverage's sake.
+More gate rules (diminishing returns — the gate is strong at 18). Don't add rules for coverage's sake.
