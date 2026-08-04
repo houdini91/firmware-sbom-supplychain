@@ -73,11 +73,21 @@ default _byte_integrity_ok := false
 _byte_integrity_ok if {
 	input.byte_integrity.ran
 	input.byte_integrity.checked > 0
+	input.byte_integrity.verified > 0 # non-vacuous: something was actually byte-verified
+	input.byte_integrity.verified == input.byte_integrity.checked # EVERY checked module verified — a skip is not a pass
 	input.byte_integrity.modified_count == 0
 }
 
+# Distinct, honest failure messages. A SKIP (a module that could not be byte-checked —
+# e.g. swapped to a TE/compressed section) must fail the gate, not pass silently: it is
+# an un-verified module, not a clean one.
 default _byte_integrity_msg := "byte-integrity not run (no image + edk2 supplied to the producer)"
 _byte_integrity_msg := sprintf("byte-integrity: %d module(s) MODIFIED — shipped bytes differ from the SBOM's declared hash (possible same-GUID swap)", [input.byte_integrity.modified_count]) if input.byte_integrity.modified_count > 0
+_byte_integrity_msg := sprintf("byte-integrity: %d module(s) UN-VERIFIED (skipped) — not byte-checked; a skip is not a pass (verified %d of %d)", [input.byte_integrity.skipped_count, input.byte_integrity.verified, input.byte_integrity.checked]) if {
+	input.byte_integrity.ran
+	input.byte_integrity.modified_count == 0
+	input.byte_integrity.verified != input.byte_integrity.checked
+}
 
 # SI-7(1), CISA hash field: every hashable (non-library) module carries a hash,
 # except explicit reviewed exemptions (data.hash_exempt). No relaxed threshold —

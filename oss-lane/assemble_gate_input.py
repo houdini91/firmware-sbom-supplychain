@@ -150,8 +150,10 @@ def cve_findings(path):
 
 def byte_integrity_fact(path):
     """R4: fold the byte-integrity producer's verdict into a gate fact. ran=False
-    when no image+edk2 was available to the producer (distinct from a clean run)."""
-    absent = {"ran": False, "checked": 0, "verified": 0, "modified_count": 0}
+    when no image+edk2 was available to the producer (distinct from a clean run).
+    Surfaces skipped_count so the gate can refuse a vacuous pass (all modules
+    skipped / nothing verified) — a skip is NOT a pass."""
+    absent = {"ran": False, "checked": 0, "verified": 0, "modified_count": 0, "skipped_count": 0}
     if not (path and os.path.isfile(path)):
         return absent
     try:
@@ -160,7 +162,9 @@ def byte_integrity_fact(path):
         return absent
     return {"ran": True, "checked": d.get("checked", 0),
             "verified": d.get("byte_verified", 0),
-            "modified_count": len(d.get("modified", []) or [])}
+            "modified_count": len(d.get("modified", []) or []),
+            # skipped OR errored modules are both un-verified (not passes)
+            "skipped_count": len(d.get("skipped", []) or []) + len(d.get("errored", []) or [])}
 
 
 def main():
