@@ -19,8 +19,9 @@ deps: ## Install Python deps (see requirements.txt for the CLI tools)
 	pip install -r requirements.txt
 
 .PHONY: test
-test: ## Gate honesty tests — ALLOW clean, DENY each failure mode (opa+jq)
+test: ## Gate honesty tests (opa+jq) + assembler unit tests (python)
 	bash tests/run.sh
+	python3 tests/test_assemble.py
 
 .PHONY: coverage
 coverage: ## Per-framework, per-control coverage from a fresh signed VSA (opa+python+PyYAML)

@@ -128,8 +128,10 @@ jobs:
             --bundle inputs/vsa.sig.bundle inputs/vsa.intoto.json
           echo "✓ gate verdict signed + verified as a portable SLSA Verification Summary Attestation"
 
-      - name: Fixture honesty tests
-        run: OPA=/usr/local/bin/opa ./tests/run.sh
+      - name: Fixture honesty tests + assembler unit tests
+        run: |
+          OPA=/usr/local/bin/opa ./tests/run.sh
+          python3 tests/test_assemble.py
 
       - name: In-pipeline negative test (F5) — a post-sign tamper must be blocked
         run: OPA=/usr/local/bin/opa ./tests/pipeline-negative.sh
