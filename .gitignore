@@ -38,3 +38,6 @@ inputs/build-tools.sig.bundle
 
 # downloaded tool binary (not source)
 bin/sbom-convert
+
+# FMMT writes a build log into CWD
+FMMT_Build.log
