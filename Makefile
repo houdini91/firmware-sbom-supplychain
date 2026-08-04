@@ -15,8 +15,13 @@ help: ## List targets
 	  | awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
 
 .PHONY: deps
-deps: ## Install Python deps (see requirements.txt for the CLI tools)
+deps: ## Install Python deps (PyYAML) + fetch the pinned tools (opa, SHA-verified)
 	pip install -r requirements.txt
+	bash scripts/fetch-tools.sh
+
+.PHONY: bin
+bin: ## Fetch + SHA-verify the pinned CLI tools (opa) into bin/
+	bash scripts/fetch-tools.sh
 
 .PHONY: test
 test: ## Gate honesty tests (opa+jq) + assembler unit tests (python)
@@ -48,5 +53,5 @@ reconcile: ## Carve a real image + reconcile: make reconcile EDK2=<tree> IMG=<im
 
 .PHONY: clean
 clean: ## Remove generated local artifacts (keys, gate inputs, VSAs)
-	rm -f $(FIX)/gate-input.json $(FIX)/sbom.att.bundle $(VSA) inputs/grype.json
+	rm -f inputs/gate-input.json inputs/sbom.att.bundle inputs/build-tools.cdx.json $(VSA) inputs/grype.json
 	rm -rf oss-lane/.keys

@@ -30,7 +30,7 @@ The actionable next steps, in execution order. Detail lives in [`DESIGN-REVIEW.m
 
 - [ ] **B1 · uSWID #98** — wait for Richard Hughes to engage. *(No action until then.)*
 - [ ] **B2 · edk2 #10507 comment** — post after B1 signal; reference fork PR #6 as the example. Draft ready at
-  `engagement/issue-10507-comment.md`. ⛔ blocked-by B1.
+  `planning/engagement/issue-10507-comment.md`. ⛔ blocked-by B1.
 - [ ] **B3 · CHIPSEC [Ideas] discussion** — evidence-verification `tools/uefi/` module, framed via the
   `reputation.py`/`scan_image.py` precedent (see DESIGN-REVIEW). Reference-first. ⛔ blocked-by A1+A3.
 

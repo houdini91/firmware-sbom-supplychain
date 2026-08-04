@@ -7,7 +7,7 @@ PyYAML>=6.0
 
 # External CLI tools the lanes shell out to are NOT pip-installable — install
 # them via your package manager / release binaries:
-#   opa      (policy gate)            https://www.openpolicyagent.org/docs/latest/#running-opa
+#   opa      (policy gate) — pinned; run `make bin` (scripts/fetch-tools.sh) to fetch + SHA-verify
 #   jq       (fact assembly)          https://jqlang.github.io/jq/
 #   cosign   (keyless sign/verify)    https://docs.sigstore.dev/cosign/installation/
 #   grype    (CVE scan)               https://github.com/anchore/grype

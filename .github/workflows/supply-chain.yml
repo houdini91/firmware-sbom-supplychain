@@ -27,9 +27,10 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
-      - name: Install OPA
+      - name: Install OPA (pinned + SHA-verified)
         run: |
-          curl -fsSL -o /usr/local/bin/opa https://openpolicyagent.org/downloads/latest/opa_linux_amd64_static
+          curl -fsSL -o /usr/local/bin/opa https://openpolicyagent.org/downloads/v1.18.2/opa_linux_amd64_static
+          echo "9903e5125ac281104f2c4b7371d10cc3b74a98933743fcbfc174f9bf0ab20de8  /usr/local/bin/opa" | sha256sum -c -
           chmod +x /usr/local/bin/opa
 
       - uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac # v3
@@ -89,7 +90,7 @@ jobs:
       # verified BEFORE the gate so `build-tools-signed` (SSDF PO.3.2 / S2C2F REB-3) can consume it as a fact.
       - name: Build-tools SBOM (inventory + keyless-sign the CI toolchain)
         run: |
-          ./oss-lane/build-tools-sbom.sh inputs/build-tools.cdx.json
+          ./producers/build-tools/build-tools-sbom.sh inputs/build-tools.cdx.json
           cosign sign-blob --yes --bundle inputs/build-tools.sig.bundle inputs/build-tools.cdx.json
           cosign verify-blob \
             --certificate-identity "$BUILDER_ID" \
