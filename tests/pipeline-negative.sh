@@ -16,7 +16,7 @@ export SOURCE_REPO="${SOURCE_REPO:-$(jq -r '.expected.source_repo' "$ROOT/oss-la
 [ -s "$IN/grype.json" ] || echo '{"matches":[]}' > "$IN/grype.json"
 # E7 build-tools SBOM: produce it so the build-tools-signed gate has a fact to consume; local run
 # can't verify its keyless signature, so DEV_ASSUME_BUILDTOOLS=1 DEV_ASSUME_CHAIN=1 (as in the offline demo).
-[ -f "$IN/build-tools.cdx.json" ] || "$ROOT/oss-lane/build-tools-sbom.sh" "$IN/build-tools.cdx.json" >/dev/null 2>&1
+[ -f "$IN/build-tools.cdx.json" ] || "$ROOT/producers/build-tools/build-tools-sbom.sh" "$IN/build-tools.cdx.json" >/dev/null 2>&1
 fail=0
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT   # private temp dir, cleaned on exit (no world-readable /tmp collisions)
 

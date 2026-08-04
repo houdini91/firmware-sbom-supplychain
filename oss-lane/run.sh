@@ -55,7 +55,7 @@ echo "== 5. build-tools SBOM (inventory the CI toolchain, SHA-pinned) =="
 # E7: inventory the actions/tools that build & verify the SBOM so the build-tools-signed gate
 # (SSDF PO.3.2 / S2C2F REB-3) has a fact to consume. Local key-signing carries no cert identity,
 # so the signature can't be verified here: opt into DEV_ASSUME_BUILDTOOLS (loudly warned).
-"$HERE/build-tools-sbom.sh" "$IN/build-tools.cdx.json"
+"$ROOT/producers/build-tools/build-tools-sbom.sh" "$IN/build-tools.cdx.json"
 
 echo "== 6. assemble gate input from VERIFIED evidence (shared assembler) =="
 # Local key-signing carries no cert identity, so builder_id can't be cryptographically verified here:

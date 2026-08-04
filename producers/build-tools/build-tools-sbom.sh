@@ -8,7 +8,7 @@
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT="$(cd "$HERE/.." && pwd)"
+ROOT="$(cd "$HERE/../.." && pwd)"
 WF="$ROOT/.github/workflows/supply-chain.yml"
 OUT="${1:-$ROOT/inputs/build-tools.cdx.json}"
 

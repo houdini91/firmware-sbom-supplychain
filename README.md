@@ -20,7 +20,7 @@ tool, not a second enforcement point. Honest scope, stated up front.
 
 ```bash
 make deps      # Python deps (PyYAML); see requirements.txt for the CLI tools (opa, jq, cosign, grype)
-make test      # gate honesty tests — ALLOW a clean release, DENY each of the 17 failure modes
+make test      # gate honesty tests — ALLOW a clean release, DENY each failure mode (15 negative fixtures + clean + triaged-allow, exercising all 17 reports)
 make coverage  # per-framework, per-control compliance coverage from a fresh signed VSA
 make demo      # the full OSS lane end to end (needs cosign + grype)
 ```
@@ -48,6 +48,9 @@ Read in this order:
 3. [`FRAMEWORKS.md`](FRAMEWORKS.md) — the honest evidence→control map (exact section numbers; the 17 enforced
    reports over evidence atoms E1–E10).
 4. [`oss-lane/compliance-map.md`](oss-lane/compliance-map.md) — the enforced subset + the two-lane story.
+5. [`oss-lane/README.md`](oss-lane/README.md) — how the enforcing lane fits together (gate, assembler, fixtures).
+6. [`EDK2-DEPENDENCY-RISK.md`](EDK2-DEPENDENCY-RISK.md) — the edk2 vendored-submodule risk map: maintenance /
+   security posture of each dependency and the stale-pin / org-mirror attack surface.
 
 Internal worklog (not product docs): [`DESIGN-REVIEW.md`](planning/DESIGN-REVIEW.md) (architecture review + verdict),
 [`POLICY-EXPANSION.md`](planning/POLICY-EXPANSION.md) (the rule set), [`EVIDENCE-ROADMAP.md`](planning/EVIDENCE-ROADMAP.md)
@@ -147,7 +150,7 @@ keyless-signs its verdict as a **SLSA VSA** (Verification Summary Attestation),
 runs fixture + in-pipeline negative tests, and demonstrates cosign's **native `verify-attestation --policy`**
 over the OCI-stored SBOM. The `valint-lane` job signs + runs compliance keyless (report mode).
 
-Locally the OSS lane runs end-to-end over real OVMF data (310-component SBOM, reconcile clean 123/123 →
+Locally the OSS lane runs end-to-end over real OVMF data (311-component SBOM, reconcile clean 123/123 →
 ALLOW, emitting a signed SLSA VSA; honesty tests block tampered / wrong-builder / critical-CVE /
 swapped-SBOM). Reference/demo,
 defensive use only. Not affiliated with or endorsed by TianoCore.
