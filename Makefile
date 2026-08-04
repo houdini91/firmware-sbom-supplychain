@@ -24,9 +24,10 @@ bin: ## Fetch + SHA-verify the pinned CLI tools (opa) into bin/
 	bash scripts/fetch-tools.sh
 
 .PHONY: test
-test: ## Gate honesty tests (opa+jq) + assembler unit tests (python)
+test: ## Gate honesty tests (opa+jq) + assembler + byte-integrity unit tests (python)
 	bash tests/run.sh
 	python3 tests/test_assemble.py
+	python3 tests/test_byte_integrity.py
 
 .PHONY: coverage
 coverage: ## Per-framework, per-control coverage from a fresh signed VSA (opa+python+PyYAML)
@@ -50,6 +51,11 @@ demo: ## Full OSS lane end to end (needs cosign + grype + opa)
 reconcile: ## Carve a real image + reconcile: make reconcile EDK2=<tree> IMG=<image.fd>
 	@test -n "$(EDK2)" -a -n "$(IMG)" || { echo "usage: make reconcile EDK2=<edk2 tree> IMG=<image.fd>"; exit 2; }
 	EDK2=$(EDK2) bash producers/reconcile/carve.sh $(IMG)
+
+.PHONY: byte-integrity
+byte-integrity: ## Regenerate byte-integrity: make byte-integrity EDK2=<tree> IMG=<image.fd> (needs pefile+FMMT, ~6min)
+	@test -n "$(EDK2)" -a -n "$(IMG)" || { echo "usage: make byte-integrity EDK2=<edk2 tree> IMG=<image.fd>"; exit 2; }
+	python3 producers/reconcile/byte-integrity.py --sbom inputs/sbom.cdx.json --image "$(IMG)" --edk2 "$(EDK2)" -o inputs/byte-integrity.json
 
 .PHONY: clean
 clean: ## Remove generated local artifacts (keys, gate inputs, VSAs)

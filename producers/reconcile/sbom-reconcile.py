@@ -128,12 +128,12 @@ def reconcile(sbom, fmmt_text, image_digest=None):
         "added": added,
         "modified": [],
         "modified_note": (
-            "byte-integrity not asserted. Feasibility-tested: extracting a module's in-FV PE32 and "
-            "rebasing it to 0 does NOT reproduce the declared build-.efi hash even for a DXE driver "
-            "(e.g. AmdSevDxe: in-image 50172c36... vs declared 5fe71c0c...), because the in-image PE "
-            "differs from the build output after FDF-assembly GenFw processing (stripped debug section, "
-            "zeroed timestamp/checksum, alignment). Real integrity needs the SAME canonicalization applied "
-            "to both the declared and observed sides; membership (above) IS checked."
+            "This verdict is membership-granular (which modules are present, by GUID). BYTE-integrity is "
+            "asserted separately by the byte-integrity producer (inputs/byte-integrity.json, R4): each "
+            "module's shipped PE32 bytes are matched to the SBOM's declared SHA-256 — DXE drivers directly, "
+            "XIP/PEI modules via un-rebase canonicalization (subtract the flash load address recorded in the "
+            "relocation table) — 122/122 verified, so a same-GUID swap is caught. The earlier 'needs matched "
+            "canonicalization' finding was the correct diagnosis and is now solved."
         ),
         "modified_skipped": modified_skipped,
         "libraries_transitive": len(declared_lib),

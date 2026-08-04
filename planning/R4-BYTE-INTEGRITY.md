@@ -1,4 +1,79 @@
-# R4 — byte-integrity reconcile (plan)
+# R4 — byte-integrity reconcile (plan + Phase 1 results)
+
+## ✅ Phase 1 — RESULTS (2026-08-04, branch `r4-byte-integrity-phase1`)
+
+**Byte-integrity works for uncompressed DXE drivers with NO canonicalization — and a
+same-GUID trojan is detected.** Tool: [`../producers/reconcile/byte-integrity.py`](../producers/reconcile/byte-integrity.py).
+
+Findings that simplified the plan:
+- The declared side is the SBOM's per-module SHA-256, which is the build's
+  `OUTPUT/<mod>.efi` — **already GenFw-normalized** (`TimeDateStamp=0`, `CheckSum=0`,
+  `ImageBase=0`, verified with pefile). OVMF does **not** rebase DXE drivers in flash
+  (they keep `ImageBase=0` + `.reloc`, relocated at load by the DXE core). So the
+  feared `canon()` (timestamp/checksum/debug/**rebase**) is **unnecessary for this class**.
+- The observed side is the `EFI_SECTION_PE32` (type `0x10`) payload inside the module's
+  FFS in the **deployed `.fd`** (FMMT decompresses the DXEFV; a hand-written FFS/section
+  walker pulls the PE32). The earlier "in-image `50172c36` != declared `5fe71c0c`" note was
+  an **extraction artifact** — it included the 4-byte `EFI_COMMON_SECTION_HEADER` (or hashed
+  the debug image). Corrected: strip the section header and the PE32 payload is exact.
+- **5/5 DXE drivers byte-identical** declared vs extracted-from-deployed-`.fd`
+  (AmdSevDxe, IoMmuDxe, PlatformDxe, VirtioGpuDxe, VirtHstiDxe), and each equals the SBOM's
+  already-declared hash — so integration needs **no new declared-side data**.
+- **Same-GUID trojan detected:** FMMT-replaced AmdSevDxe with a 1-bit-flipped PE32 (same
+  FILE_GUID) → `byte-integrity.py` reports it `MODIFIED` (`5fe71c0c` != `e0d3ec71`), exit 1,
+  while the untouched IoMmuDxe stays verified. Membership reconcile passes this; byte-integrity
+  does not.
+
+**Net:** `modified` is now real for the uncompressed-DXE class.
+
+## ✅ Phase 2 — RESULTS (2026-08-04)
+
+Byte-integrity is now **enforced as an 18th gate report** (`component-byte-integrity`), with honest
+coverage over the whole image:
+
+- Ran over all **122** module components with a GUID + declared hash on the real OVMF.fd:
+  **111 byte-verified · 0 modified · 11 deferred**, `clean=true`.
+- The 11 deferred are **all XIP/rebased PEI-phase modules** (9 PEIM, 1 PEI_CORE, 1 SEC) — classified from the
+  SBOM's `edk2:moduleType` and reported as *needs-canonicalization (phase 3)*, **never as tampered**. This
+  matters: an initial run without the classifier flagged those 11 as `modified` (false positives); the fix is
+  the honest classification, so a clean image is clean.
+- Producer `byte-integrity.py` emits the verdict → `inputs/byte-integrity.json` (committed evidence, like
+  `chipsec.json`). The Python assembler derives `byte_integrity {ran, checked, verified, modified_count}`; the
+  rego `component-byte-integrity` report requires `ran ∧ checked>0 ∧ modified_count==0` (non-vacuous), tagged
+  SI-7(1)/SR-4(3)/S2C2F-AUD-3 and wired into `frameworks.yaml`. Negative fixture `byte-integrity-modified`
+  isolates it. Pipeline (run.sh, CI, pipeline-negative) passes `BYTE_INTEGRITY_JSON`.
+- **Same-GUID trojan, end to end:** the Phase-1 FMMT-swap demo (1-bit-flipped AmdSevDxe under the same
+  FILE_GUID) → `modified_count>0` → the gate DENYs. Membership passes it; byte-integrity + the gate do not.
+
+**Coverage is honest:** 111/122 enforced, 11 XIP deferred with the reason recorded — the SI-7(1) control now
+means *the bytes match*, not merely *a hash is present*.
+
+## ✅ Phase 3 — RESULTS (2026-08-04)
+
+**Full-image byte-integrity: 122/122.** The 11 XIP/PEI modules are now byte-verified via un-rebase
+canonicalization, not deferred.
+
+- The only difference between a declared PEI `.efi` and its in-flash copy is the **rebase**: placing the module
+  at its flash load address `L` adds `L` to every relocation-listed field, and sets `ImageBase = L`. Everything
+  else is identical (confirmed with pefile: same entrypoint, same size, same 65 relocations; only `ImageBase`
+  differs, e.g. `0` vs `0x83dec0`).
+- `canon_unrebase()` (in `byte-integrity.py`, using `pefile`) undoes it: for each base-relocation entry subtract
+  `L` from the target dword/qword, then zero `ImageBase`/`TimeDateStamp`/`CheckSum`. The relocation table lists
+  exactly which bytes were shifted, so this is **exact and reversible** — and a real tamper changes code the
+  relocation table doesn't cover, so it still fails.
+- Verified: all **11** XIP modules (9 PEIM + 1 PEI_CORE + 1 SEC) match their declared hash after un-rebase.
+  Full run over the real OVMF.fd: **checked 122 · verified 122 (111 direct + 11 un-rebase) · 0 modified ·
+  0 skipped · clean**. A same-GUID swap is still caught in every class.
+- Only genuinely different formats remain out of scope: **TE-format** sections and **compressed** sections
+  (none in this image's checkable set). `pefile` added to `requirements.txt`; the gate report and evidence are
+  unchanged in shape (the coverage number simply went to 100%).
+
+**Net:** the reconcile-to-*bytes* claim — the project's central novel control — is now real for the **entire**
+firmware image, with the rebase "crux" solved.
+
+---
+
+## Original plan
 
 **Goal:** turn the reconcile verdict's `modified` field from *always-skipped* into a real
 check for a tractable subset of modules, so the project's central claim — *"the SBOM

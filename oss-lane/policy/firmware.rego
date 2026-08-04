@@ -63,6 +63,32 @@ _reconcile_membership if {
 	input.reconcile.undeclared_observed == 0
 }
 
+# SI-7(1) / SR-4(3): byte-integrity — the shipped PE32 bytes of each CHECKED module
+# match the SBOM's declared hash (not merely "a hash is present"). This is the check
+# that catches a same-GUID trojan (a malicious module swapped in under the same
+# FILE_GUID) that reconcile-membership passes. Non-vacuous: at least one module must
+# have been byte-checked, and none may be modified. Coverage (which classes are
+# byte-checkable) is reported by the producer, not hidden.
+default _byte_integrity_ok := false
+_byte_integrity_ok if {
+	input.byte_integrity.ran
+	input.byte_integrity.checked > 0
+	input.byte_integrity.verified > 0 # non-vacuous: something was actually byte-verified
+	input.byte_integrity.verified == input.byte_integrity.checked # EVERY checked module verified — a skip is not a pass
+	input.byte_integrity.modified_count == 0
+}
+
+# Distinct, honest failure messages. A SKIP (a module that could not be byte-checked —
+# e.g. swapped to a TE/compressed section) must fail the gate, not pass silently: it is
+# an un-verified module, not a clean one.
+default _byte_integrity_msg := "byte-integrity not run (no image + edk2 supplied to the producer)"
+_byte_integrity_msg := sprintf("byte-integrity: %d module(s) MODIFIED — shipped bytes differ from the SBOM's declared hash (possible same-GUID swap)", [input.byte_integrity.modified_count]) if input.byte_integrity.modified_count > 0
+_byte_integrity_msg := sprintf("byte-integrity: %d module(s) UN-VERIFIED (skipped) — not byte-checked; a skip is not a pass (verified %d of %d)", [input.byte_integrity.skipped_count, input.byte_integrity.verified, input.byte_integrity.checked]) if {
+	input.byte_integrity.ran
+	input.byte_integrity.modified_count == 0
+	input.byte_integrity.verified != input.byte_integrity.checked
+}
+
 # SI-7(1), CISA hash field: every hashable (non-library) module carries a hash,
 # except explicit reviewed exemptions (data.hash_exempt). No relaxed threshold —
 # an unhashed, non-exempt module fails the gate.
@@ -228,6 +254,12 @@ verifier_reports := [
 		["SI-7(1)", "CISA-2026-hash"],
 	),
 	_report(
+		"component-byte-integrity", _byte_integrity_ok,
+		"shipped module bytes match the SBOM's declared hash (byte-integrity — detects a same-GUID swap)",
+		_byte_integrity_msg,
+		["SI-7(1)", "SR-4(3)", "S2C2F-AUD-3"],
+	),
+	_report(
 		"vex-adjudicated", _vex_adjudicated,
 		"every high/critical CVE carries a non-empty VEX justification",
 		_vex_msg,
@@ -372,6 +404,8 @@ deny contains _slsa_level_msg if not _slsa_level_floor
 deny contains "evidence chain not bound: SBOM / attestation / provenance subject digests differ" if not _evidence_chain_bound
 
 deny contains _firmware_anchor_msg if not _firmware_anchored
+
+deny contains _byte_integrity_msg if not _byte_integrity_ok
 
 deny contains _signer_msg if not _signer_pinned
 

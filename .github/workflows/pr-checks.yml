@@ -1,0 +1,46 @@
+name: pr-checks
+
+# Fast, self-contained gate on every proposed change — the check the heavier
+# supply-chain.yml (keyless signing, ghcr, attestations; push-to-main only) can't
+# be on a PR. Runs the honesty tests + unit tests + initiative coverage with only
+# opa (pinned+SHA-verified) + python; no network beyond that.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Install OPA (pinned + SHA-verified)
+        run: |
+          curl -fsSL -o /usr/local/bin/opa https://openpolicyagent.org/downloads/v1.18.2/opa_linux_amd64_static
+          echo "9903e5125ac281104f2c4b7371d10cc3b74a98933743fcbfc174f9bf0ab20de8  /usr/local/bin/opa" | sha256sum -c -
+          chmod +x /usr/local/bin/opa
+
+      - name: Python deps
+        run: pip install --quiet pyyaml pefile
+
+      - name: Gate honesty tests + assembler + byte-integrity unit tests
+        run: |
+          OPA=/usr/local/bin/opa ./tests/run.sh
+          python3 tests/test_assemble.py
+          python3 tests/test_byte_integrity.py
+
+      - name: In-pipeline negative test (post-sign tamper must be blocked)
+        run: |
+          # self-skips if no signed bundle is present (bundles are gitignored / built in the heavy workflow)
+          OPA=/usr/local/bin/opa ./tests/pipeline-negative.sh
+
+      - name: Framework coverage from a fresh VSA (initiative layer)
+        run: |
+          VSA_OUT=/tmp/vsa.json OPA=/usr/local/bin/opa ./oss-lane/gate.sh oss-lane/fixtures/clean.json >/dev/null
+          python3 oss-lane/verify-initiative.py --vsa /tmp/vsa.json

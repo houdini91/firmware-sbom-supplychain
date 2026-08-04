@@ -23,6 +23,7 @@ TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT   # private temp dir, cleaned on e
 run_case() { # <name> <sbom-file> <expect allow|deny>
   SBOM="$2" BUNDLE="$BUNDLE" SIG=true GRYPE_JSON="$IN/grype.json" \
     OUT="$TMP/neg-gate.json" DEV_ASSUME_IDENTITY=1 DEV_ASSUME_SLSA=1 CHIPSEC_JSON="$IN/chipsec.json" \
+    BYTE_INTEGRITY_JSON="$IN/byte-integrity.json" \
     BUILD_TOOLS_JSON="$IN/build-tools.cdx.json" DEV_ASSUME_BUILDTOOLS=1 DEV_ASSUME_CHAIN=1 DEV_ASSUME_FWIMAGE=1 \
     bash "$ROOT/oss-lane/assemble-gate-input.sh" >/dev/null 2>&1
   OPA="$OPA" "$ROOT/oss-lane/gate.sh" "$TMP/neg-gate.json" >/dev/null 2>&1; rc=$?

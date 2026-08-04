@@ -148,6 +148,25 @@ def cve_findings(path):
     return sorted(out, key=lambda x: json.dumps(x, sort_keys=True))
 
 
+def byte_integrity_fact(path):
+    """R4: fold the byte-integrity producer's verdict into a gate fact. ran=False
+    when no image+edk2 was available to the producer (distinct from a clean run).
+    Surfaces skipped_count so the gate can refuse a vacuous pass (all modules
+    skipped / nothing verified) — a skip is NOT a pass."""
+    absent = {"ran": False, "checked": 0, "verified": 0, "modified_count": 0, "skipped_count": 0}
+    if not (path and os.path.isfile(path)):
+        return absent
+    try:
+        d = load_json(path)
+    except ValueError:
+        return absent
+    return {"ran": True, "checked": d.get("checked", 0),
+            "verified": d.get("byte_verified", 0),
+            "modified_count": len(d.get("modified", []) or []),
+            # skipped OR errored modules are both un-verified (not passes)
+            "skipped_count": len(d.get("skipped", []) or []) + len(d.get("errored", []) or [])}
+
+
 def main():
     sbom_path = require("SBOM"); bundle_path = require("BUNDLE")
     sig = require("SIG"); out_path = require("OUT")
@@ -243,6 +262,7 @@ def main():
         "firmware": {"sbom_digest": fw_sbom, "reconcile_digest": fw_reconcile, "deployed_digest": fw_deployed},
         "cve": {"findings": cve_findings(env("GRYPE_JSON"))},
         "chipsec": {"critical_passed": chipsec_passed},
+        "byte_integrity": byte_integrity_fact(env("BYTE_INTEGRITY_JSON")),
         "build_tools": {"present": bt["present"], "signature_verified": bt["signature_verified"],
                         "all_pinned": bt["all_pinned"], "unpinned": bt["unpinned"]},
     }
