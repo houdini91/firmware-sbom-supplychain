@@ -70,6 +70,20 @@ else:
     check("canon_unrebase: a 1-byte code tamper still diverges after un-rebase (no false pass)",
           hashlib.sha256(canon_t).hexdigest() != hashlib.sha256(declared).hexdigest())
 
+    # no-reloc path (regression guard): a rebased PEIM with NO relocation table
+    # (StatusCodeHandlerPei, ImageBase 0x8452c0, no .reloc) has no relocations to
+    # reverse, so header-normalization alone must reproduce its declared base-0 hash.
+    # This path previously failed closed (raised) and undercounted byte-integrity.
+    nr_p = os.path.join(HERE, "fixtures", "pe", "statuscodehandlerpei.inflash.pe32")
+    if os.path.isfile(nr_p):
+        nr_inflash = open(nr_p, "rb").read()
+        nr_declared = "9c525cfdf169d508f4fbb6ba8634fe68b3e084eb070e9f411d98a56baaaa5df8"
+        check("canon_unrebase: a rebased no-reloc-table PEIM canonicalizes to its declared base-0 hash",
+              hashlib.sha256(bytes(bi.canon_unrebase(nr_inflash))).hexdigest() == nr_declared)
+        nr_t = bytearray(nr_inflash); nr_t[-64] ^= 0x01
+        check("canon_unrebase: a code tamper in a no-reloc module still diverges (no false pass)",
+              hashlib.sha256(bytes(bi.canon_unrebase(bytes(nr_t)))).hexdigest() != nr_declared)
+
 print("----")
 print("ALL PASS" if ok else "FAILURES")
 sys.exit(0 if ok else 1)

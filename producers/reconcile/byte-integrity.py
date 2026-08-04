@@ -80,19 +80,25 @@ def canon_unrebase(pe_bytes):
     zero ImageBase/TimeDateStamp/CheckSum — so an XIP/PEI module's rebased in-flash
     bytes can be fairly compared to the declared (un-rebased) .efi (R4 phase 3).
     The relocation table records exactly which fields were shifted, so this is
-    exact and reversible. A real tamper changes code the relocations don't cover,
-    so it still fails. Returns canonical bytes, or None if pefile is unavailable."""
+    exact and reversible. A module with NO relocation table has nothing to reverse —
+    rebasing moved only its ImageBase — so header normalization alone canonicalizes
+    it. A real tamper changes code the relocations don't cover, so it still fails.
+    Returns canonical bytes, or None if pefile is unavailable."""
     if pefile is None:
         return None
     pe = pefile.PE(data=pe_bytes, fast_load=True)
     pe.parse_data_directories(directories=[pefile.DIRECTORY_ENTRY['IMAGE_DIRECTORY_ENTRY_BASERELOC']])
     base = pe.OPTIONAL_HEADER.ImageBase
     buf = bytearray(pe.__data__)
-    if base:
-        if not hasattr(pe, "DIRECTORY_ENTRY_BASERELOC"):
-            # rebased (non-zero base) but no relocation table — we cannot faithfully
-            # un-rebase; fail closed rather than emit a wrong (possibly passing) hash.
-            raise ValueError("non-zero ImageBase %#x with no relocation table" % base)
+    # A non-zero ImageBase with NO relocation table means the module has no
+    # relocations at all: being rebased to its flash address changed ONLY the
+    # ImageBase header field, nothing in code/data. Zeroing ImageBase/TimeDateStamp/
+    # CheckSum (below) is therefore the exact, faithful canonicalization — verified:
+    # an in-flash no-reloc PEIM (e.g. StatusCodeHandlerPei rebased to 0x8452c0)
+    # canonicalizes to precisely its declared base-0 hash. A module whose reloc table
+    # was STRIPPED after rebasing would fail to match here — flagged modified, never
+    # a false pass. Only when a reloc table is present is there anything to reverse.
+    if base and hasattr(pe, "DIRECTORY_ENTRY_BASERELOC"):
         for blk in pe.DIRECTORY_ENTRY_BASERELOC:
             for e in blk.entries:
                 if e.type == 0:            # IMAGE_REL_BASED_ABSOLUTE — padding, skip
