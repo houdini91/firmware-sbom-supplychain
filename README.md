@@ -61,7 +61,7 @@ Read in this order:
 1. **[`PRIMER.md`](PRIMER.md)** — start here if you're new to firmware: what this does and why, from scratch.
 2. **README** (this file) — what it is, how to run it.
 3. [`DESIGN.md`](DESIGN.md) — the security / functional / operational design + the upstream-generator rationale.
-4. [`FRAMEWORKS.md`](FRAMEWORKS.md) — the honest evidence→control map (exact section numbers; the 18 enforced
+4. [`FRAMEWORKS.md`](FRAMEWORKS.md) — the evidence→control map (exact section numbers; the 18 enforced
    reports over evidence atoms E1–E10).
 5. [`oss-lane/compliance-map.md`](oss-lane/compliance-map.md) — the enforced subset + the two-lane story.
 6. [`oss-lane/README.md`](oss-lane/README.md) — how the enforcing lane fits together (gate, assembler, fixtures).
@@ -130,7 +130,7 @@ flowchart TB
 
 ### Implementation status
 
-The honest source of truth for what is actually built vs. designed. `DESIGN.md` describes the full intended
+The source of truth for what is actually built vs. designed. `DESIGN.md` describes the full intended
 shape; this table says what exists. ✅ implemented · ⚠️ canned/stubbed · ❌ not built · ⛔ aspirational.
 
 | Stage | Designed | Status |
@@ -227,7 +227,7 @@ ALLOW, emitting a signed SLSA VSA; honesty tests block tampered / wrong-builder 
 swapped-SBOM). Reference/demo,
 defensive use only. Not affiliated with or endorsed by TianoCore.
 
-## Trust model & honest limitations
+## Trust model & limitations
 
 The gate is only as trustworthy as its inputs, so it's worth being explicit about what it does and
 doesn't protect:
