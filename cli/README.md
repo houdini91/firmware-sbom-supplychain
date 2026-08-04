@@ -60,5 +60,4 @@ Exit 0 iff the firmware is **bound** and every **required** framework fully pass
 Discover + fetch signed evidence from an OCI/Rekor reference instead of a local
 file; re-run the carve + reconcile against the supplied image in-process (so the
 tool supplies the anchor's deploy-time leg from bytes it hashed itself, retiring
-the last `DEV_ASSUME` on the consumer path); byte-integrity reconcile once the
-canonicalization problem is solved.
+the last `DEV_ASSUME` on the consumer path); byte-integrity is done (R4) — the producer already matches shipped PE32 bytes to the SBOM via un-rebase canonicalization (122/122).
