@@ -28,6 +28,7 @@ test: ## Gate honesty tests (opa+jq) + assembler + byte-integrity unit tests + c
 	bash tests/run.sh
 	python3 tests/test_assemble.py
 	python3 tests/test_byte_integrity.py
+	python3 tests/test_reconcile.py
 	bash tests/cosign-policy.sh
 
 .PHONY: coverage

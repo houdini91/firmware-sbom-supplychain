@@ -136,6 +136,7 @@ jobs:
           OPA=/usr/local/bin/opa ./tests/run.sh
           python3 tests/test_assemble.py
           python3 tests/test_byte_integrity.py
+          python3 tests/test_reconcile.py
 
       - name: In-pipeline negative test (F5) — a post-sign tamper must be blocked
         run: OPA=/usr/local/bin/opa ./tests/pipeline-negative.sh
