@@ -99,11 +99,13 @@ MATCHED="$(printf '%s' "$PRED" | jq '.summary.validated // 0')"
 MISSING_N="$(printf '%s' "$PRED" | jq '.summary.missing // 0')"
 UNDECLARED="$(printf '%s' "$PRED" | jq '.summary.added_suspicious // 0')"
 # SI-7(1): per-component hash coverage — non-library modules and which lack a hash.
-INTEG="$(jq -c '[.components[]|select(.type!="library")] | {hashable_total:length, hashed:([.[]|select(.hashes)]|length), unhashed:[.[]|select(.hashes|not)|.name]}' "$SBOM")"
+# NB: an empty hashes:[] is NOT "hashed" — require a non-empty array (jq truthiness treats [] as true).
+INTEG="$(jq -c '[.components[]|select(.type!="library")] | {hashable_total:length, hashed:([.[]|select((.hashes|type=="array") and ((.hashes|length)>0))]|length), unhashed:[.[]|select((.hashes|type!="array") or ((.hashes|length)==0))|.name]}' "$SBOM")"
 # CISA License/Software-ID, S2C2F SCA-2: third-party components (marked edk2:vendored)
 # must carry purl + license. First-party edk2 FFS modules lack the marker and are
 # excluded by construction, not by a loosened threshold.
-THIRDPARTY="$(jq -c '[.components[]|select(any(.properties[]?; .name=="edk2:vendored" and .value=="true"))] | {total:length, missing:[.[]|select((.purl|not) or (.licenses|not))|.name]}' "$SBOM")"
+# a component is "missing identity" if purl is absent/empty OR licenses is absent/empty (empty string/array must not pass).
+THIRDPARTY="$(jq -c '[.components[]|select(any(.properties[]?; .name=="edk2:vendored" and .value=="true"))] | {total:length, missing:[.[]|select((.purl|not) or (.purl=="") or (.licenses|not) or ((.licenses|length)==0))|.name]}' "$SBOM")"
 # evidence-chain-bound: the SLSA provenance subject. CI sets PROVENANCE_SUBJECT (the digest
 # gh attestation verify confirmed the provenance covers). The offline demo has no such
 # attestation; DEV_ASSUME_CHAIN=1 binds it to the SBOM digest (warned).
