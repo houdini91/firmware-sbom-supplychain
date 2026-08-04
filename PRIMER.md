@@ -135,6 +135,21 @@ the actual code, which no offset-subtraction can paper over — so it still fail
 
 ---
 
+## The bigger picture — the other checks
+
+Byte-integrity is the headline, but the release gate ANDs **18** signed checks. The three that matter most:
+
+- **Reconcile** — the project's name for the *membership* check above: carve the real image and confirm every
+  declared module is **present** (and that nothing undeclared snuck in). "Are the right parts there?"
+- **Byte-integrity** — "are the parts **genuine**?" (the same-GUID-swap check we just walked through).
+- **CHIPSEC** — a *different* question on a *different* axis: are the **platform's own firmware protections**
+  switched on (BIOS write-protection, Secure-Boot variables, SMM)? This is about the chip's defenses, **not**
+  about matching the ingredients list.
+
+Plus signature + build-provenance (was it built by the expected identity, verifiably?) and a vulnerability
+scan (no un-triaged known CVE ships). All of it becomes **signed evidence**; the gate blocks the release unless
+every check passes, and emits **one signed verdict** carrying the per-control results across six frameworks.
+
 ## Glossary
 
 | Term | Plain meaning |

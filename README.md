@@ -6,40 +6,30 @@
 ![byte-integrity](https://img.shields.io/badge/byte--integrity-122%2F122-3fb950.svg)
 ![gate](https://img.shields.io/badge/gate-18%20signed%20checks-4aa8ff.svg)
 
-> ### Prove a firmware image runs the exact code its signed SBOM declares — and block a same-GUID trojan that signatures and inventories miss.
+> ### Prove that a firmware image runs the exact code its signed bill of materials declares — and block a *same-GUID trojan* that signatures and inventories miss.
 
-An **evidence-centric supply-chain gate** for firmware (OVMF / edk2): every claim about a build becomes signed
-evidence, a policy engine ANDs it into one verdict, and the release is blocked unless the **actual bytes on the
-chip** match the signed bill of materials.
+An **evidence-centric supply-chain gate** for firmware, on the open **OVMF / edk2** UEFI reference target. Every
+claim about a build becomes signed evidence; a policy engine ANDs it into one verdict; the release is blocked
+unless the **executable code that ships in the image** matches the signed **SBOM** (Software Bill of Materials —
+the "ingredients list": every module + its hash). The headline check, **byte-integrity**, catches a
+*same-GUID trojan*: a module whose code was swapped but whose ID (`FILE_GUID`) was kept — so it passes an
+inventory check, but not a byte check.
 
-`18 signed checks → one gate` &nbsp;·&nbsp; `122 / 122 modules byte-verified` &nbsp;·&nbsp; `6 frameworks, per-control` &nbsp;·&nbsp; `a signed verdict anyone can re-check`
+> **New to firmware, SBOMs, or GUIDs?** → **[PRIMER.md](PRIMER.md)** explains it all from scratch (~2 min).
+> **See it run:** [**docs/DEMO.md**](docs/DEMO.md) (real gate + CLI output). **Visual walkthroughs:**
+> [showcase](docs/showcase.html) · [byte-integrity explainer](docs/byte-integrity.html) (open in a browser).
 
-> 🖼 **Prefer a visual?** A 2-minute [**plain-language primer (PRIMER.md)**](PRIMER.md) explains it from scratch;
-> a hosted **[solution showcase](https://claude.ai/code/artifact/008ea1c6-9058-43ad-b5f1-f99139f8cfce)** and a
-> [**byte-integrity explainer**](https://claude.ai/code/artifact/b4fd79dd-f3aa-4848-82a8-133942401f69) walk the
-> whole thing with graphics. &nbsp;▶ **[See real output (docs/DEMO.md)](docs/DEMO.md)** — the gate ALLOW/DENY, the
-> same-GUID-trojan block, and the consumer scorecard.
+`18 signed checks → one gate` &nbsp;·&nbsp; `122 of 123 modules byte-verified` &nbsp;·&nbsp; `6 frameworks, per-control` &nbsp;·&nbsp; `a portable signed verdict (OSCAL / RATS)`
 
----
+**See it run** — the gate blocks a same-GUID swap that an inventory (membership) check waves through:
 
-Shown **two ways over the same evidence**:
+```text
+✅ ALLOW  clean release          — 18/18 signed checks pass → signed verdict: PASSED
+⛔ DENY   same-GUID swap          — component-byte-integrity: 1 module MODIFIED (shipped bytes ≠ declared hash)
+```
 
-- an **OSS lane** — `cosign` + Open Policy Agent (reproducible today with community-standard tools), and
-- a **Valint lane** — signing + compliance policy with [Valint], the supply-chain evidence/policy tool.
-
-Same firmware, same signed evidence. The **OSS lane is the hard gate** — a policy violation fails the run.
-The **Valint lane runs the same compliance intent keyless** (via its rule/initiative bundles) but currently
-in **report mode** (non-blocking), so it demonstrates the same evidence being checked by an independent
-tool, not a second enforcement point. Honest scope, stated up front.
-
-> **In plain language:** this project builds a signed "ingredients list" (an **SBOM**) for a firmware image,
-> then *proves* the shipped chip really contains those exact bytes — and blocks the release if it doesn't.
->
-> **New to firmware? Start with [PRIMER.md](PRIMER.md)** — it explains everything from scratch.
-
-> **Design & rationale:** [`DESIGN.md`](DESIGN.md) — a discussion-framed write-up of the security /
-> functional / operational design and the who-does-what boundary, written to double as the note that would
-> attach to the upstream generator discussion (edk2 #10507). A proposal to open a conversation, not a mandate.
+> **Design & rationale:** [`DESIGN.md`](DESIGN.md) — the security / functional / operational design and the
+> who-does-what boundary, doubling as the note for the upstream edk2 generator discussion (#10507).
 
 ## Quickstart
 
@@ -104,19 +94,26 @@ gate → deploy`.
 
 ## Three checks, three questions
 
-Many checks run, but three are the heart of *"does the firmware match its bill of materials?"* — and each
-answers a **different question at a different level**:
+Three checks are the core of trusting a firmware image. **Two ask "does the firmware match its bill of
+materials?"** (reconcile, byte-integrity); the **third asks a different question entirely** — "are the
+platform's own defenses switched on?" (CHIPSEC). Different questions, different levels:
 
 | Check | Question it answers | Level | Catches |
 |---|---|---|---|
-| **Reconcile** (membership) | Are all the declared modules actually **present**? | composition — by module ID (GUID) | a missing module, or an **undeclared** one that shouldn't be there |
-| **Byte-integrity** | Do the shipped module **bytes** match the declared hash? | content — per module, byte-for-byte | a **same-GUID trojan**: same ID, swapped code |
-| **CHIPSEC** (platform posture) | Are the platform's firmware **protections** switched on? | platform config — the chip's defenses | BIOS write-protect / SPI-lock / SMM / Secure-Boot **misconfiguration** |
+| **Reconcile** (membership) | Are all the declared modules actually **present**? | composition — by module ID (`FILE_GUID`) | a missing module, or an **undeclared** one that shouldn't be there |
+| **Byte-integrity** | Do each module's shipped **code bytes** match the declared hash? | content — the executable (PE32) of every module | a **same-GUID trojan**: same ID, swapped code |
+| **CHIPSEC** (platform posture) | Are the platform's firmware **protections** switched on? | platform config — not about the modules at all | BIOS-write-protect / SMM / Secure-Boot-variable **misconfiguration** |
 
 Three complementary layers: **the right parts are present** (reconcile), **the parts are genuine**
-(byte-integrity), and **the chip's defenses are on** (CHIPSEC). Membership alone is fooled by a same-GUID swap;
-byte-integrity catches it. Each maps to specific controls — e.g. byte-integrity → NIST `SI-7(1)`/`SR-4(3)`,
-CHIPSEC → `SP 800-193 §4.2`/`SP 800-147` — carried per-control in the signed verdict.
+(byte-integrity), and — separately — **the platform's defenses are on** (CHIPSEC). Membership alone is fooled by
+a same-GUID swap; byte-integrity catches it. Each maps to specific controls (byte-integrity → NIST
+`SI-7(1)`/`SR-4(3)`; CHIPSEC → `SP 800-193 §4.2`), carried per-control in the signed verdict.
+
+> **Honest scope.** Byte-integrity covers each module's **PE32 executable code** — 122 of the 123 modules
+> (`ResetVector`, a raw reset blob, is the one non-PE32 skip); it does not yet cover a module's DEPEX/other
+> sections, or TE/compressed sections. CHIPSEC on the **QEMU/OVMF** target runs the config checks that apply
+> there (`bios_wp`, `secureboot.variables`, `smm`); hardware-root checks (SPI-lock, SMRR…) report **N/A**, not
+> pass — assessed, not asserted.
 
 ```mermaid
 flowchart TB
