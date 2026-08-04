@@ -62,7 +62,14 @@ def load_sbom_hashes(sbom_path):
                 mtype = p.get("value", "")
         for h in c.get("hashes", []) or []:
             if h.get("alg") == "SHA-256" and h.get("content"):
-                out[ref] = (c.get("name"), h["content"].lower(), mtype)
+                digest = h["content"].lower()
+                # F6 guard: two components sharing a FILE_GUID collapse in a GUID-keyed
+                # map. Harmless when they declare the same hash; if they differ, one
+                # would be silently unchecked — warn loudly rather than mask it.
+                if ref in out and out[ref][1] != digest:
+                    sys.stderr.write("  ⚠ duplicate FILE_GUID %s with differing hashes (%s / %s) — "
+                                     "only one instance is byte-checked\n" % (ref, out[ref][1][:12], digest[:12]))
+                out[ref] = (c.get("name"), digest, mtype)
     return out
 
 

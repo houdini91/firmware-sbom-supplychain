@@ -18,7 +18,8 @@ POLICY="$HERE/policy"
 INPUT="${1:?usage: gate.sh <gate-input.json>}"
 VSA_OUT="${VSA_OUT:-}"   # optional: path to write the VSA in-toto statement
 
-[ -x "$OPA" ] || { echo "opa not found at $OPA" >&2; exit 2; }
+[ -x "$OPA" ] || { echo "opa not found at $OPA (run: make bin)" >&2; exit 2; }
+command -v jq >/dev/null 2>&1 || { echo "jq not found on PATH — required (https://jqlang.github.io/jq/)" >&2; exit 2; }
 
 # load only the deploy policy + its data (NOT the whole dir — testdata/ and other packages would collide)
 result="$("$OPA" eval -I -f json \
