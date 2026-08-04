@@ -37,6 +37,8 @@ expect untrusted-signer.json  deny
 expect firmware-digest-mismatch.json deny
 expect byte-integrity-modified.json deny
 expect byte-integrity-vacuous.json deny
+expect binary-hardening-missing-nx.json deny
+expect binary-hardening-vacuous.json deny
 echo "================================"
 [ "$fail" -eq 0 ] && echo "ALL PASS" || echo "FAILURES"
 exit $fail

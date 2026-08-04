@@ -167,6 +167,26 @@ def byte_integrity_fact(path):
             "skipped_count": len(d.get("skipped", []) or []) + len(d.get("errored", []) or [])}
 
 
+def binary_hardening_fact(path):
+    """R8: fold the binary-hardening producer's verdict into a gate fact. ran=False
+    when no image+edk2 was available (distinct from a clean run). Surfaces the
+    DXE-class NX-compat coverage so the gate can refuse a vacuous pass (no DXE-class
+    module examined) — an unexamined image is NOT a hardened one."""
+    absent = {"ran": False, "dxe_class_checked": 0, "dxe_nx_compat": 0,
+              "missing_nx_count": 0, "errored_count": 0}
+    if not (path and os.path.isfile(path)):
+        return absent
+    try:
+        d = load_json(path)
+    except ValueError:
+        return absent
+    return {"ran": True,
+            "dxe_class_checked": d.get("dxe_class_checked", 0),
+            "dxe_nx_compat": d.get("dxe_nx_compat", 0),
+            "missing_nx_count": len(d.get("dxe_missing_nx", []) or []),
+            "errored_count": len(d.get("errored", []) or [])}
+
+
 def main():
     sbom_path = require("SBOM"); bundle_path = require("BUNDLE")
     sig = require("SIG"); out_path = require("OUT")
@@ -263,6 +283,7 @@ def main():
         "cve": {"findings": cve_findings(env("GRYPE_JSON"))},
         "chipsec": {"critical_passed": chipsec_passed},
         "byte_integrity": byte_integrity_fact(env("BYTE_INTEGRITY_JSON")),
+        "binary_hardening": binary_hardening_fact(env("BINARY_HARDENING_JSON")),
         "build_tools": {"present": bt["present"], "signature_verified": bt["signature_verified"],
                         "all_pinned": bt["all_pinned"], "unpinned": bt["unpinned"]},
     }

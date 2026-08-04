@@ -46,6 +46,9 @@ initiatives:
       - id: PW.4.4
         name: "Verify third-party components"
         satisfied_by: [thirdparty-identifiers, cve-triage]
+      - id: PW.6.2
+        name: "Enable build/link hardening features (NX/DEP-compatible executables)"
+        satisfied_by: [binary-hardening]
       - id: RV.1.1
         name: "Ongoing vulnerability discovery + triage"
         satisfied_by: [cve-triage, vex-adjudicated]
@@ -63,6 +66,9 @@ initiatives:
       - id: SI-7(15)
         name: "Code authentication by a trusted signer"
         satisfied_by: [signer-identity-pinned]
+      - id: SI-16
+        name: "Memory protection — W^X-ready modules (declared NX_COMPAT posture)"
+        satisfied_by: [binary-hardening]
       - id: CM-8(3)
         name: "Unauthorized-component detection"
         satisfied_by: [reconcile-membership]

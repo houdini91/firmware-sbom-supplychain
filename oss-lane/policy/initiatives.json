@@ -71,6 +71,13 @@
           ]
         },
         {
+          "id": "PW.6.2",
+          "name": "Enable build/link hardening features (NX/DEP-compatible executables)",
+          "satisfied_by": [
+            "binary-hardening"
+          ]
+        },
+        {
           "id": "RV.1.1",
           "name": "Ongoing vulnerability discovery + triage",
           "satisfied_by": [
@@ -105,6 +112,13 @@
           "name": "Code authentication by a trusted signer",
           "satisfied_by": [
             "signer-identity-pinned"
+          ]
+        },
+        {
+          "id": "SI-16",
+          "name": "Memory protection \u2014 W^X-ready modules (declared NX_COMPAT posture)",
+          "satisfied_by": [
+            "binary-hardening"
           ]
         },
         {

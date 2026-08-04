@@ -56,6 +56,23 @@ check("build_tools: latest/unversioned+unhashed are unpinned",
 check("dflt: null->default, 0 stays, absent->default",
       a.dflt({"a": None}, "a", 1) == 1 and a.dflt({"a": 0}, "a", 1) == 0 and a.dflt({}, "b", 5) == 5)
 
+# binary_hardening (R8): absent file -> ran=False (distinct from a clean run)
+bh_absent = a.binary_hardening_fact("")
+check("binary_hardening: no file -> ran=False, not a pass",
+      bh_absent["ran"] is False and bh_absent["dxe_class_checked"] == 0)
+
+# binary_hardening: real verdict shape -> derived counts (missing_nx from dxe_missing_nx length)
+import json as _json  # noqa: E402
+import tempfile as _tempfile  # noqa: E402
+_fd, _p = _tempfile.mkstemp(suffix=".json")
+with os.fdopen(_fd, "w") as _f:
+    _json.dump({"dxe_class_checked": 106, "dxe_nx_compat": 104,
+                "dxe_missing_nx": [{"name": "A"}, {"name": "B"}], "errored": [{"name": "C"}]}, _f)
+bh = a.binary_hardening_fact(_p)
+os.unlink(_p)
+check("binary_hardening: derives missing_nx_count + errored_count from lists",
+      bh["ran"] and bh["dxe_class_checked"] == 106 and bh["missing_nx_count"] == 2 and bh["errored_count"] == 1)
+
 print("----")
 print("ALL PASS" if ok else "FAILURES")
 sys.exit(0 if ok else 1)

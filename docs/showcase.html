@@ -129,7 +129,7 @@
     engine ANDs it into one verdict. The release is <strong>blocked unless the executable code of every module
     matches the signed bill of materials</strong> — catching a same-GUID trojan that signatures and inventories miss.</div>
   <div class="stats reveal">
-    <div class="stat"><div class="n acc">18</div><div class="l">signed checks, one gate</div></div>
+    <div class="stat"><div class="n acc">19</div><div class="l">signed checks, one gate</div></div>
     <div class="stat"><div class="n ok">122 / 123</div><div class="l">modules' code byte-verified</div></div>
     <div class="stat"><div class="n ok">1 bit</div><div class="l">is enough to block a swap</div></div>
     <div class="stat"><div class="n acc">6</div><div class="l">frameworks, per-control</div></div>
@@ -180,7 +180,7 @@
     <div class="ar">→</div>
     <div class="gatebox">
       <div class="t">OPA gate</div>
-      <div class="s">18 verifier reports<br/>AND → allow / deny</div>
+      <div class="s">19 verifier reports<br/>AND → allow / deny</div>
     </div>
     <div class="ar">→</div>
     <div class="vsa">
@@ -209,7 +209,7 @@
     <div class="ec star"><div class="nm">③ CHIPSEC <span class="badge">platform</span></div>
       <p><strong>Are the chip's defenses on?</strong> Assess platform-firmware protections on the target.</p>
       <p style="color:var(--mut);font-size:12.5px;margin-top:8px">catches BIOS-write-protect / SMM / Secure-Boot <b>misconfiguration</b> on the target. SPI-lock &amp; SMRR need real silicon — they report <b>N/A</b>, not pass.</p>
-      <div class="rep">chipsec-posture → SP 800-193 §4.2 · SP 800-147</div></div>
+      <div class="rep">chipsec-posture → SP 800-193 §4.2 · SP 800-147 (write-protect)</div></div>
   </div>
   <div class="modelnote" style="margin-top:22px">the right parts are <b>present</b> (reconcile) · the parts are
     <b>genuine</b> (byte-integrity) · the chip's defenses are <b>on</b> (CHIPSEC) — three complementary layers, one gate</div>
@@ -217,7 +217,7 @@
 
 <section id="evidence"><div class="wrap">
   <div class="kicker">The evidence lanes</div>
-  <h2>Eight kinds of evidence, each with its own gate check</h2>
+  <h2>Nine kinds of evidence, each with its own gate check</h2>
   <p class="lede">Every lane answers a different question about the release. Two are highlighted — they're where
     this project goes past the standard stack.</p>
   <div class="grid">
@@ -226,7 +226,8 @@
     <div class="ec"><div class="nm">Signature</div><p>Keyless signer identity extracted from the cert, not trusted from env.</p><div class="rep">attestation-signature · signer-identity-pinned</div></div>
     <div class="ec"><div class="nm">Reconcile</div><p>Carve the real image; confirm every declared module is present.</p><div class="rep">reconcile · reconcile-membership</div></div>
     <div class="ec star"><div class="nm">Byte-integrity <span class="badge">novel</span></div><p>Each module's shipped PE32 (executable) bytes match the declared hash — a same-GUID swap is caught (122/123 code modules).</p><div class="rep">component-byte-integrity</div><div class="rep" style="color:var(--mut)">→ NIST SI-7(1) · SR-4(3) · S2C2F AUD-3</div></div>
-    <div class="ec star"><div class="nm">CHIPSEC posture <span class="badge">platform</span></div><p>Platform-firmware protections assessed on the target (config-level, honest about N/A on QEMU).</p><div class="rep">chipsec-posture</div><div class="rep" style="color:var(--mut)">→ SP 800-193 §4.2 · SP 800-147</div></div>
+    <div class="ec star"><div class="nm">CHIPSEC posture <span class="badge">platform</span></div><p>Platform-firmware protections assessed on the target (config-level, honest about N/A on QEMU).</p><div class="rep">chipsec-posture</div><div class="rep" style="color:var(--mut)">→ SP 800-193 §4.2 · SP 800-147 (write-protect)</div></div>
+    <div class="ec"><div class="nm">Binary-hardening</div><p>Each shipped module's declared mitigation posture — all 106 DXE-class modules are NX_COMPAT (W^X-ready). ASLR/CFG reported honestly as absent.</p><div class="rep">binary-hardening</div><div class="rep" style="color:var(--mut)">→ SP 800-53 SI-16 · SSDF PW.6.2</div></div>
     <div class="ec"><div class="nm">CVE + VEX</div><p>No un-triaged critical vulnerability ships; every high/critical carries a justification.</p><div class="rep">cve-triage · vex-adjudicated</div></div>
     <div class="ec"><div class="nm">Build-tools</div><p>The CI toolchain itself is inventoried, SHA-pinned, and signed.</p><div class="rep">build-tools-signed</div></div>
     <div class="ec"><div class="nm">Firmware anchor</div><p>Ties the whole evidence set to the deployed <code>.fd</code> bytes, not a detached JSON.</p><div class="rep">firmware-digest-anchor</div></div>
@@ -285,7 +286,7 @@
   <h2>What's enforced, what's evidence, what's next</h2>
   <div class="scope">
     <div class="sc en"><h4>ENFORCED — hard-blocks a release</h4>
-      <ul><li>18 signed checks incl. byte-integrity + CHIPSEC posture</li><li>SLSA L2 provenance (CI hard-gate)</li><li>membership + byte-level integrity, 122/123 code modules</li></ul></div>
+      <ul><li>19 signed checks incl. byte-integrity + CHIPSEC + binary-hardening</li><li>SLSA L2 provenance — GitHub-generated, verified in CI (<code>gh attestation verify</code>); L2 = platform-generated, not third-party-audited</li><li>membership + byte-level integrity, 122/123 code modules</li></ul></div>
     <div class="sc ev"><h4>EVIDENCE — produced, mapped</h4>
       <ul><li>SAST (CodeQL), OpenSSF Scorecard</li><li>CDX↔SPDX / coSWID interop</li><li>controls satisfiable but not yet a gate rule</li></ul></div>
     <div class="sc pl"><h4>OUT OF SCOPE — named, not hidden</h4>

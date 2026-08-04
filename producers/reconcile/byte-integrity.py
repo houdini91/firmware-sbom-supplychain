@@ -29,9 +29,11 @@ import hashlib
 import json
 import os
 import struct
-import subprocess
 import sys
 import tempfile
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from ffs import pe32_from_ffs, fmmt_extract  # noqa: E402 — shared FFS/PE carving (see ffs.py)
 
 try:
     import pefile  # only needed for XIP/PEI un-rebase canonicalization (phase 3)
@@ -71,40 +73,6 @@ def load_sbom_hashes(sbom_path):
                                      "only one instance is byte-checked\n" % (ref, out[ref][1][:12], digest[:12]))
                 out[ref] = (c.get("name"), digest, mtype)
     return out
-
-
-def pe32_from_ffs(ffs):
-    """Return the PE32 (section type 0x10) payload bytes from an FFS blob, or None.
-    FFS header is 24 bytes (EFI_FFS_FILE_HEADER), or 32 bytes when the
-    FFS_ATTRIB_LARGE_FILE bit (0x01) is set (EFI_FFS_FILE_HEADER2 adds an 8-byte
-    ExtendedSize). Sections are 4-byte-aligned with a 4-byte common header
-    (3-byte size + 1-byte type), or an 8-byte header when size==0xFFFFFF."""
-    if len(ffs) < 24:
-        return None
-    off = 32 if (ffs[0x13] & 0x01) else 24   # ffs[0x13] = Attributes; bit0 = LARGE_FILE
-    while off + 4 <= len(ffs):
-        size = ffs[off] | (ffs[off + 1] << 8) | (ffs[off + 2] << 16)
-        stype = ffs[off + 3]
-        shdr = 4
-        if size == 0xFFFFFF:
-            size = struct.unpack_from("<I", ffs, off + 4)[0]
-            shdr = 8
-        if size < shdr or off + size > len(ffs):
-            break
-        if stype == 0x10:  # EFI_SECTION_PE32
-            return ffs[off + shdr: off + size]
-        off = (off + size + 3) & ~3
-    return None
-
-
-def fmmt_extract(fmmt_py, edk2, image, guid, dst):
-    """FMMT -e image guid dst  -> extracted FFS at dst (decompresses FVs)."""
-    env = dict(os.environ,
-               PYTHONPATH=os.path.join(edk2, "BaseTools", "Source", "Python"),
-               PATH=os.path.join(edk2, "BaseTools", "Source", "C", "bin") + os.pathsep + os.environ.get("PATH", ""))
-    r = subprocess.run([sys.executable, fmmt_py, "-e", image, guid, dst],
-                       env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    return r.returncode == 0 and os.path.isfile(dst) and os.path.getsize(dst) > 0
 
 
 def canon_unrebase(pe_bytes):

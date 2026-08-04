@@ -89,6 +89,34 @@ _byte_integrity_msg := sprintf("byte-integrity: %d module(s) UN-VERIFIED (skippe
 	input.byte_integrity.verified != input.byte_integrity.checked
 }
 
+# R8 binary-hardening: every DXE-class module the image-protection policy governs
+# declares NX_COMPAT (so W^X can be enforced on it). Non-vacuous — requires at least
+# one DXE-class module actually examined; an un-scanned image is not a hardened one.
+# Scope note: this asserts the DECLARED header posture, not runtime enforcement (see
+# producers/reconcile/binary-hardening.py). ASLR/CFG are reported but NOT required —
+# edk2 does not randomize load addresses, so requiring DYNAMIC_BASE would be wrong.
+default _binary_hardening_ok := false
+_binary_hardening_ok if {
+	input.binary_hardening.ran
+	input.binary_hardening.dxe_class_checked > 0 # non-vacuous: DXE-class modules were examined
+	input.binary_hardening.missing_nx_count == 0 # every DXE-class module is NX-compatible
+	input.binary_hardening.errored_count == 0
+}
+
+default _binary_hardening_msg := "binary-hardening not run (no image + edk2 supplied to the producer)"
+_binary_hardening_msg := sprintf("binary-hardening: %d DXE-class module(s) NOT NX-compatible — W^X cannot be enforced on them", [input.binary_hardening.missing_nx_count]) if input.binary_hardening.missing_nx_count > 0
+_binary_hardening_msg := "binary-hardening: no DXE-class module examined — a vacuous scan is not a hardened image" if {
+	input.binary_hardening.ran
+	input.binary_hardening.missing_nx_count == 0
+	input.binary_hardening.dxe_class_checked == 0
+}
+_binary_hardening_msg := sprintf("binary-hardening: %d module(s) errored during scan — not assessed", [input.binary_hardening.errored_count]) if {
+	input.binary_hardening.ran
+	input.binary_hardening.missing_nx_count == 0
+	input.binary_hardening.dxe_class_checked > 0
+	input.binary_hardening.errored_count > 0
+}
+
 # SI-7(1), CISA hash field: every hashable (non-library) module carries a hash,
 # except explicit reviewed exemptions (data.hash_exempt). No relaxed threshold —
 # an unhashed, non-exempt module fails the gate.
@@ -235,11 +263,14 @@ verifier_reports := [
 		"SLSA L2 provenance not verified (needs attest-build-provenance + gh attestation verify)",
 		["SLSA-provenance-L2", "SSDF-PO.3.3"],
 	),
+	# SP800-147 is anchored on the BIOS write-protection pillar (CHIPSEC bios_wp), which
+	# is what actually runs on the QEMU target — NOT the authenticated-update pillar,
+	# which this lane does not assess. SP800-193-4.2 is the platform-resiliency mapping.
 	_report(
 		"chipsec-posture", _chipsec_posture,
 		"platform protections verified (CHIPSEC: applicable critical modules passed)",
 		"platform protections not verified (CHIPSEC: a critical module failed, or none ran)",
-		["SP800-193-4.2", "SP800-147"],
+		["SP800-193-4.2", "SP800-147-write-protect"],
 	),
 	_report(
 		"reconcile-membership", _reconcile_membership,
@@ -258,6 +289,12 @@ verifier_reports := [
 		"shipped module bytes match the SBOM's declared hash (byte-integrity — detects a same-GUID swap)",
 		_byte_integrity_msg,
 		["SI-7(1)", "SR-4(3)", "S2C2F-AUD-3"],
+	),
+	_report(
+		"binary-hardening", _binary_hardening_ok,
+		"every DXE-class module declares NX_COMPAT (W^X-ready; declared-posture evidence, not runtime enforcement)",
+		_binary_hardening_msg,
+		["SI-16", "SSDF-PW.6.2"],
 	),
 	_report(
 		"vex-adjudicated", _vex_adjudicated,
@@ -406,6 +443,8 @@ deny contains "evidence chain not bound: SBOM / attestation / provenance subject
 deny contains _firmware_anchor_msg if not _firmware_anchored
 
 deny contains _byte_integrity_msg if not _byte_integrity_ok
+
+deny contains _binary_hardening_msg if not _binary_hardening_ok
 
 deny contains _signer_msg if not _signer_pinned
 

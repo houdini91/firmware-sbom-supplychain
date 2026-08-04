@@ -3,8 +3,8 @@
 [![pr-checks](https://github.com/houdini91/firmware-sbom-supplychain/actions/workflows/pr-checks.yml/badge.svg)](https://github.com/houdini91/firmware-sbom-supplychain/actions/workflows/pr-checks.yml)
 ![license](https://img.shields.io/badge/license-MIT-blue.svg)
 ![release](https://img.shields.io/badge/release-v0.1.0-3ddbd9.svg)
-![byte-integrity](https://img.shields.io/badge/byte--integrity-122%2F122-3fb950.svg)
-![gate](https://img.shields.io/badge/gate-18%20signed%20checks-4aa8ff.svg)
+![byte-integrity](https://img.shields.io/badge/byte--integrity-122%2F123-3fb950.svg)
+![gate](https://img.shields.io/badge/gate-19%20signed%20checks-4aa8ff.svg)
 
 > ### Prove that a firmware image runs the exact code its signed bill of materials declares — and block a *same-GUID trojan* that signatures and inventories miss.
 
@@ -19,12 +19,12 @@ inventory check, but not a byte check.
 > **See it run:** [**docs/DEMO.md**](docs/DEMO.md) (real gate + CLI output). **Visual walkthroughs:**
 > [showcase](docs/showcase.html) · [byte-integrity explainer](docs/byte-integrity.html) (open in a browser).
 
-`18 signed checks → one gate` &nbsp;·&nbsp; `122 of 123 modules byte-verified` &nbsp;·&nbsp; `6 frameworks, per-control` &nbsp;·&nbsp; `a portable signed verdict (OSCAL / RATS)`
+`19 signed checks → one gate` &nbsp;·&nbsp; `122 of 123 modules byte-verified` &nbsp;·&nbsp; `6 frameworks, per-control` &nbsp;·&nbsp; `a portable signed verdict (OSCAL / RATS)`
 
 **See it run** — the gate blocks a same-GUID swap that an inventory (membership) check waves through:
 
 ```text
-✅ ALLOW  clean release          — 18/18 signed checks pass → signed verdict: PASSED
+✅ ALLOW  clean release          — 19/19 signed checks pass → signed verdict: PASSED
 ⛔ DENY   same-GUID swap          — component-byte-integrity: 1 module MODIFIED (shipped bytes ≠ declared hash)
 ```
 
@@ -35,13 +35,13 @@ inventory check, but not a byte check.
 
 ```bash
 make deps      # Python deps (PyYAML); see requirements.txt for the CLI tools (opa, jq, cosign, grype)
-make test      # gate honesty tests — ALLOW a clean release, DENY each failure mode (16 negative fixtures + clean + triaged-allow, exercising all 18 reports)
+make test      # gate honesty tests — ALLOW a clean release, DENY each failure mode (19 negative fixtures + clean + triaged-allow, exercising all 19 reports)
 make coverage  # per-framework, per-control compliance coverage from a fresh signed VSA
 make demo      # the full OSS lane end to end (needs cosign + grype)
 ```
 
 `make test` and `make coverage` are self-contained (opa + jq + python3/PyYAML). The gate itself is
-[`oss-lane/policy/firmware.rego`](oss-lane/policy/firmware.rego) — **18 verifier reports** ANDed into a signed
+[`oss-lane/policy/firmware.rego`](oss-lane/policy/firmware.rego) — **19 verifier reports** ANDed into a signed
 SLSA VSA, each with an isolating negative fixture under [`oss-lane/fixtures/`](oss-lane/fixtures).
 
 **Consumer side** — run the gate on *your own* firmware:
@@ -121,7 +121,7 @@ flowchart TB
     FW --> R["① Reconcile — <b>composition</b><br/>are the declared modules present?"]
     FW --> B["② Byte-integrity — <b>content</b><br/>do the shipped bytes match the SBOM?"]
     FW --> C["③ CHIPSEC — <b>platform</b><br/>are the firmware protections enabled?"]
-    R --> G{"Policy gate<br/>(18 signed checks)"}
+    R --> G{"Policy gate<br/>(19 signed checks)"}
     B --> G
     C --> G
     G -->|all pass| OK["✅ signed verdict → deploy"]

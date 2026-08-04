@@ -57,5 +57,12 @@
     "verified": 10,
     "modified_count": 0,
     "skipped_count": 0
+  },
+  "binary_hardening": {
+    "ran": true,
+    "dxe_class_checked": 122,
+    "dxe_nx_compat": 122,
+    "missing_nx_count": 0,
+    "errored_count": 0
   }
 }
