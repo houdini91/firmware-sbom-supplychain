@@ -1,0 +1,12 @@
+{
+  "tool": "byte-integrity",
+  "granularity": "module/PE32-bytes",
+  "checked": 122,
+  "byte_verified": 122,
+  "verified_direct": 111,
+  "verified_unrebase": 11,
+  "modified": [],
+  "skipped": [],
+  "clean": true,
+  "errored": []
+}

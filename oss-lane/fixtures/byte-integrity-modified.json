@@ -4,10 +4,9 @@
     "hash": "sha256:3b1f0a9c8e2d4b6a7c5e9f01234567890abcdef1122334455667788990011aabb",
     "integrity": {
       "hashable_total": 123,
-      "hashed": 121,
+      "hashed": 122,
       "unhashed": [
-        "ResetVector",
-        "SomeDxe"
+        "ResetVector"
       ]
     },
     "thirdparty": {
@@ -59,8 +58,8 @@
   "byte_integrity": {
     "ran": true,
     "checked": 10,
-    "verified": 10,
-    "modified_count": 0,
+    "verified": 9,
+    "modified_count": 1,
     "skipped_count": 0
   }
 }

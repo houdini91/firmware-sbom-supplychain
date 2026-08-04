@@ -7,7 +7,7 @@ reviews. Verdict-first, then the prioritized plan. Companion to [`FRAMEWORKS.md`
 ## Verdict
 
 **The engine is strong; the packaging and the anchoring are the gaps.** What's already good and worth keeping:
-the **enforcement** (17 OPA verifier reports → a signed SLSA VSA), the **fully-open stack** (cosign keyless +
+the **enforcement** (18 OPA verifier reports → a signed SLSA VSA), the **fully-open stack** (cosign keyless +
 Rekor + OPA/Rego + in-toto + VSA — no proprietary lock-in), and the **honesty discipline** (every rule has a
 negative fixture; `N/A`/`FUTURISTIC` are named, not hidden). The Valint review confirmed our *verification logic
 is not inferior* — Valint runs OPA under the hood too.
@@ -23,7 +23,7 @@ Five concrete gaps keep it from being a *clean, evidence-centric* solution:
    in-toto `subject` of every attestation" refactor remains — Track A4.)* Historical gap kept for context:
    originally the attestation `subject` was `sha256(sbom.cdx.json)` and the firmware component carried 0 hashes.
 3. **No framework/initiative layer.** ✅ **CLOSED (A2).** `initiatives/frameworks.yaml` +
-   `verify-initiative.py` map the 17 verifier reports to framework control IDs and print per-framework,
+   `verify-initiative.py` map the 18 verifier reports to framework control IDs and print per-framework,
    per-control coverage (PASS / FAIL / MISSING_EVIDENCE) from a signed VSA.
 4. **No "missing evidence" state.** An enforcing gate collapses "attestation absent" and "attestation failed"
    into one FAIL — hiding the most important supply-chain signal (a *gap*) inside ordinary failures.
@@ -82,7 +82,7 @@ The Valint review's core lesson: our gap is the **catalog + framework layer**, p
 already compute. Adopt:
 
 - **Initiatives:** a declarative `framework → control → rule` manifest (SLSA / SSDF / 800-53 / 800-190 / CRA /
-  BSI) mapping our 17 verifiers to real control IDs with "why this control" prose; fold `control_id →
+  BSI) mapping our 18 verifiers to real control IDs with "why this control" prose; fold `control_id →
   satisfied_by[]` into the VSA `predicate`. One rule set, many frameworks. **This is what powers the verifier CLI
   below.**
 - **Three-state verdict:** `PASS / FAIL / MISSING_EVIDENCE(required)` — each rule declares the predicate it

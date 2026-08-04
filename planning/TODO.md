@@ -19,9 +19,9 @@ The actionable next steps, in execution order. Detail lives in [`DESIGN-REVIEW.m
     CRA/BSI/CISA). *Verified: clean VSA → all PASS; a failing report lights up the right control.*
   - [ ] Fold `control_id → satisfied_by[]` (+ `missing_evidence[]`) into the VSA `predicate` itself.
   - [ ] Versioned rule IDs (`ns/name@vN`) + metadata sidecars + a standard verdict schema.
-- [ ] **A3 · `fw-supplychain-verify` CLI** (the headline). One command a firmware engineer runs on *their*
-  firmware → per-framework scorecard, using their trust policy. Consumes A1 (anchor) + A2 (initiatives).
-  - ⛔ blocked-by A1, A2.
+- [x] **A3 · `fw-supplychain-verify` CLI** (the headline) — **DONE.** `cli/fw-supplychain-verify`: hash the
+  image, bind it to the VSA's firmware-image subject, per-framework scorecard; degrades honestly to
+  `MISSING_EVIDENCE` on unattested firmware. `--verify-bundle` verifies the VSA signature (cosign) first.
 - [ ] **A4 · Uniform in-toto wrapping.** `sign-blob → attest-blob` for E6 (VSA) + E7 (build-tools); wrap E1/E4/E10
   as DSSE Statements (`subject = D`); collapse CSAF into an E4b reference; drop E5 as an "evidence" row (it's the
   signing envelope). ⛔ blocked-by A1 (needs the D subject).
@@ -41,11 +41,13 @@ The actionable next steps, in execution order. Detail lives in [`DESIGN-REVIEW.m
 
 ## Track D — later / horizon (do NOT start now)
 
-- [ ] **D1 · R4 byte-integrity reconcile** — canonicalize both sides (GenFw normal form) → detect a same-GUID
-  trojan membership misses. **Plan: [`R4-BYTE-INTEGRITY.md`](R4-BYTE-INTEGRITY.md).** Promoted to the top depth
-  item by the portfolio review (turns the GenFw *diagnosis* into a *solution*). Phase 1 = one DXE driver end-to-end.
+- [x] **D1 · R4 byte-integrity reconcile** — **DONE (phases 1–3, 122/122).** `producers/reconcile/byte-integrity.py`
+  matches each module's shipped PE32 bytes to the SBOM hash — DXE direct, XIP/PEI via un-rebase canonicalization;
+  enforced as the `component-byte-integrity` gate report; a same-GUID trojan is caught. Audit-hardened (no
+  vacuous pass, crash-safe, unit-tested). Write-up: [`R4-BYTE-INTEGRITY.md`](R4-BYTE-INTEGRITY.md). On branch
+  `r4-byte-integrity-phase1` (pending merge to main).
 - [ ] **D2 · Firmware-native evidence** — fwupd `.cab`+Jcat, UEFIExtract corroborating carve, swtpm→CoRIM appraisal.
 - [ ] **D3 · Beyond-CI flash/provision gate; Ratify referrer store; SCITT receipts.** Project-scale.
 
 ## Deprioritized (don't pad)
-More gate rules (diminishing returns — the gate is strong at 17). Don't add rules for coverage's sake.
+More gate rules (diminishing returns — the gate is strong at 18). Don't add rules for coverage's sake.

@@ -8,6 +8,25 @@
 > For how this maps to existing security frameworks (SLSA L1→L3, CRA/BSI/CISA SBOM fields, TCG RIM / RATS,
 > and the normalization to in-toto/VSA vocabulary), see the companion [`FRAMEWORKS.md`](./FRAMEWORKS.md).
 
+> **In plain terms.** The design has three moves. First, at build time, produce a signed **ingredients list**
+> (an SBOM) of every module inside the firmware. Second, when someone wants to deploy that firmware,
+> **independently verify** the shipped image actually matches the list — not just that the right module names
+> are present, but that the bytes are what was promised. Third, feed every check into a set of **automated
+> rules** (the gate) that either approves the release or blocks it, and sign the verdict so anyone downstream
+> can re-check it. One distinction the design leans on: **admission-time** checks look at files *at rest*
+> before anything ships, while **runtime** checks (aspirational here) later confirm the device actually booted
+> what was approved. New here? Start with [`PRIMER.md`](PRIMER.md).
+
+At a glance — who produces what, and how it reaches a signed yes/no:
+
+```mermaid
+flowchart LR
+    BLD["<b>Builder</b><br/>builds firmware<br/>+ ingredients list (SBOM)"] --> EV["<b>Evidence</b><br/>SBOM · signature · provenance<br/>reconcile · CVE triage"]
+    EV --> GATE{"<b>Automated gate</b><br/>do all rules pass?"}
+    GATE -->|yes| OK(["✓ Approved to deploy<br/>signed verdict (VSA)"])
+    GATE -->|no| NO(["✕ Blocked → triage"])
+```
+
 **Terms used below:** *SBOM* software bill of materials; *CycloneDX/SPDX* SBOM formats; *coSWID / uSWID*
 Concise SWID tags and the tool that writes/embeds them (fwupd reads them on-device); *SLSA* supply-chain
 provenance framework; *in-toto / DSSE* signed-attestation format; *keyless signing* sigstore signing with a
@@ -231,9 +250,10 @@ boundaries: generation + signing run inside an **isolated builder** with the bui
 identity** (not any human key), on a protected trigger; the CI actions are **SHA-pinned** and inventoried in a
 signed **build-tools SBOM** so the toolchain is evidence too. **Honest limitations:** the reconcile verdict is
 now *generated* by `producers/reconcile/sbom-reconcile.py` from a real FMMT carve (membership: 123/123 modules
-validated, 0 missing) and committed as the example; wiring it into CI, and `modified` (byte-integrity) is deferred with a
-feasibility finding (in-image PE != build `.efi` after FDF-assembly GenFw processing, so it needs matched
-canonicalization on both sides), are the remaining steps; reconcile is module-granular (libraries verified transitively); the build-tools SBOM
+validated, 0 missing) and committed as the example. **Byte-integrity is now done** (R4):
+`producers/reconcile/byte-integrity.py` matches each module's shipped PE32 bytes to the SBOM's declared hash —
+DXE directly, XIP/PEI via un-rebase canonicalization (122/122) — so a same-GUID swap is caught; only
+TE-format/compressed sections remain out of scope. reconcile is module-granular (libraries verified transitively); the build-tools SBOM
 lists direct tools, not transitive deps; one lane runs compliance
 in report mode, not as a gate; and the measured-boot bind is aspirational. These are documented, not hidden.
 

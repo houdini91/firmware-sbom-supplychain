@@ -7,9 +7,31 @@
 > the next evidence worth producing. Companion to [`DESIGN.md`](./DESIGN.md); the enforced subset lives in
 > [`oss-lane/compliance-map.md`](./oss-lane/compliance-map.md).
 
+> **In plain terms.** This document is a *map*. On one side are the pieces of **evidence** we produce about a
+> firmware release — its ingredients list (an SBOM), who signed it, a record of how it was built, a
+> byte-for-byte integrity result, a vulnerability scan, and more. On the other side are the specific
+> **controls** that security-compliance frameworks (SLSA, NIST, EU CRA, BSI, CISA…) actually ask for. Every row
+> below connects one piece of evidence to the exact control it satisfies — and, honestly, *how far*: some
+> controls are **enforced now** (the release is hard-blocked if they fail), some are **satisfiable from
+> evidence we already emit** but not yet wired into an automated gate, and some are **not yet possible** because
+> they need a kind of evidence we don't produce. New here? Read [`PRIMER.md`](PRIMER.md) first — it explains
+> firmware, SBOMs, and byte-integrity from scratch.
+
+The chain each row walks — from a piece of evidence, through the check that consumes it, to the control it
+satisfies, to the signed verdict:
+
+```mermaid
+flowchart LR
+    EV["<b>Evidence we produce</b><br/>SBOM · signature · build provenance<br/>byte-integrity · CVE + VEX scan"] --> CHK["<b>The check that consumes it</b><br/>an OPA verifier report<br/>e.g. reconcile · cve-triage"]
+    CHK --> CTL["<b>The control(s) it satisfies</b><br/>e.g. NIST SI-7 · SLSA L2<br/>EU CRA Annex I · BSI TR-03183-2"]
+    CTL --> GATE{"<b>OPA gate</b><br/>do all checks pass?"}
+    GATE -->|yes| VSA(["<b>Signed verdict — VSA</b><br/>portable, anyone can re-check it"])
+    GATE -->|no| BLK(["Release blocked<br/>routed to triage"])
+```
+
 ## Posture in three tiers
 
-- **Enforced today** — the deploy pipeline **hard-blocks the release** on **seventeen OPA verifier reports** (SBOM
+- **Enforced today** — the deploy pipeline **hard-blocks the release** on **eighteen OPA verifier reports** (SBOM
   present · attestation signature · SBOM↔subject binding · provenance identity · **SLSA L2 provenance** ·
   reconcile · CVE/VEX · **CHIPSEC platform posture** · **reconcile membership** (SI-7/CM-8(3)) · **component
   integrity** (SI-7(1)) · **VEX adjudication** (RV.1.1, high+critical) · **third-party identity** (CISA
@@ -38,7 +60,7 @@ framework  →  §control (exact ref)  →  evidence that proves it  →  status
 
 | Status | Meaning |
 |---|---|
-| **`ENFORCED`** | The release is **hard-blocked if this fails** — by one of the seventeen OPA `verifier_reports` in [`firmware.rego`](./oss-lane/policy/firmware.rego) *(gate)*; the `slsa-provenance` report is additionally backed by a CI hard-gate step *(CI)*, `gh attestation verify`. The mechanism is named per row. |
+| **`ENFORCED`** | The release is **hard-blocked if this fails** — by one of the eighteen OPA `verifier_reports` in [`firmware.rego`](./oss-lane/policy/firmware.rego) *(gate)*; the `slsa-provenance` report is additionally backed by a CI hard-gate step *(CI)*, `gh attestation verify`. The mechanism is named per row. |
 | **`EVIDENCE`** | We produce the artifact/field, but no gate rule checks it yet — the control is *satisfiable from what we emit*, just not *enforced*. |
 | **`PARTIAL`** | The evidence meets the control only in part; the named shortfall is in the note. |
 | **`PLANNED`** | A concrete, near-term artifact change (mostly SBOM enrichment + byte-integrity reconcile) would satisfy it. |
@@ -54,7 +76,7 @@ not asserted.
 |---|---|---|---|---|---|
 | **E1** | **CycloneDX 1.6 SBOM** | in-toto SBOM predicate | declared composition of the firmware | 311 components (3 app / 108 driver / 12 firmware / 188 lib **incl. `openssl` as an in-image third-party dep with PURL/CPE/Apache-2.0**, R1); **SHA-256+512 on 122 of the 123 non-library modules** (`ResetVector`, a raw blob, is the one skip); `metadata` timestamp/authors/tools/`lifecycle:build` populated; edk2 FFS modules carry no PURL/license (no sensible PURL — N/A by design) | `sbom-present` *(gate)* — presence only |
 | **E2** | **SLSA Build L2 provenance** | `slsa.dev/provenance/v1` | build origin is authentic (platform-generated) | GitHub `attest-build-provenance`, **verified green in CI** with `gh attestation verify` | `slsa-provenance` *(gate)* backed by `gh attestation verify` *(CI)*; `provenance-identity` *(gate, identity)* |
-| **E3** | **Reconcile verdict** | custom in-toto predicate | shipped bytes match the declared component set | FMMT-carved FFS vs SBOM by GUID, **123/123 module-granular; membership only** (no per-component byte hash yet) | `reconcile` *(gate)* |
+| **E3** | **Reconcile verdict + byte-integrity** | custom in-toto predicates | shipped bytes match the declared components | FMMT-carved FFS vs SBOM by GUID (**123/123 membership**) **plus byte-integrity: 122/122 modules'** shipped PE32 bytes match the declared SHA-256 (R4 — DXE direct, XIP/PEI via un-rebase canonicalization); a same-GUID swap is caught | `reconcile` + `component-byte-integrity` *(gate)* |
 | **E4** | **CVE + VEX** | grype JSON + OpenVEX | no un-triaged critical vulnerability ships | scan over E1 + OpenVEX triage allowlist | `cve-triage` *(gate)* |
 | **E5** | **Signature + signer identity** | cosign keyless (Fulcio/Rekor) DSSE | the signed artifact came from the expected build identity | OIDC SAN extracted from the Fulcio cert and **checked**, not asserted; **signed subject is the SBOM/attestation, not the firmware image** | `attestation-signature` + `sbom-binding` *(gate)* |
 | **E6** | **VSA** | `slsa.dev/verification_summary/v1` | the gate's verdict, as portable signed evidence | `verifier.id`/`policy.uri`/`verificationResult:PASSED`/`verifiedLevels:[L2]` populated; `resourceUri` generic; no `dependencyLevels` | output artifact |
@@ -63,10 +85,13 @@ not asserted.
 | **E9** | **OpenSSF Scorecard** | Scorecard SARIF (keyless-signed) | repo security-posture score | `scorecard-analysis` workflow — push + weekly; Security-tab uploaded, published to the OpenSSF API (badge), keyless-signed. Posture evidence (R5) | — (soft evidence, deliberately not a hard gate) |
 | **E10** | **CHIPSEC posture** | in-toto predicate | platform-firmware protections | `producers/chipsec` — CHIPSEC modules vs the OVMF/QEMU target → `critical_passed` (applicable critical modules PASS; `NOTAPPLICABLE` HW-root checks excluded). Config assessment, not runtime measured boot (R3) | `chipsec-posture` *(gate)* |
 
-> **The trust anchor:** the seventeen gate reports are `sbom-present` (E1), `attestation-signature` (E5),
+> **The trust anchor:** the eighteen gate reports are `sbom-present` (E1), `attestation-signature` (E5),
 > `sbom-binding` (E1↔E5 digest), `provenance-identity` (E2), `slsa-provenance` (E2, backed by the
 > `gh attestation verify` CI hard-gate), `reconcile` (E3), `cve-triage` (E4), `chipsec-posture` (E10),
-> `reconcile-membership` (E3, SI-7/CM-8(3)), `component-integrity` (E1, SI-7(1)), `vex-adjudicated` (E4, RV.1.1 —
+> `reconcile-membership` (E3, SI-7/CM-8(3)), `component-integrity` (E1, SI-7(1)),
+> `component-byte-integrity` (E3, SI-7(1)/SR-4(3) — the shipped PE32 bytes of each byte-checkable module match
+> the SBOM's declared hash; catches a same-GUID swap; XIP/PEI modules verified via un-rebase canonicalization (122/122); reported
+> honestly), `vex-adjudicated` (E4, RV.1.1 —
 > every high/critical CVE needs a non-empty justification), `thirdparty-identifiers` (E1, CISA License/PURL),
 > `build-tools-signed` (E7, SSDF PO.3.2 / S2C2F REB-3 — the build toolchain is signed + SHA/version-pinned),
 > `firmware-digest-anchor` (E1↔E3↔image — the SBOM's `metadata.component` digest `D`, the reconcile
@@ -74,7 +99,7 @@ not asserted.
 > *these* firmware bytes, not a detached JSON file), `slsa-level-floor` (E2, SR-4/SR-4(3) — SLSA level ≥ 2),
 > `evidence-chain-bound` (E1/E2/E5, one subject digest across SBOM↔attestation↔provenance), and
 > `signer-identity-pinned` (E5, SI-7(15)/CM-14/SR-4(1) — the cert SAN is in the trusted set) — the gate ANDs all
-> seventeen and emits E6. The
+> eighteen and emits E6. The
 > `component-integrity` rule passes only with an explicit reviewed `data.hash_exempt` entry (ResetVector), never a
 > relaxed threshold.
 
@@ -115,8 +140,8 @@ project's differentiator — but there *is* adjacent prior art, so the claim mus
 
 **Precise claim:** *reconciliation of a declared **build** SBOM against the **observed firmware bytes**, gated by
 policy* — ahead of vendor practice, matching cutting-edge research. **Not** "we analyze firmware bytes" (many do),
-**not** "first firmware SBOM." Today it is **membership-granular** (all 123 modules present by GUID); byte-level
-integrity is *Gap → value* item #2.
+**not** "first firmware SBOM." It verifies **byte-level integrity** of all 122 hashable modules (R4 — DXE
+directly, XIP/PEI via un-rebase canonicalization) on top of GUID membership, so a same-GUID trojan is caught.
 
 ## Gap → value: the case for the next evidence to produce
 
@@ -200,7 +225,7 @@ edk2 firmware build. L3 is the honest remaining gap.
 | Control | Ask | Evidence | Status | Note |
 |---|---|---|:--:|---|
 | **SR-4 / SR-4(3)** Provenance / genuine-and-not-altered | valid provenance; validate not-altered | E2, E1, E3 | **ENFORCED** *(gate)* | `slsa-level-floor` (level ≥2) + `evidence-chain-bound` (SBOM↔attestation↔provenance one digest) + `reconcile-membership`. |
-| **SR-4(3)** Validate as Genuine and Not Altered | received components are genuine + unaltered | E5, E2, E3 | **PARTIAL** | E5/E2 validate the build output; **E3 is membership-only → "not altered" at byte level unproven.** |
+| **SR-4(3)** Validate as Genuine and Not Altered | received components are genuine + unaltered | E5, E2, E3 | **ENFORCED** | E5/E2 validate the build output; **E3 byte-integrity (R4) proves "not altered" at the byte level — 122/122 modules' shipped bytes match the declared hash** (`component-byte-integrity` + `firmware-digest-anchor`). |
 | **SR-4(4)** Supply Chain Integrity — Pedigree | validate internal composition + provenance of critical products | E1, E3 | **PARTIAL** | Composition touched; no critical-component pedigree; E1 omits submodules. |
 | **SI-7** Software/Firmware/Information Integrity | detect unauthorized changes to software/firmware | E1, E3, E5, E2 | **ENFORCED** *(gate)* | `reconcile-membership` (declared==observed, no undeclared artifact) + `component-integrity` (every hashable module hashed). Byte-level integrity of each region is R4. |
 | **SI-7(15) / CM-14** Code Authentication / Signed Components | authenticate the signed component by a trusted identity | E5 | **ENFORCED** *(gate)* | `signer-identity-pinned`: signature verified **and** cert SAN in `data.trusted_signer_identities`. (Signed subject is the SBOM/attestation; firmware-byte authentication is R4. OIDC-issuer pinning is a documented enhancement.) |
@@ -217,7 +242,7 @@ edk2 firmware build. L3 is the honest remaining gap.
 |---|---|---|:--:|---|
 | **INV-1** | automated inventory of all OSS used | E1, E7 | **PARTIAL** | E1 build-generated but no submodules; E7 direct-only. |
 | **SCA-1** | scan OSS for known vulnerabilities | E4 | **ENFORCED** *(gate)* | Direct hit (`cve-triage`). |
-| **AUD-3** | validate integrity of OSS consumed into the build | E3 | **PARTIAL** | Reconcile is membership-only — partial integrity signal. |
+| **AUD-3** | validate integrity of OSS consumed into the build | E3 | **ENFORCED** | Byte-integrity (R4) matches each module's shipped bytes to the declared hash — 122/122 (`component-byte-integrity`). |
 | **SCA-2** | scan OSS for licenses | E1 | **ENFORCED** *(gate)* | `thirdparty-identifiers` requires a license on every third-party component. |
 | **SCA-3** | scan OSS for end-of-life | — | **PLANNED** | Needs an EOL feed. |
 | **AUD-1** | verify provenance of **ingested** OSS | — | **N/A / not-forced** | E2/E5 is provenance of *our own output*, a different subject — do not map. |
@@ -357,7 +382,8 @@ enforcement it asks for is still futuristic.)*
 - **CRA is field-light** — do not attribute the license/PURL asks to CRA; they are BSI/CISA.
 - **TCG PC Client RIM exact §/Table numbers are unverified** (primary PDF was gated) — read them off the spec
   before publishing anything that cites a specific RIM subsection.
-- **E3 is membership-only** today — every "not altered / byte-integrity" claim is `PARTIAL` until Gap #2 lands.
+- **E3 now includes byte-integrity** (R4 — 122/122 modules byte-verified) — the "not altered" claims are
+  enforced by `component-byte-integrity`, not `PARTIAL`. Only TE-format / compressed sections stay out of scope.
 - **SAST is enforced by a separate CI gate** (`codeql-sast` fails on high/critical ≥7.0), not by the deploy
   gate; make it a required status check to hard-block merges/deploys on it too.
 - **The gate's per-report `.controls` tags are a representative subset**, not the exhaustive mapping — this
