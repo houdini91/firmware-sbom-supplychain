@@ -4,3 +4,5 @@
 /oss-lane/policy/                @houdini91
 /inputs/reconcile-verdict.json   @houdini91
 /.github/workflows/              @houdini91
+/inputs/byte-integrity.json      @houdini91
+/inputs/chipsec.json             @houdini91
