@@ -70,8 +70,8 @@ skip is `ResetVector` (a raw blob, no PE32).
 ```
 fw-supplychain-verify — consumer-side supply-chain gate
 ──────────────────────────────────────────────────────────────────
-Firmware image : OVMF.fd  (4194304 bytes)
-  sha256       : 374472f026fc4948b00bdcb4d3deb2d8f71d725fec24d2f4ee21dfb396c8e0ce
+Firmware image : OVMF_CODE.fd  (3653632 bytes)
+  sha256       : 7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37
 Evidence (VSA) : vsa.json   verificationResult=PASSED
 
 ▶ Binding — is this evidence about THESE bytes?

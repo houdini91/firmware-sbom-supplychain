@@ -1,7 +1,7 @@
 {
  "tool": "sbom-reconcile",
  "clean": true,
- "image_digest": "sha256:374472f026fc4948b00bdcb4d3deb2d8f71d725fec24d2f4ee21dfb396c8e0ce",
+ "image_digest": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37",
  "granularity": "module/FFS",
  "summary": {
   "declared_modules": 123,

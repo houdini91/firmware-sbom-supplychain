@@ -95,10 +95,14 @@ not asserted.
 > honestly), `vex-adjudicated` (E4, RV.1.1 —
 > every high/critical CVE needs a non-empty justification), `thirdparty-identifiers` (E1, CISA License/PURL),
 > `build-tools-signed` (E7, SSDF PO.3.2 / S2C2F REB-3 — the build toolchain is signed + SHA/version-pinned),
-> `firmware-digest-anchor` (E1↔E3↔image — the SBOM's `metadata.component` digest `D`, the reconcile
-> `image_digest` (a genuine *second* re-hash of the carved image), and the digest of the **deployed `.fd`**
-> (real at flash time; in CI/offline it is assumed = `D` via `DEV_ASSUME_FWIMAGE`, since neither rebuilds
-> OVMF) all agree — so the evidence set is about *these* firmware bytes, not a detached JSON file),
+> `firmware-digest-anchor` (E1↔E3↔image — the SBOM's `metadata.component` digest `D` anchors the
+> **immutable code region** `OVMF_CODE.fd`, *not* the whole `OVMF.fd` — the unified image folds in the mutable
+> `OVMF_VARS` NVRAM that legitimately changes on first boot, so anchoring it would false-fail a booted image.
+> `D`, the reconcile `image_digest` (a genuine *second* re-hash of the carved code region), and the digest of
+> the **deployed code region** (real at flash time; in CI/offline it is assumed = `D` via `DEV_ASSUME_FWIMAGE`,
+> since neither rebuilds OVMF) all agree. Every FD is still enumerated as a `firmware:fd-image` property, so a
+> verifier can two-state check: whole-image against a *fresh* flash, code-region `D` against a *booted* one —
+> so the evidence set is about *these* firmware bytes, not a detached JSON file),
 > `slsa-level-floor` (E2, SR-4/SR-4(3) — SLSA level ≥ 2),
 > `evidence-chain-bound` (E1/E2/E5, one subject digest across SBOM↔attestation↔provenance), and
 > `signer-identity-pinned` (E5, SI-7(15)/CM-14/SR-4(1) — the cert SAN is in the trusted set) — the gate ANDs all

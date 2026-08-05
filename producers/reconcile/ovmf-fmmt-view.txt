@@ -1,22 +1,22 @@
-Image File: /media/mikey/T71/firmware_artifacts/edk2/Build/OvmfX64/DEBUG_GCC/FV/OVMF.fd
-FilesNum: 3
+Image File: /media/mikey/T71/firmware_artifacts/edk2/Build/OvmfX64/DEBUG_GCC/FV/OVMF_CODE.fd
+FilesNum: 2
 
 
-FvId: FV1
+FvId: FV0
   FvNameGuid: 48db5e17-707c-472d-91cd-1613e7ef51b0
   Attributes: 0x4feff
   Total Volume Size: 0x348000
   Free Volume Size: 0x1e8b18
-  Volume Offset: 0x84000
+  Volume Offset: 0x0
   FilesNum: 3
     File: ffffffff-ffff-ffff-ffff-ffffffffffff / Ffs_pad
     File: 9e21fd93-9c72-4c15-8c4b-e77f1db2d792
-      Child FV named FV3 of FV1
+      Child FV named FV2 of FV0
         FvNameGuid: 6938079b-b503-4e3d-9d24-b28337a25806
         Attributes: 0x7feff
         Total Volume Size: 0xd0000
         Free Volume Size: 0x75f58
-        Volume Offset: 0x84128
+        Volume Offset: 0x128
         FilesNum: 21
           File: ffffffff-ffff-ffff-ffff-ffffffffffff / Ffs_pad
           File: 1b45cc0a-156a-428a-af62-49864da0e6e6
@@ -38,12 +38,12 @@ FvId: FV1
           File: edadeb9d-ddba-48bd-9d22-c1c169c8c5c6 / CpuMpPei
           File: ffffffff-ffff-ffff-ffff-ffffffffffff / Ffs_pad
           File: 280251c4-1d09-4035-9062-839acb5f18c1 / CpuMpPei
-      Child FV named FV4 of FV1
+      Child FV named FV3 of FV0
         FvNameGuid: 7cb8bdc9-f8eb-4f34-aaea-3ee4af6516a1
         Attributes: 0x4feff
         Total Volume Size: 0xe80000
         Free Volume Size: 0x898e18
-        Volume Offset: 0x154138
+        Volume Offset: 0xd0138
         FilesNum: 114
           File: ffffffff-ffff-ffff-ffff-ffffffffffff / Ffs_pad
           File: fc510ee7-ffdc-11d4-bd41-0080c73c8881
@@ -158,12 +158,12 @@ FvId: FV1
           File: 430ac2f7-eec6-4093-94f7-9f825a7c1c40 / SdDxe
           File: 2145f72f-e6f1-4440-a828-59dc9aab5f89 / EmmcDxe
           File: d27fed59-abb4-4fed-bead-2a878c7e4a7e / SmbiosMeasurementDxe
-FvId: FV2
+FvId: FV1
   FvNameGuid: 763bed0d-de9f-48f5-81f1-3e90e1b1a015
   Attributes: 0x4feff
   Total Volume Size: 0x34000
   Free Volume Size: 0x0
-  Volume Offset: 0x3cc000
+  Volume Offset: 0x348000
   FilesNum: 4
     File: ffffffff-ffff-ffff-ffff-ffffffffffff / Ffs_pad
     File: df1ccef6-f301-4a63-9661-fc6030dcc880 / SecMain

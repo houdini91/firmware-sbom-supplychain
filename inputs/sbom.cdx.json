@@ -3,7 +3,7 @@
   "specVersion": "1.6",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-08-04T17:23:22Z",
+    "timestamp": "2026-08-05T05:36:54Z",
     "lifecycles": [
       {
         "phase": "build"
@@ -34,7 +34,7 @@
       "properties": [
         {
           "name": "firmware:primary-image",
-          "value": "OVMF.fd"
+          "value": "OVMF_CODE.fd"
         },
         {
           "name": "firmware:fd-image",
@@ -56,11 +56,11 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "374472f026fc4948b00bdcb4d3deb2d8f71d725fec24d2f4ee21dfb396c8e0ce"
+          "content": "7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37"
         },
         {
           "alg": "SHA-512",
-          "content": "1941bb8bcc1f932d9e24d88290039fa151a80da04fe0d159824bb137d138f2e86e155819235029e9d4982d1514816eb5ce7435d539bba22c812d0efdfe2d5796"
+          "content": "a9422902181722e5bcc243f4a98974ce265eb0fd7991bf6d555e58ecf9caefa38afda8978c34f431edaa1c81973f16adfd1a8287933eeb6e96360667de282dd5"
         }
       ]
     },

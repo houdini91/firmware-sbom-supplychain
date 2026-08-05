@@ -25,11 +25,19 @@ coherent milestones rather than shipped products.
   committed fixture — the case that previously had no coverage.
 
 ### Changed
+- **Firmware-digest anchor narrowed to the immutable code region.** The SBOM's `metadata.component`
+  digest `D` now anchors **`OVMF_CODE.fd`** (`7965c317…`, 3653632 B — the immutable code) instead of the
+  unified **`OVMF.fd`** (`374472f0…`, 4194304 B), which folds in the mutable `OVMF_VARS` NVRAM that
+  legitimately changes on first boot — anchoring the whole image would false-fail any booted flash. The
+  generator now prefers the `*_CODE` FD for `firmware:primary-image` and still enumerates **every** FD
+  (`OVMF.fd`, `OVMF_CODE.fd`, `OVMF_VARS.fd`, `MEMFD.fd`) as a `firmware:fd-image` property with its own
+  digest+size, enabling **two-state** verification (whole-image `OVMF.fd` for a *fresh* flash, code-region
+  `D` for a *booted* one). Reconcile (123/123) and byte-integrity (122/122) re-run against the code region;
+  all three anchor legs and the gate fixtures re-bind to the new `D`.
 - **SBOM + derived artifacts regenerated from the current generator.** `openssl` is now emitted
   natively by `-Y SBOM` (retiring the "demo enrichment" framing), every built firmware device is
   enumerated as a `firmware:fd-image` property (incl. `MEMFD.fd`), and `reconcile-verdict` /
-  `byte-integrity` / `sbom.uswid` / `sbom.spdx` / `vex.csaf` were refreshed. Component count (**311**)
-  and firmware image digest `D` (`374472f0…`) are unchanged.
+  `byte-integrity` / `sbom.uswid` / `sbom.spdx` / `vex.csaf` were refreshed. Component count is **311**.
 
 ## [0.1.0] — 2026-08-04
 
