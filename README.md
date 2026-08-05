@@ -1,253 +1,206 @@
+<div align="center">
+
 # firmware-sbom-supplychain
 
+***Prove a firmware image ships the exact code its signed bill of materials declares — and block a same-GUID trojan that signatures and inventories miss.***
+
+[![supply-chain](https://github.com/houdini91/firmware-sbom-supplychain/actions/workflows/supply-chain.yml/badge.svg)](https://github.com/houdini91/firmware-sbom-supplychain/actions/workflows/supply-chain.yml)
 [![pr-checks](https://github.com/houdini91/firmware-sbom-supplychain/actions/workflows/pr-checks.yml/badge.svg)](https://github.com/houdini91/firmware-sbom-supplychain/actions/workflows/pr-checks.yml)
-![license](https://img.shields.io/badge/license-MIT-blue.svg)
-![release](https://img.shields.io/badge/release-v0.1.0-3ddbd9.svg)
-![byte-integrity](https://img.shields.io/badge/byte--integrity-122%2F123-3fb950.svg)
-![gate](https://img.shields.io/badge/gate-19%20signed%20checks-4aa8ff.svg)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/houdini91/firmware-sbom-supplychain/badge)](https://scorecard.dev/viewer/?uri=github.com/houdini91/firmware-sbom-supplychain)
+![SLSA VSA](https://img.shields.io/badge/SLSA-VSA%20signed-0d9488)
+![frameworks](https://img.shields.io/badge/6%20frameworks-27%20controls-475569)
+![license](https://img.shields.io/badge/license-MIT-475569)
 
-> ### Prove that a firmware image runs the exact code its signed bill of materials declares — and block a *same-GUID trojan* that signatures and inventories miss.
+**[Primer](PRIMER.md)** · **[Design](DESIGN.md)** · **[Frameworks](FRAMEWORKS.md)** · **[Live demo output](docs/DEMO.md)** · **[Quickstart](#quickstart)**
 
-An **evidence-centric supply-chain gate** for firmware, on the open **OVMF / edk2** UEFI reference target. Every
-claim about a build becomes signed evidence; a policy engine ANDs it into one verdict; the release is blocked
-unless the **executable code that ships in the image** matches the signed **SBOM** (Software Bill of Materials —
-the "ingredients list": every module + its hash). The headline check, **byte-integrity**, catches a
-*same-GUID trojan*: a module whose code was swapped but whose ID (`FILE_GUID`) was kept — so it passes an
-inventory check, but not a byte check.
+</div>
 
-> **New to firmware, SBOMs, or GUIDs?** → **[PRIMER.md](PRIMER.md)** explains it all from scratch (~2 min).
-> **See it run:** [**docs/DEMO.md**](docs/DEMO.md) (real gate + CLI output). **Visual walkthroughs:**
-> [showcase](docs/showcase.html) · [byte-integrity explainer](docs/byte-integrity.html) (open in a browser).
+> **Threat model.** A compromised build step swaps a module's bytes, keeps its `FILE_GUID`, and re-signs the
+> image — the signature is valid and the inventory matches by ID; only the SBOM's declared **per-module hash**
+> disagrees. That gap is what this gate closes.
 
-`19 signed checks → one gate` &nbsp;·&nbsp; `122 of 123 modules byte-verified` &nbsp;·&nbsp; `6 frameworks, per-control` &nbsp;·&nbsp; `a portable signed verdict (OSCAL / RATS)`
+## What it is
 
-**See it run** — the gate blocks a same-GUID swap that an inventory (membership) check waves through:
+An **evidence-centric supply-chain gate** for firmware, built on the open **OVMF / edk2** UEFI reference target.
+Every claim about a build — its SBOM, its signature, its provenance, its shipped bytes, its CVEs — becomes signed
+evidence; a policy engine ANDs those facts into **one signed verdict**; the release is blocked unless the
+**executable code that ships in the image** matches the signed SBOM. This is an **admission-time** gate over
+artifacts at rest, not a runtime/boot measurement.
 
-```text
-✅ ALLOW  clean release          — 19/19 signed checks pass → signed verdict: PASSED
-⛔ DENY   same-GUID swap          — component-byte-integrity: 1 module MODIFIED (shipped bytes ≠ declared hash)
+> **New to firmware, SBOMs, or GUIDs?** [**PRIMER.md**](PRIMER.md) explains it all from scratch (~2 min).
+
+## How it works: two checks, in sequence
+
+**Step 1 — Reconcile** carves the shipped image and confirms every declared module is present. Useful, but it
+matches on the `FILE_GUID`, so a module whose *bytes* were swapped under the same GUID still passes:
+
+<div align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/img/reconcile-dark.svg">
+  <img alt="Reconcile: membership passes, but matches on the GUID not the bytes, so a same-GUID swap slips through" src="docs/img/reconcile.svg" width="900">
+</picture>
+</div>
+
+> **Reconcile answers "is the right module *present*?" Byte-integrity answers "are its *bytes* the ones
+> declared?"** — you can forge the badge (GUID) for free, but not the fingerprint (hash).
+
+**Step 2 — Byte-integrity** re-hashes each shipped PE32 and compares it to the SBOM's declared hash, so the swap
+reconcile passed is caught (**122 of the 123 code modules**; `ResetVector`, a raw non-PE32 blob, is the one skip):
+
+<div align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/img/byte-integrity-dark.svg">
+  <img alt="Byte-integrity: re-hashing the shipped module catches the same-GUID swap that membership let through" src="docs/img/byte-integrity.svg" width="900">
+</picture>
+</div>
+
+A third check runs on a *different* axis entirely — **CHIPSEC** asks whether the platform's own firmware
+protections (BIOS-write-protect, SMM) are switched on, which is about the chip's defenses, not the ingredients:
+
+| Check | Question | Catches |
+|---|---|---|
+| **Reconcile** (membership) | Are all declared modules **present**, and nothing undeclared? | a missing module, or an **undeclared** one |
+| **Byte-integrity** | Do each module's shipped **bytes** match the declared hash? | a **same-GUID trojan** — same ID, swapped code |
+| **CHIPSEC** (platform posture) | Are the platform's own firmware **protections** on? | BIOS-write-protect / SMM misconfiguration |
+
+The full pipeline: `generate → verify(sig + provenance) → reconcile(bytes == SBOM) → CVE map → attest →
+OPA gate → signed VSA`. Each stage is described in [`DESIGN.md`](DESIGN.md).
+
+## Why it's different
+
+The three that matter most, each verified against the code in this repo:
+
+- **Byte-integrity catches a same-GUID trojan.** Membership checks only confirm a module's ID is present, so
+  they wave through a module whose bytes were swapped under the same `FILE_GUID`. Byte-integrity re-hashes each
+  shipped module's PE32 and compares it to the SBOM's *own declared hash* — so the swap is caught.
+- **Evidence is anchored to the firmware image digest `D`.** The signed SLSA VSA's **subject is the firmware
+  bytes**, not a JSON file. A consumer re-hashes their own image and re-checks the verdict against `D` — the
+  evidence is provably about *those* bytes.
+- **Framework-aware, drift-proof output.** Every verdict line carries its framework + control number +
+  description + citation + `satisfied_by` / `missing_evidence` — **27 controls across 6 frameworks**. The control
+  tags are *derived from one manifest*, so the Rego reports and the framework map can never disagree, and
+  reusable checks share a **canonical crosswalk id** across frameworks.
+
+**Also:** the verdict is a **standard SLSA VSA** (`slsa.dev/verification_summary/v1`) with the rich detail as
+extensions, not a bespoke format · the gate is **non-vacuous** — byte-integrity and binary-hardening bind their
+coverage to the SBOM's declared module count, so an under-scoped verdict is denied, and every doc states
+*enforced* vs *evidence-only* vs *not-yet* · a **two-lane design** runs the same intent under a second,
+independent policy tool (report mode) · the `-Y SBOM` generator adds **no new build dependency** (it consumes
+edk2's existing `-Y COMPILE_INFO` data) · and a **consumer-side CLI** scorecards *your* image.
+
+## The signed verdict
+
+The gate ANDs every evidence atom into a **standard SLSA VSA** whose **subject is the firmware digest `D`** — so
+the verdict travels with the bytes and anyone downstream can re-verify it.
+
+<div align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/img/evidence-to-vsa-dark.svg">
+  <img alt="Evidence atoms feed the gate, which emits a signed SLSA VSA whose subject is the firmware digest D" src="docs/img/evidence-to-vsa.svg" width="960">
+</picture>
+</div>
+
+```jsonc
+{
+  "predicateType": "https://slsa.dev/verification_summary/v1",
+  "subject": [{ "name": "firmware-image",
+               "digest": { "sha256": "7965c317…62fb8f37" } }],   // ← D: the immutable OVMF_CODE.fd bytes
+  "predicate": {
+    "verificationResult": "PASSED",
+    "verifiedLevels": ["SLSA_BUILD_LEVEL_2"],
+    "verifierReports":     [ /* 19 per-rule observations, each framework-tagged */ ],   // extension
+    "controlAssessments":  [ /* 27 per-control findings across 6 frameworks, each cited */ ] // extension
+  }
+}
 ```
 
-> **Design & rationale:** [`DESIGN.md`](DESIGN.md) — the security / functional / operational design and the
-> who-does-what boundary, doubling as the note for the upstream edk2 generator discussion (#10507).
+## Framework &amp; control coverage
+
+19 verifier reports resolve to **27 controls across 6 frameworks**.
+
+<div align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/img/framework-coverage-dark.svg">
+  <img alt="One gate mapping to 27 controls across 6 frameworks" src="docs/img/framework-coverage.svg" width="940">
+</picture>
+</div>
+
+| Framework | Controls | Example control IDs | Representative reports |
+|---|:--:|---|---|
+| **SLSA v1.0** — Build L2 | 3 | `provenance-exists`, `provenance-authentic`, `subject-binding` | `slsa-provenance`, `slsa-level-floor` |
+| **NIST SSDF** (SP 800-218) | 7 | `PS.2.1`, `PO.3.2`, `PW.4.4`, `PW.6.2`, `RV.1.1` | `attestation-signature`, `build-tools-signed`, `cve-triage` |
+| **NIST SP 800-53** Rev 5 | 9 | `SI-7`, `SI-7(1)`, `SI-7(15)`, `SI-16`, `CM-8(3)`, `SR-4(3)` | `reconcile-membership`, `component-byte-integrity`, `signer-identity-pinned` |
+| **NIST SP 800-193** (Protection) | 1 | `§4.2` platform protection posture | `chipsec-posture` |
+| **OpenSSF S2C2F** v2 | 3 | `SCA-1`, `SCA-2`, `REB-3` | `cve-triage`, `thirdparty-identifiers`, `build-tools-signed` |
+| **EU CRA / BSI TR-03183-2 / CISA-2026** | 4 | Annex I II(1), component-hash, firmware-binding, license/PURL | `sbom-present`, `component-integrity`, `firmware-digest-anchor` |
+
+The full evidence → check → control → verdict spine is in [`FRAMEWORKS.md`](FRAMEWORKS.md); the enforced subset is
+in [`oss-lane/compliance-map.md`](oss-lane/compliance-map.md).
 
 ## Quickstart
 
 ```bash
 make deps      # Python deps (PyYAML); see requirements.txt for the CLI tools (opa, jq, cosign, grype)
-make test      # gate honesty tests — ALLOW a clean release, DENY each failure mode (21 negative fixtures + clean + triaged-allow, exercising all 19 reports)
-make coverage  # per-framework, per-control compliance coverage from a fresh signed VSA
+make test      # gate-honesty tests: ALLOW a clean release, DENY each failure mode (a negative fixture per report)
+make coverage  # per-framework, per-control coverage from a fresh signed VSA
 make demo      # the full OSS lane end to end (needs cosign + grype)
 ```
 
-`make test` and `make coverage` are self-contained (opa + jq + python3/PyYAML). The gate itself is
+`make test` and `make coverage` are self-contained (`opa` + `jq` + `python3`/PyYAML). The gate itself is
 [`oss-lane/policy/firmware.rego`](oss-lane/policy/firmware.rego) — **19 verifier reports** ANDed into a signed
 SLSA VSA, each with an isolating negative fixture under [`oss-lane/fixtures/`](oss-lane/fixtures).
 
-**Consumer side** — run the gate on *your own* firmware:
+A clean release ALLOWs; a same-GUID swap DENYs — the byte check catches what membership misses. **Real captured
+output** (`make gate`, abbreviated):
+
+```text
+$ make gate FIXTURE=oss-lane/fixtures/clean.json                        # captured
+   ✅ component-byte-integrity: shipped module bytes match the SBOM's declared hash (detects a same-GUID swap)  [sp-800-53:SI-7(1), sp-800-53:SR-4(3)]
+   ✅ reconcile-membership: every declared module observed in the image; no undeclared artifact  [sp-800-53:CM-8(3), sp-800-53:SI-7, sp-800-53:SR-4(3)]
+✅ ALLOW — clean.json  (VSA: PASSED, verifiedLevels=[SLSA_BUILD_LEVEL_2])
+
+$ make gate FIXTURE=oss-lane/fixtures/byte-integrity-modified.json      # same-GUID swap, captured
+⛔ DENY — byte-integrity-modified.json  (VSA: FAILED)
+   • byte-integrity: 1 module(s) MODIFIED — shipped bytes differ from the SBOM's declared hash (possible same-GUID swap)
+```
+
+**Consumer side — run the gate on *your own* firmware:**
 
 ```bash
-make verify FW=path/to/OVMF.fd VSA=vsa.intoto.json   # hash it, bind it, per-framework scorecard
+make verify FW=path/to/OVMF_CODE.fd VSA=vsa.intoto.json   # hash it, bind it, per-framework scorecard
 ```
 
 [`cli/fw-supplychain-verify`](cli/README.md) hashes the image itself, checks the evidence is bound to *those
 bytes*, and prints a `PASS / FAIL / MISSING_EVIDENCE` scorecard — degrading honestly to `MISSING_EVIDENCE` on
-unattested firmware it has never seen.
+unattested firmware it has never seen, never a silent pass. See [`docs/DEMO.md`](docs/DEMO.md) for full output.
+
+## Honest scope &amp; what's next: runtime attestation
+
+> **Honest scope.** SLSA level is **L2** (platform-generated provenance), not L3. Byte-integrity covers each
+> module's **PE32 executable** (122/123; DEPEX/TE/compressed sections are out of scope). In this demo the
+> image-derived verdicts (reconcile, byte-integrity, CHIPSEC, binary-hardening) are **committed, not regenerated
+> in CI** — a production pipeline regenerates them inside the isolated builder from the real image.
+
+Everything above is **admission-time**: it proves the bytes *at rest*, before anything ships, with no device
+involved. The next class of evidence is **runtime attestation** — at boot, a **TPM quote** (signed PCR
+measurements of what actually loaded) appraised against a signed **golden RIM** derived from the same SBOM/VSA.
+It is documented as direction, not shipped (the `FUTURISTIC` rows in [`FRAMEWORKS.md`](FRAMEWORKS.md)):
+
+<div align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/img/futuristic-runtime-dark.svg">
+  <img alt="Admission-time gate today (solid); runtime measured-boot attestation next (dashed)" src="docs/img/futuristic-runtime.svg" width="1000">
+</picture>
+</div>
 
 ## Documentation
 
-Read in this order:
+Read in order: **[`PRIMER.md`](PRIMER.md)** (from scratch) → this README → [`DESIGN.md`](DESIGN.md) (the
+security/functional/operational design + upstream-generator rationale) → [`FRAMEWORKS.md`](FRAMEWORKS.md) (the
+evidence → control map) → [`oss-lane/README.md`](oss-lane/README.md) (how the enforcing lane fits together).
 
-1. **[`PRIMER.md`](PRIMER.md)** — start here if you're new to firmware: what this does and why, from scratch.
-2. **README** (this file) — what it is, how to run it.
-3. [`DESIGN.md`](DESIGN.md) — the security / functional / operational design + the upstream-generator rationale.
-4. [`FRAMEWORKS.md`](FRAMEWORKS.md) — the evidence→control map (exact section numbers; the 19 enforced
-   reports over evidence atoms E1–E10).
-5. [`oss-lane/compliance-map.md`](oss-lane/compliance-map.md) — the enforced subset + the two-lane story.
-6. [`oss-lane/README.md`](oss-lane/README.md) — how the enforcing lane fits together (gate, assembler, fixtures).
-7. [`EDK2-DEPENDENCY-RISK.md`](EDK2-DEPENDENCY-RISK.md) — the edk2 vendored-submodule risk map: maintenance /
-   security posture of each dependency and the stale-pin / org-mirror attack surface.
+## Contributing · Security · License
 
-Internal worklog (not product docs): [`DESIGN-REVIEW.md`](planning/DESIGN-REVIEW.md) (architecture review + verdict),
-[`POLICY-EXPANSION.md`](planning/POLICY-EXPANSION.md) (the rule set), [`EVIDENCE-ROADMAP.md`](planning/EVIDENCE-ROADMAP.md)
-(forward evidence lanes), [`TODO.md`](planning/TODO.md) (punch-list).
-
-## The pipeline
-
-```mermaid
-flowchart LR
-    A["1. Generate SBOM<br/>the ingredients list of<br/>every firmware module"]
-    B["2. Verify signature<br/>+ build provenance<br/>who built it, really?"]
-    C["3. Reconcile<br/>membership + byte-integrity<br/>does the chip contain<br/>exactly those bytes?"]
-    D["4. CVE scan<br/>any known<br/>vulnerabilities?"]
-    E{"5. Policy gate<br/>do all rules pass?"}
-    F["6. Signed VSA<br/>the signed verdict,<br/>re-checkable downstream"]
-    G["Deploy"]
-    H["Block"]
-    A --> B --> C --> D --> E
-    E -->|all pass| F --> G
-    E -->|any fail| H
-```
-
-In one line: `generate → verify(sig+provenance) → reconcile(bytes==SBOM) → CVE map → attest → OPA/compliance
-gate → deploy`.
-
-## Three checks, three questions
-
-Three checks are the core of trusting a firmware image. **Two ask "does the firmware match its bill of
-materials?"** (reconcile, byte-integrity); the **third asks a different question entirely** — "are the
-platform's own defenses switched on?" (CHIPSEC). Different questions, different levels:
-
-| Check | Question it answers | Level | Catches |
-|---|---|---|---|
-| **Reconcile** (membership) | Are all the declared modules actually **present**? | composition — by module ID (`FILE_GUID`) | a missing module, or an **undeclared** one that shouldn't be there |
-| **Byte-integrity** | Do each module's shipped **code bytes** match the declared hash? | content — the executable (PE32) of every module | a **same-GUID trojan**: same ID, swapped code |
-| **CHIPSEC** (platform posture) | Are the platform's firmware **protections** switched on? | platform config — not about the modules at all | BIOS-write-protect / SMM / Secure-Boot-variable **misconfiguration** |
-
-Three complementary layers: **the right parts are present** (reconcile), **the parts are genuine**
-(byte-integrity), and — separately — **the platform's defenses are on** (CHIPSEC). Membership alone is fooled by
-a same-GUID swap; byte-integrity catches it. Each maps to specific controls (byte-integrity → NIST
-`SI-7(1)`/`SR-4(3)`; CHIPSEC → `SP 800-193 §4.2`), carried per-control in the signed verdict.
-
-> **Honest scope.** Byte-integrity covers each module's **PE32 executable code** — 122 of the 123 modules
-> (`ResetVector`, a raw reset blob, is the one non-PE32 skip); it does not yet cover a module's DEPEX/other
-> sections, or TE/compressed sections. CHIPSEC on the **QEMU/OVMF** target runs the config checks that apply
-> there (`bios_wp`, `secureboot.variables`, `smm`); hardware-root checks (SPI-lock, SMRR…) report **N/A**, not
-> pass — assessed, not asserted.
-
-```mermaid
-flowchart TB
-    FW["🔩 Firmware image (.fd)"]
-    FW --> R["① Reconcile — <b>composition</b><br/>are the declared modules present?"]
-    FW --> B["② Byte-integrity — <b>content</b><br/>do the shipped bytes match the SBOM?"]
-    FW --> C["③ CHIPSEC — <b>platform</b><br/>are the firmware protections enabled?"]
-    R --> G{"Policy gate<br/>(19 signed checks)"}
-    B --> G
-    C --> G
-    G -->|all pass| OK["✅ signed verdict → deploy"]
-    G -->|any fail| NO["⛔ blocked"]
-```
-
-### Implementation status
-
-The source of truth for what is actually built vs. designed. `DESIGN.md` describes the full intended
-shape; this table says what exists. ✅ implemented · ⚠️ canned/stubbed · ❌ not built · ⛔ aspirational.
-
-| Stage | Designed | Status |
-|---|---|---|
-| 1 — Generate declared SBOM | edk2 `-Y SBOM` | ✅ implemented (edk2 fork PR #6; CycloneDX 1.6, per-module SHA-256/512, firmware-image digest in `metadata.component`, CISA/BSI Tier-1 metadata; **311-component example** — the generator emits all 311 including `openssl` as an in-image third-party dep (R1)) |
-| 2 — Observed carve → observed FFS | edk2 FMMT | ✅ implemented (`producers/reconcile/carve.sh` — FMMT decompresses the FVs and lists FFS `FILE_GUID`s) |
-| 3 — Reconcile declared vs observed | `producers/reconcile/sbom-reconcile.py` + `byte-integrity.py` | ✅ **generated** (not canned) — real carve → verdict: 123/123 modules validated, 0 missing, 0 suspicious (*membership*). **Byte-integrity (R4) now covers 122 of the 123 code modules:** `byte-integrity.py` extracts each module's PE32 from the deployed `.fd` and matches it to the SBOM's declared hash — a **same-GUID trojan is detected** (gate report `component-byte-integrity`). DXE drivers match directly (111); XIP/PEI modules (rebased) are byte-verified via un-rebase canonicalization (11). |
-| 4 — CDX → SPDX | protobom `sbom-convert` | ✅ implemented (`producers/interop/to-spdx.sh` + `inputs/sbom.spdx.json`) |
-| 4b — CDX → coSWID + embed | uSWID | ✅ implemented (`producers/interop/to-coswid.sh` + `inputs/sbom.uswid`) — CDX→coSWID round-trips (311→312), and embeds into a PE `.sbom` section + re-extracts, verified |
-| 5 — CVE map | grype | ✅ implemented (CI) |
-| 6 — Attest + sign | cosign / Valint | ✅ implemented |
-| 7 — Store to OCI | cosign | ✅ implemented (CI) |
-| 8 — Policy gate | OPA / Valint | ✅ implemented (verifier-reports + SLSA VSA) |
-| runtime — measured boot / RIM bind | TCG RIM / RATS | ⛔ aspirational, documented in DESIGN (not implemented) |
-
-The enforcing gate (stages 5–8), the SPDX interop (4), and now the real observed-carve + reconcile (2/3) run
-here; the generator (1) is edk2 fork PR #6. **Byte-integrity (R4) is now enforced over 122 of the 123 code modules** — DXE directly, XIP/PEI via un-rebase canonicalization; a same-GUID trojan is caught (`component-byte-integrity`). Every other designed
-stage now runs.
-
-## The tools, in one line each
-
-- **SBOM** (Software Bill of Materials) — the ingredient list of the firmware: every module, library, and
-  third-party component, in [CycloneDX](https://cyclonedx.org) JSON.
-- **[cosign](https://github.com/sigstore/cosign)** — sigstore's signing tool. It cryptographically signs
-  the SBOM (and an attestation about it) and later verifies that signature. "Keyless" mode signs with a
-  short-lived certificate tied to the CI job's identity (no long-lived private key).
-- **[OPA](https://www.openpolicyagent.org)** (Open Policy Agent) — a policy engine. You hand it facts
-  (JSON) and a policy written in *Rego*; it answers allow/deny. It does the *deciding*, not the gathering.
-- **[Valint](https://github.com/scribe-public)** — a supply-chain evidence + policy tool (author: this
-  project's author). It both *signs* evidence (like cosign) and *verifies compliance policies* against it,
-  resolving named rules and whole-framework "initiatives" (SLSA, SSDF, SP-800-53) from a policy bundle.
-- **[grype](https://github.com/anchore/grype)** — scans the SBOM's components for known CVEs.
-- **reconcile** — this project's own check: carve the actual firmware binary and confirm it contains
-  exactly what the SBOM claims (verify, don't trust).
-
-The two lanes below run over the *same* signed evidence — one with cosign+OPA (the enforcing gate), one with
-Valint (the same compliance checks, currently reporting) — so the result isn't tied to a single tool.
-
-## Two lanes, side by side
-
-```mermaid
-flowchart TD
-    EV["Same signed evidence<br/>SBOM + attestations + reconcile verdict"]
-    EV --> OSS["OSS lane — cosign + OPA<br/><b>enforcing gate</b>:<br/>a policy violation fails the run"]
-    EV --> VAL["Valint lane — same compliance checks<br/><b>report mode</b>:<br/>independent check, non-blocking"]
-```
-
-| Step | `oss-lane/` | `valint-lane/` |
-|---|---|---|
-| **Sign evidence** | `cosign attest` (in-toto/DSSE) | `valint` signed evidence |
-| **Verify signature** | `cosign verify-attestation` | `valint verify` (pulls the cosign/in-toto envelope) |
-| **Policy / compliance** | `opa eval` over `policy/*.rego` | `valint verify` → YAML policy → sample-policy rego hierarchy |
-
-Locally both sign with a key so the demo runs offline; the reference GitHub Actions workflow swaps that for
-**keyless OIDC** signing (`cosign` via Fulcio/Rekor, using the runner's workload identity). *(The repo is public, so the SLSA provenance is generated by GitHub's attestation store via
-`actions/attest-build-provenance` — platform-generated, SLSA Build L2 — and verified with `gh attestation
-verify`, rather than a self-signed predicate.)*
-
-## Compliance frameworks
-
-The gate is the "compliance framework" engine. This repo ships one worked example end-to-end (SLSA
-provenance + a custom firmware-composition policy) and a mapping showing how additional frameworks express
-as policy rules:
-
-- **SLSA** — build provenance at **L2**: GitHub's attestation store (`actions/attest-build-provenance`)
-  generates and signs the SBOM's provenance from the run's metadata (platform-generated, not tenant-forgeable),
-  verified in CI with `gh attestation verify`. L3 (isolated/hardened builder) is the remaining step. See
-  [`FRAMEWORKS.md`](./FRAMEWORKS.md).
-- **Custom firmware composition** — SBOM present ∧ signature verified ∧ reconcile clean ∧ no critical CVE ∧
-  provenance bound to the trusted builder.
-- **NIST SSDF (SP 800-218)** and **BSI TR-03183** — control→rule mapping in `oss-lane/compliance-map.md`.
-
-## Honesty tests
-
-`tests/` proves the gate actually blocks — not just passes a clean input:
-
-- a **tampered SBOM** (fails reconcile),
-- a **wrong builder identity** (fails provenance),
-- an **injected critical CVE** (fails the CVE clause).
-
-## Status
-
-**Green on CI** (`.github/workflows/supply-chain.yml`), all keyless via the runner's OIDC identity. The
-`attest-and-gate` job keyless-signs the SBOM **and a real SLSA provenance predicate**, verifies both, runs a
-**grype** CVE scan (`anchore/scan-action`), assembles a gate input entirely from *verified* evidence
-(signer identity extracted from the Fulcio cert, SBOM-hash ↔ signed-subject binding, reconcile verdict
-decoded from the signed payload), enforces the **OPA gate** (with a **VEX allowlist** for triaged CVEs) and
-keyless-signs its verdict as a **SLSA VSA** (Verification Summary Attestation),
-runs fixture + in-pipeline negative tests, and demonstrates cosign's **native `verify-attestation --policy`**
-over the OCI-stored SBOM. The `valint-lane` job signs + runs compliance keyless (report mode).
-
-Locally the OSS lane runs end-to-end over real OVMF data (311-component SBOM, reconcile clean 123/123 →
-ALLOW, emitting a signed SLSA VSA; honesty tests block tampered / wrong-builder / critical-CVE /
-swapped-SBOM). Reference/demo,
-defensive use only. Not affiliated with or endorsed by TianoCore.
-
-## Trust model & limitations
-
-The gate is only as trustworthy as its inputs, so it's worth being explicit about what it does and
-doesn't protect:
-
-- **Actions are pinned to commit SHAs** (not mutable tags), and each job takes the **minimum token scope**
-  (only `attest-and-gate` gets `id-token: write`, for keyless signing).
-- **The gate's decision inputs live in the repo** — `inputs/reconcile-verdict.json` (the reconcile
-  predicate), `oss-lane/policy/cve-allowlist.json` (VEX), and `oss-lane/policy/data.json` (the expected
-  builder identity). A commit that edits these can change the verdict, so they are covered by
-  [`CODEOWNERS`](.github/CODEOWNERS) and **require branch protection on `main`** to be meaningful. Signing
-  does *not* protect them — they're inside the signed repo.
-- **Demo limitation:** in this demo the **image-derived verdicts — reconcile, byte-integrity, CHIPSEC, and binary-hardening** —
-  are *committed*, not regenerated in CI (CI has the SBOM but not the multi-hundred-MB firmware image to
-  re-carve/scan). A real operator pipeline would **regenerate them inside the isolated builder** from the actual firmware, so the gate *proves* the
-  bytes rather than *trusting* a committed file. That's the intended production shape; the demo shows the
-  policy/attestation machinery around it.
-- The local runner's `DEV_ASSUME_IDENTITY` fallback (used only when signing with a local key, which carries
-  no cert identity) is **unreachable in CI** — CI keyless signing always yields a real, extracted signer
-  identity. A local `ALLOW` therefore proves less than a CI `ALLOW`. (One `DEV_ASSUME_*` **is** used in CI:
-  `DEV_ASSUME_FWIMAGE` assumes the deployed `.fd` digest equals the SBOM's — CI doesn't rebuild OVMF — so the
-  firmware-anchor's *deployed* leg is assumed there, not independently measured. The other two legs are real.)
-
-[Valint]: https://github.com/scribe-public
+Contributions and review welcome — see [`CONTRIBUTING.md`](CONTRIBUTING.md). Report vulnerabilities per
+[`SECURITY.md`](SECURITY.md). Licensed under [MIT](LICENSE). Reference / defensive use only; not affiliated with
+or endorsed by TianoCore.

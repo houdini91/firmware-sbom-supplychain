@@ -8,25 +8,25 @@ Actual output from this repo (OVMF / edk2), not mock-ups. Reproduce the self-con
 ## 1. The gate ALLOWs a clean release — 19 signed checks, each tagged with the control it earns
 
 ```
-   ✅ sbom-present: SBOM attached to the artifact  [CRA-AnnexI-1, CISA-2026-min-elements, NTIA-2021]
-   ✅ attestation-signature: attestation signature verified (keyless)  [SSDF-PS.2, in-toto-DSSE]
-   ✅ sbom-binding: SBOM digest bound to the signed attestation subject  [in-toto-subject-binding]
-   ✅ firmware-digest-anchor: firmware-image digest consistent: build-time SBOM digest == reconcile's independent re-hash (== deployed image when a flash-time verifier supplies FW_IMAGE; assumed equal otherwise)  [firmware-image-binding, SI-7, SR-4(3), CISA-2026-hash]
-   ✅ provenance-identity: built by the expected builder and source  [SLSA-provenance-L1, SSDF-PS.3]
-   ✅ slsa-provenance: SLSA L2 provenance verified (platform-generated: attest-build-provenance + gh attestation verify)  [SLSA-provenance-L2, SSDF-PO.3.3]
-   ✅ chipsec-posture: platform protections verified (CHIPSEC: applicable critical modules passed)  [SP800-193-4.2, SP800-147-write-protect]
-   ✅ reconcile-membership: every declared module observed in the image; no undeclared artifact  [SI-7, CM-8(3)]
-   ✅ component-integrity: every hashable module carries a hash (or a reviewed exemption)  [SI-7(1), CISA-2026-hash]
-   ✅ component-byte-integrity: shipped module bytes match the SBOM's declared hash (byte-integrity — detects a same-GUID swap)  [SI-7(1), SR-4(3), S2C2F-AUD-3]
-   ✅ binary-hardening: every DXE-class module declares NX_COMPAT (W^X-ready; declared-posture evidence, not runtime enforcement)  [SI-16, SSDF-PW.6.2]
-   ✅ vex-adjudicated: every high/critical CVE carries a non-empty VEX justification  [SSDF-RV.1.1, SSDF-RV.1.2, S2C2F-SCA-1]
-   ✅ thirdparty-identifiers: every third-party component carries a purl + license  [CISA-2026-license, CISA-2026-software-id, S2C2F-SCA-2, SSDF-PW.4.4]
-   ✅ build-tools-signed: build-tools SBOM present, signature verified, and every component SHA/version-pinned  [SSDF-PO.3.2, S2C2F-REB-3]
-   ✅ slsa-level-floor: SLSA build level >= 2 (platform-generated provenance; not L3)  [SR-4, SR-4(3)]
-   ✅ evidence-chain-bound: SBOM, attestation, and SLSA provenance all bound to one subject digest  [SLSA-subject-binding, SR-4(3)]
-   ✅ signer-identity-pinned: signed by a trusted keyless identity (cert SAN in the allowlist)  [SI-7(15), CM-14, SR-4(1)]
-   ✅ reconcile: declared SBOM matches observed firmware bytes  [reconcile-declared-vs-observed]
-   ✅ cve-triage: no un-triaged critical CVEs  [NIST-800-161, OpenVEX]
+   ✅ sbom-present: SBOM attached to the artifact  [cra-bsi-cisa:cra-annex-I-II-1, ssdf:PS.3.1]
+   ✅ attestation-signature: attestation signature verified (keyless)  [ssdf:PS.2.1]
+   ✅ sbom-binding: SBOM digest bound to the signed attestation subject  [slsa.l2:subject-binding]
+   ✅ firmware-digest-anchor: firmware-image digest consistent: build-time SBOM digest == reconcile's independent re-hash (== deployed image when a flash-time verifier supplies FW_IMAGE; assumed equal otherwise)  [cra-bsi-cisa:cisa-fw-binding, sp-800-53:SR-4(3)]
+   ✅ provenance-identity: built by the expected builder and source  [slsa.l2:provenance-exists, ssdf:PS.3.1]
+   ✅ slsa-provenance: SLSA L2 provenance verified (platform-generated: attest-build-provenance + gh attestation verify)  [slsa.l2:provenance-authentic, ssdf:PO.3.3]
+   ✅ chipsec-posture: platform protections verified (CHIPSEC: applicable critical modules passed)  [sp-800-193:4.2]
+   ✅ reconcile-membership: every declared module observed in the image; no undeclared artifact  [sp-800-53:CM-8(3), sp-800-53:SI-7, sp-800-53:SR-4(3)]
+   ✅ component-integrity: every hashable module carries a hash (or a reviewed exemption)  [cra-bsi-cisa:cisa-hash, sp-800-53:SI-7, sp-800-53:SI-7(1)]
+   ✅ component-byte-integrity: shipped module bytes match the SBOM's declared hash (byte-integrity — detects a same-GUID swap)  [sp-800-53:SI-7(1), sp-800-53:SR-4(3)]
+   ✅ binary-hardening: every DXE-class module declares NX_COMPAT (W^X-ready; declared-posture evidence, not runtime enforcement)  [sp-800-53:SI-16, ssdf:PW.6.2]
+   ✅ vex-adjudicated: every high/critical CVE carries a non-empty VEX justification  [s2c2f:SCA-1, ssdf:RV.1.1]
+   ✅ thirdparty-identifiers: every third-party component carries a purl + license  [cra-bsi-cisa:cisa-license-id, s2c2f:SCA-2, ssdf:PW.4.4]
+   ✅ build-tools-signed: build-tools SBOM present, signature verified, and every component SHA/version-pinned  [s2c2f:REB-3, ssdf:PO.3.2]
+   ✅ slsa-level-floor: SLSA build level >= 2 (platform-generated provenance; not L3)  [slsa.l2:provenance-authentic, sp-800-53:SR-4, sp-800-53:SR-4(3)]
+   ✅ evidence-chain-bound: SBOM, attestation, and SLSA provenance all bound to one subject digest  [slsa.l2:subject-binding, sp-800-53:SR-4(3)]
+   ✅ signer-identity-pinned: signed by a trusted keyless identity (cert SAN in the allowlist)  [sp-800-53:CM-14, sp-800-53:SI-7(15)]
+   ✅ reconcile: declared SBOM matches observed firmware bytes  []
+   ✅ cve-triage: no un-triaged critical CVEs  [s2c2f:SCA-1, sp-800-53:RA-5, ssdf:PW.4.4, ssdf:RV.1.1]
 ✅ ALLOW — clean.json  (VSA: PASSED, verifiedLevels=[SLSA_BUILD_LEVEL_2])
 ```
 
@@ -79,8 +79,8 @@ Evidence (VSA) : vsa.json   verificationResult=PASSED
 
 ▶ Framework coverage (from the signed VSA's verifier reports)
   ✅ SLSA v1.0 — Build track L2                 3/3  [required]
-  ✅ NIST SSDF (SP 800-218 v1.1)                6/6  [required]
-  ✅ NIST SP 800-53 Rev 5 (SR/SI/CM/RA)         8/8  [required]
+  ✅ NIST SSDF (SP 800-218 v1.1)                7/7  [required]
+  ✅ NIST SP 800-53 Rev 5 (SR/SI/CM/RA)         9/9  [required]
   ✅ NIST SP 800-193 — Platform Firmware Resiliency (Protection) 1/1  [required]
   ✅ OpenSSF S2C2F v2                           3/3  [required]
   ✅ EU CRA / BSI TR-03183-2 / CISA-2026 (SBOM obligations) 4/4  [required]
@@ -99,8 +99,8 @@ The killer feature: it doesn't guess or fail-confusingly. No attestation ⇒ eve
 
 ▶ Framework coverage — no evidence, so every control is MISSING_EVIDENCE
   ❔ SLSA v1.0 — Build track L2                 0/3  [required]
-  ❔ NIST SSDF (SP 800-218 v1.1)                0/6  [required]
-  ❔ NIST SP 800-53 Rev 5 (SR/SI/CM/RA)         0/8  [required]
+  ❔ NIST SSDF (SP 800-218 v1.1)                0/7  [required]
+  ❔ NIST SP 800-53 Rev 5 (SR/SI/CM/RA)         0/9  [required]
   ...
 ──────────────────────────────────────────────────────────────────
 VERDICT: ⛔ REJECT — no evidence — cannot attest this firmware (frameworks MISSING_EVIDENCE).

@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 452" width="1000" height="452" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, 'DejaVu Sans', sans-serif" role="img" aria-label="Framework coverage: 19 verifier reports map to 27 controls across 6 frameworks">
+  <defs>
+    <marker id="arw4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/>
+    </marker>
+  </defs>
+
+  <text x="36" y="34" font-size="17" font-weight="700" fill="#e2e8f0">One gate, many frameworks</text>
+  <text x="36" y="54" font-size="12.5" fill="#94a3b8">19 verifier reports, derived from a single manifest, resolve to <tspan font-weight="600" fill="#e2e8f0">27 controls across 6 frameworks</tspan>. Reusable checks share a canonical crosswalk id.</text>
+
+  <!-- Gate node -->
+  <rect x="36" y="150" width="196" height="132" rx="12" fill="#2dd4bf" fill-opacity="0.08" stroke="#2dd4bf" stroke-width="2.2"/>
+  <text x="134" y="196" text-anchor="middle" font-size="15" font-weight="700" fill="#e2e8f0">OPA gate</text>
+  <text x="134" y="220" text-anchor="middle" font-size="12" fill="#94a3b8">19 signed reports</text>
+  <text x="134" y="240" text-anchor="middle" font-size="11.5" fill="#94a3b8">manifest-derived tags</text>
+  <text x="134" y="262" text-anchor="middle" font-size="11" fill="#2dd4bf" font-weight="600">&#8594; per-control findings</text>
+
+  <!-- connectors -->
+  <g fill="none" stroke="#94a3b8" stroke-width="1.4">
+    <path d="M232 170 C 268 170, 272 88, 306 88" marker-end="url(#arw4)"/>
+    <path d="M232 189 C 268 189, 272 146, 306 146" marker-end="url(#arw4)"/>
+    <path d="M232 208 C 268 208, 272 204, 306 204" marker-end="url(#arw4)"/>
+    <path d="M232 227 C 268 227, 272 262, 306 262" marker-end="url(#arw4)"/>
+    <path d="M232 246 C 268 246, 272 320, 306 320" marker-end="url(#arw4)"/>
+    <path d="M232 265 C 268 265, 272 378, 306 378" marker-end="url(#arw4)"/>
+  </g>
+
+  <!-- lanes -->
+  <!-- helper: each lane rect x=310 w=654 h=48 -->
+  <g>
+    <!-- SLSA -->
+    <rect x="310" y="64" width="654" height="48" rx="10" fill="#94a3b8" fill-opacity="0.05" stroke="#94a3b8" stroke-width="1.3"/>
+    <text x="330" y="86" font-size="13" font-weight="600" fill="#e2e8f0">SLSA v1.0 &#8212; Build track L2</text>
+    <text x="330" y="103" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" fill="#64748b">provenance-exists &#183; provenance-authentic &#183; subject-binding</text>
+    <rect x="852" y="76" width="96" height="24" rx="7" fill="#2dd4bf" fill-opacity="0.14" stroke="#2dd4bf" stroke-width="1.3"/>
+    <text x="900" y="92.5" text-anchor="middle" font-size="12" font-weight="700" fill="#2dd4bf">3 / 3</text>
+
+    <!-- SSDF -->
+    <rect x="310" y="122" width="654" height="48" rx="10" fill="#94a3b8" fill-opacity="0.05" stroke="#94a3b8" stroke-width="1.3"/>
+    <text x="330" y="144" font-size="13" font-weight="600" fill="#e2e8f0">NIST SSDF &#183; SP 800-218 v1.1</text>
+    <text x="330" y="161" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" fill="#64748b">PS.2.1 &#183; PS.3.1 &#183; PO.3.2 &#183; PO.3.3 &#183; PW.4.4 &#183; PW.6.2 &#183; RV.1.1</text>
+    <rect x="852" y="134" width="96" height="24" rx="7" fill="#2dd4bf" fill-opacity="0.14" stroke="#2dd4bf" stroke-width="1.3"/>
+    <text x="900" y="150.5" text-anchor="middle" font-size="12" font-weight="700" fill="#2dd4bf">7 / 7</text>
+
+    <!-- 800-53 -->
+    <rect x="310" y="180" width="654" height="48" rx="10" fill="#94a3b8" fill-opacity="0.05" stroke="#94a3b8" stroke-width="1.3"/>
+    <text x="330" y="202" font-size="13" font-weight="600" fill="#e2e8f0">NIST SP 800-53 Rev 5 &#183; SR / SI / CM / RA</text>
+    <text x="330" y="219" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" fill="#64748b">SI-7 &#183; SI-7(1) &#183; SI-7(15) &#183; SI-16 &#183; CM-8(3) &#183; CM-14 &#183; SR-4 &#183; SR-4(3) &#183; RA-5</text>
+    <rect x="852" y="192" width="96" height="24" rx="7" fill="#2dd4bf" fill-opacity="0.14" stroke="#2dd4bf" stroke-width="1.3"/>
+    <text x="900" y="208.5" text-anchor="middle" font-size="12" font-weight="700" fill="#2dd4bf">9 / 9</text>
+
+    <!-- 800-193 -->
+    <rect x="310" y="238" width="654" height="48" rx="10" fill="#94a3b8" fill-opacity="0.05" stroke="#94a3b8" stroke-width="1.3"/>
+    <text x="330" y="260" font-size="13" font-weight="600" fill="#e2e8f0">NIST SP 800-193 &#183; Platform Firmware Resiliency</text>
+    <text x="330" y="277" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" fill="#64748b">&#167;4.2 Protection posture (config-level, via CHIPSEC)</text>
+    <rect x="852" y="250" width="96" height="24" rx="7" fill="#2dd4bf" fill-opacity="0.14" stroke="#2dd4bf" stroke-width="1.3"/>
+    <text x="900" y="266.5" text-anchor="middle" font-size="12" font-weight="700" fill="#2dd4bf">1 / 1</text>
+
+    <!-- S2C2F -->
+    <rect x="310" y="296" width="654" height="48" rx="10" fill="#94a3b8" fill-opacity="0.05" stroke="#94a3b8" stroke-width="1.3"/>
+    <text x="330" y="318" font-size="13" font-weight="600" fill="#e2e8f0">OpenSSF S2C2F v2</text>
+    <text x="330" y="335" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" fill="#64748b">SCA-1 &#183; SCA-2 &#183; REB-3</text>
+    <rect x="852" y="308" width="96" height="24" rx="7" fill="#2dd4bf" fill-opacity="0.14" stroke="#2dd4bf" stroke-width="1.3"/>
+    <text x="900" y="324.5" text-anchor="middle" font-size="12" font-weight="700" fill="#2dd4bf">3 / 3</text>
+
+    <!-- CRA/BSI/CISA -->
+    <rect x="310" y="354" width="654" height="48" rx="10" fill="#94a3b8" fill-opacity="0.05" stroke="#94a3b8" stroke-width="1.3"/>
+    <text x="330" y="376" font-size="13" font-weight="600" fill="#e2e8f0">EU CRA &#183; BSI TR-03183-2 &#183; CISA-2026</text>
+    <text x="330" y="393" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" fill="#64748b">Annex I II(1) &#183; component-hash &#183; firmware-binding &#183; license/PURL</text>
+    <rect x="852" y="366" width="96" height="24" rx="7" fill="#2dd4bf" fill-opacity="0.14" stroke="#2dd4bf" stroke-width="1.3"/>
+    <text x="900" y="382.5" text-anchor="middle" font-size="12" font-weight="700" fill="#2dd4bf">4 / 4</text>
+  </g>
+
+  <!-- footer total -->
+  <text x="36" y="436" font-size="12" fill="#94a3b8"><tspan font-weight="700" fill="#2dd4bf">27 / 27</tspan> controls satisfied on a clean release &#183; a control with no satisfying report reports <tspan font-style="italic">MISSING_EVIDENCE</tspan>, never a silent pass.</text>
+</svg>
