@@ -7,6 +7,9 @@
         {
           "id": "provenance-exists",
           "name": "Provenance exists (L1)",
+          "description": "The build platform produces provenance describing how the artifact was built.",
+          "citation": "SLSA v1.0 \u2014 Build L1 (Provenance exists)",
+          "canonical": "build-provenance-exists",
           "satisfied_by": [
             "provenance-identity"
           ]
@@ -14,6 +17,9 @@
         {
           "id": "provenance-authentic",
           "name": "Provenance authentic \u2014 platform-generated (L2)",
+          "description": "Provenance is generated and signed by the hosted build platform, so the build itself cannot forge it.",
+          "citation": "SLSA v1.0 \u2014 Build L2 (Hosted build, signed provenance)",
+          "canonical": "build-provenance",
           "satisfied_by": [
             "slsa-provenance",
             "slsa-level-floor"
@@ -22,6 +28,9 @@
         {
           "id": "subject-binding",
           "name": "Provenance/SBOM bound to one subject digest",
+          "description": "Provenance and SBOM name the same subject digest, so the evidence is verifiably about one artifact.",
+          "citation": "SLSA v1.0 \u2014 Provenance subject (in-toto Statement binding)",
+          "canonical": "evidence-subject-binding",
           "satisfied_by": [
             "sbom-binding",
             "evidence-chain-bound"
@@ -36,13 +45,19 @@
         {
           "id": "PS.2.1",
           "name": "Provide integrity-verification info to acquirers",
+          "description": "Provide acquirers a mechanism to verify the integrity of each release \u2014 e.g. a signature or cryptographic hash over the released artifact.",
+          "citation": "NIST SP 800-218 v1.1 \u2014 PS.2.1",
+          "canonical": "release-integrity-verification",
           "satisfied_by": [
             "attestation-signature"
           ]
         },
         {
-          "id": "PS.3",
+          "id": "PS.3.1",
           "name": "Archive + provide provenance/SBOM per release",
+          "description": "Securely archive the necessary files (provenance, SBOM) and provide a way for acquirers to obtain them for each release.",
+          "citation": "NIST SP 800-218 v1.1 \u2014 PS.3.1 (provenance), PS.3.2 (SBOM)",
+          "canonical": "release-provenance-and-sbom",
           "satisfied_by": [
             "sbom-present",
             "provenance-identity"
@@ -51,6 +66,9 @@
         {
           "id": "PO.3.2",
           "name": "Deploy/operate tools securely (toolchain pinned)",
+          "description": "Follow recommended security practices to deploy, operate, and maintain the toolchain \u2014 including pinning tool versions so the build is reproducible and tamper-evident.",
+          "citation": "NIST SP 800-218 v1.1 \u2014 PO.3.2",
+          "canonical": "toolchain-integrity",
           "satisfied_by": [
             "build-tools-signed"
           ]
@@ -58,6 +76,9 @@
         {
           "id": "PO.3.3",
           "name": "Tools emit artifacts of secure practices",
+          "description": "Configure the toolchain to generate artifacts of evidence (e.g. SLSA provenance) that support the secure use of the tools.",
+          "citation": "NIST SP 800-218 v1.1 \u2014 PO.3.3",
+          "canonical": "build-provenance",
           "satisfied_by": [
             "slsa-provenance"
           ]
@@ -65,6 +86,9 @@
         {
           "id": "PW.4.4",
           "name": "Verify third-party components",
+          "description": "Verify that acquired third-party components comply with requirements \u2014 identify them and check them for known vulnerabilities.",
+          "citation": "NIST SP 800-218 v1.1 \u2014 PW.4.4",
+          "canonical": "third-party-component-verification",
           "satisfied_by": [
             "thirdparty-identifiers",
             "cve-triage"
@@ -73,6 +97,9 @@
         {
           "id": "PW.6.2",
           "name": "Enable build/link hardening features (NX/DEP-compatible executables)",
+          "description": "Enable compiler/linker exploit-mitigation features \u2014 here, that shipped executables declare NX_COMPAT so W^X can be enforced.",
+          "citation": "NIST SP 800-218 v1.1 \u2014 PW.6.2",
+          "canonical": "memory-protection-nx",
           "satisfied_by": [
             "binary-hardening"
           ]
@@ -80,6 +107,9 @@
         {
           "id": "RV.1.1",
           "name": "Ongoing vulnerability discovery + triage",
+          "description": "Continuously gather information on and analyze vulnerabilities in the software and its dependencies.",
+          "citation": "NIST SP 800-218 v1.1 \u2014 RV.1.1",
+          "canonical": "vulnerability-management",
           "satisfied_by": [
             "cve-triage",
             "vex-adjudicated"
@@ -94,6 +124,9 @@
         {
           "id": "SI-7",
           "name": "Software/firmware integrity \u2014 detect unauthorized change",
+          "description": "Employ integrity-verification tools to detect unauthorized changes to software and firmware.",
+          "citation": "NIST SP 800-53 Rev 5 \u2014 SI-7",
+          "canonical": "software-integrity",
           "satisfied_by": [
             "reconcile-membership",
             "component-integrity"
@@ -102,6 +135,9 @@
         {
           "id": "SI-7(1)",
           "name": "Integrity checks over components",
+          "description": "Perform an integrity check of the specified software/firmware at defined transitional states (here: each shipped component's bytes vs its declared hash).",
+          "citation": "NIST SP 800-53 Rev 5 \u2014 SI-7(1)",
+          "canonical": "component-integrity-check",
           "satisfied_by": [
             "component-integrity",
             "component-byte-integrity"
@@ -110,6 +146,9 @@
         {
           "id": "SI-7(15)",
           "name": "Code authentication by a trusted signer",
+          "description": "Implement cryptographic mechanisms to authenticate software/firmware before installation (a trusted, pinned signer identity).",
+          "citation": "NIST SP 800-53 Rev 5 \u2014 SI-7(15)",
+          "canonical": "code-authentication-signed",
           "satisfied_by": [
             "signer-identity-pinned"
           ]
@@ -117,6 +156,9 @@
         {
           "id": "SI-16",
           "name": "Memory protection \u2014 W^X-ready modules (declared NX_COMPAT posture)",
+          "description": "Implement controls to protect memory from unauthorized code execution \u2014 here, modules declare NX_COMPAT so data pages can be marked non-executable.",
+          "citation": "NIST SP 800-53 Rev 5 \u2014 SI-16",
+          "canonical": "memory-protection-nx",
           "satisfied_by": [
             "binary-hardening"
           ]
@@ -124,6 +166,9 @@
         {
           "id": "CM-8(3)",
           "name": "Unauthorized-component detection",
+          "description": "Detect the presence of unauthorized components (modules present in the image but not declared in the SBOM).",
+          "citation": "NIST SP 800-53 Rev 5 \u2014 CM-8(3)",
+          "canonical": "unauthorized-component-detection",
           "satisfied_by": [
             "reconcile-membership"
           ]
@@ -131,6 +176,9 @@
         {
           "id": "CM-14",
           "name": "Signed components",
+          "description": "Prevent installation of software/firmware components without verification that the component has been signed by a trusted source.",
+          "citation": "NIST SP 800-53 Rev 5 \u2014 CM-14",
+          "canonical": "code-authentication-signed",
           "satisfied_by": [
             "signer-identity-pinned"
           ]
@@ -138,6 +186,9 @@
         {
           "id": "SR-4",
           "name": "Provenance",
+          "description": "Document, monitor, and maintain valid provenance for systems, components, and associated data.",
+          "citation": "NIST SP 800-53 Rev 5 \u2014 SR-4",
+          "canonical": "build-provenance",
           "satisfied_by": [
             "slsa-level-floor"
           ]
@@ -145,6 +196,9 @@
         {
           "id": "SR-4(3)",
           "name": "Validate genuine and not altered",
+          "description": "Employ controls to validate that the component received is genuine and has not been altered \u2014 the full anchored evidence chain over the firmware digest.",
+          "citation": "NIST SP 800-53 Rev 5 \u2014 SR-4(3)",
+          "canonical": "genuine-and-unaltered",
           "satisfied_by": [
             "slsa-level-floor",
             "evidence-chain-bound",
@@ -156,6 +210,9 @@
         {
           "id": "RA-5",
           "name": "Vulnerability scanning",
+          "description": "Scan for vulnerabilities in the system and its components and analyze the results.",
+          "citation": "NIST SP 800-53 Rev 5 \u2014 RA-5",
+          "canonical": "vulnerability-management",
           "satisfied_by": [
             "cve-triage"
           ]
@@ -169,6 +226,9 @@
         {
           "id": "4.2",
           "name": "Protection posture (config-level, via CHIPSEC on OVMF target)",
+          "description": "Platform firmware and its critical data are protected from unauthorized modification (write-protection posture, checked via CHIPSEC).",
+          "citation": "NIST SP 800-193 \u2014 \u00a74.2 (Protection)",
+          "canonical": "platform-firmware-protection",
           "satisfied_by": [
             "chipsec-posture"
           ]
@@ -182,6 +242,9 @@
         {
           "id": "SCA-1",
           "name": "Scan OSS for known vulnerabilities",
+          "description": "Scan open-source software components for known vulnerabilities and triage the results.",
+          "citation": "OpenSSF S2C2F v2 \u2014 SCA-1",
+          "canonical": "vulnerability-management",
           "satisfied_by": [
             "cve-triage",
             "vex-adjudicated"
@@ -190,6 +253,9 @@
         {
           "id": "SCA-2",
           "name": "Scan OSS for licenses",
+          "description": "Scan open-source components to identify their licenses.",
+          "citation": "OpenSSF S2C2F v2 \u2014 SCA-2",
+          "canonical": "component-license-identification",
           "satisfied_by": [
             "thirdparty-identifiers"
           ]
@@ -197,6 +263,9 @@
         {
           "id": "REB-3",
           "name": "SBOM for rebuilt/build tooling",
+          "description": "Generate a verifiable SBOM for the build toolchain, with tools pinned and signed.",
+          "citation": "OpenSSF S2C2F v2 \u2014 REB-3",
+          "canonical": "toolchain-integrity",
           "satisfied_by": [
             "build-tools-signed"
           ]
@@ -210,6 +279,9 @@
         {
           "id": "cra-annex-I-II-1",
           "name": "CRA Annex I Part II(1): SBOM exists, machine-readable",
+          "description": "Produce an SBOM covering at least the top-level dependencies, in a commonly used, machine-readable format.",
+          "citation": "EU CRA (Reg. 2024/2847) \u2014 Annex I, Part II(1); BSI TR-03183-2",
+          "canonical": "sbom-exists",
           "satisfied_by": [
             "sbom-present"
           ]
@@ -217,6 +289,9 @@
         {
           "id": "cisa-hash",
           "name": "CISA-2026: component hashes",
+          "description": "Each SBOM component carries a cryptographic hash of the component.",
+          "citation": "CISA SBOM Minimum Elements (2025) \u2014 Component Hash",
+          "canonical": "component-integrity-check",
           "satisfied_by": [
             "component-integrity"
           ]
@@ -224,6 +299,9 @@
         {
           "id": "cisa-fw-binding",
           "name": "SBOM bound to the firmware image digest (evidence is about these bytes)",
+          "description": "The SBOM and its evidence are cryptographically bound to the digest of the actual firmware image they describe.",
+          "citation": "CISA SBOM (2025) \u2014 firmware/artifact binding",
+          "canonical": "firmware-image-binding",
           "satisfied_by": [
             "firmware-digest-anchor"
           ]
@@ -231,6 +309,9 @@
         {
           "id": "cisa-license-id",
           "name": "CISA-2026: license + software identifiers (third-party)",
+          "description": "Each third-party component carries its license and a software identifier (PURL/CPE).",
+          "citation": "CISA SBOM Minimum Elements (2025) \u2014 License + Software Identifiers",
+          "canonical": "component-license-identification",
           "satisfied_by": [
             "thirdparty-identifiers"
           ]

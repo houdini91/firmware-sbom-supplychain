@@ -1,0 +1,505 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Framework-aware gate output — a control catalog design</title>
+<style>
+  :root{
+    --bg:#ffffff; --fg:#1a1c1f; --muted:#5b626b; --faint:#8a919b;
+    --card:#f6f7f9; --card2:#eef0f3; --border:#d9dde2; --border2:#c4cad2;
+    --accent:#2f6df6; --accent-bg:#e8f0ff;
+    --green:#1f8a4c; --green-bg:#e5f4ea; --amber:#a86400; --amber-bg:#fbf0da;
+    --red:#c0392b; --red-bg:#fbe7e4; --purple:#6d43c9; --purple-bg:#efe8fb;
+    --code-bg:#f2f3f5; --code-fg:#1a1c1f;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#15171a; --fg:#e6e8eb; --muted:#a2a9b2; --faint:#767d87;
+      --card:#1e2126; --card2:#23272d; --border:#31363d; --border2:#3d444c;
+      --accent:#5b8cff; --accent-bg:#1a2740;
+      --green:#4cc57f; --green-bg:#12291c; --amber:#e0a53a; --amber-bg:#2e2410;
+      --red:#f2705f; --red-bg:#301917; --purple:#a988f0; --purple-bg:#231a37;
+      --code-bg:#1b1e23; --code-fg:#e6e8eb;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);
+    line-height:1.6;font-size:16px;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:940px;margin:0 auto;padding:48px 24px 96px}
+  h1{font-size:2rem;line-height:1.2;margin:0 0 .3em;letter-spacing:-.02em}
+  h2{font-size:1.4rem;margin:2.4em 0 .5em;letter-spacing:-.01em;
+    padding-top:.6em;border-top:1px solid var(--border)}
+  h3{font-size:1.08rem;margin:1.6em 0 .4em}
+  p{margin:.7em 0}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  code{font-family:var(--mono);font-size:.86em;background:var(--code-bg);
+    color:var(--code-fg);padding:.12em .38em;border-radius:4px;
+    border:1px solid var(--border)}
+  pre{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;
+    padding:16px 18px;overflow-x:auto;font-family:var(--mono);font-size:.82rem;
+    line-height:1.55;margin:1em 0}
+  pre code{background:none;border:none;padding:0;font-size:1em}
+  .lede{font-size:1.12rem;color:var(--muted);margin:.2em 0 0}
+  .meta{color:var(--faint);font-size:.85rem;margin:.8em 0 0;font-family:var(--mono)}
+  .callout{border:1px solid var(--border2);border-left:4px solid var(--accent);
+    background:var(--card);border-radius:8px;padding:2px 18px;margin:1.3em 0}
+  .callout.rec{border-left-color:var(--green);background:var(--green-bg)}
+  .callout.warn{border-left-color:var(--amber);background:var(--amber-bg)}
+  .tag{display:inline-block;font-family:var(--mono);font-size:.76rem;
+    padding:.1em .5em;border-radius:5px;border:1px solid var(--border2);
+    background:var(--card2);margin:2px 3px 2px 0;white-space:nowrap}
+  .tag.nist{background:var(--accent-bg);border-color:var(--accent);color:var(--accent)}
+  .tag.s2c2f{background:var(--purple-bg);border-color:var(--purple);color:var(--purple)}
+  .tag.cisa{background:var(--amber-bg);border-color:var(--amber);color:var(--amber)}
+  table{border-collapse:collapse;width:100%;margin:1.2em 0;font-size:.9rem;
+    display:block;overflow-x:auto}
+  th,td{border:1px solid var(--border);padding:9px 12px;text-align:left;
+    vertical-align:top}
+  th{background:var(--card2);font-weight:600}
+  tr:nth-child(even) td{background:var(--card)}
+  .pill{display:inline-block;font-size:.74rem;font-weight:600;padding:.12em .6em;
+    border-radius:20px;white-space:nowrap}
+  .pill.low{background:var(--green-bg);color:var(--green);border:1px solid var(--green)}
+  .pill.med{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber)}
+  .pill.high{background:var(--red-bg);color:var(--red);border:1px solid var(--red)}
+  .figure{border:1px solid var(--border);background:var(--card);border-radius:12px;
+    padding:20px;margin:1.6em 0}
+  .figcap{font-size:.85rem;color:var(--muted);margin-top:.4em;text-align:center}
+  svg{max-width:100%;height:auto;display:block;margin:0 auto}
+  .svg-box{fill:var(--card2);stroke:var(--border2)}
+  .svg-rule{fill:var(--accent-bg);stroke:var(--accent)}
+  .svg-canon{fill:var(--purple-bg);stroke:var(--purple)}
+  .svg-fw{fill:var(--green-bg);stroke:var(--green)}
+  .svg-t{fill:var(--fg);font-family:var(--sans)}
+  .svg-tm{fill:var(--muted);font-family:var(--mono)}
+  .svg-line{stroke:var(--border2);fill:none}
+  .svg-lbl{fill:var(--faint);font-family:var(--mono)}
+  ul,ol{margin:.6em 0;padding-left:1.4em}
+  li{margin:.3em 0}
+  .small{font-size:.86rem;color:var(--muted)}
+  hr{border:none;border-top:1px solid var(--border);margin:2.4em 0}
+  .kicker{font-family:var(--mono);font-size:.78rem;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--accent);margin:0 0 .6em}
+</style>
+
+<div class="wrap">
+
+<p class="kicker">Design exploration · oss-lane compliance gate</p>
+<h1>Making the gate speak each framework's language</h1>
+<p class="lede">A control catalog so every rule carries a description and renders in the
+target framework's own words — right-sized against what the gate already does and where
+the signed-verdict format is heading.</p>
+<p class="meta">planning/framework-aware-output-design.html · companion to A2-A4-PLAN.md &amp; FRAMEWORKS.md</p>
+
+<div class="callout rec">
+<p><strong>Bottom line up front.</strong> Do the <strong>Minimal</strong> version now:
+add a <code>description</code> and a per-framework <code>citation</code> to each control in
+<code>frameworks.yaml</code> (which is already framework-partitioned), flow those into the
+signed verdict's <code>controlAssessments[]</code>, and <em>derive</em> the rego per-report
+<code>controls</code> tags from that catalog instead of hand-maintaining a second, drifting
+copy. Add one cheap forward-compatible seam — an optional <code>canonical</code>/<code>openCre</code>
+key per control — so this grows into a canonical catalog or into CDXA without a rewrite.
+Do <strong>not</strong> build a standalone canonical catalog (Moderate) as its own layer, and do
+<strong>not</strong> adopt CDXA (Full) yet — both should wait on the A2-A4 verdict-format
+decision, where CDXA is already the leading candidate. Detail and justification below.</p>
+</div>
+
+<h2>1 · The problem, concretely</h2>
+
+<p>The gate should <em>reflect the controls and frameworks it is set up to cover</em>. Three
+asks, from the project owner:</p>
+<ol>
+<li>each control should <strong>expose its description</strong> — what the control actually means;</li>
+<li>the gate's <strong>output should match the target framework's own language</strong> — not a
+generic string, but phrasing and citation that read as NIST vs. S2C2F vs. CRA;</li>
+<li>because <strong>many frameworks reuse the same underlying check</strong>, a control should be
+defined <strong>once</strong> and <em>referenced</em> by many frameworks — not copy-pasted per framework.</li>
+</ol>
+
+<p>Take one real rule that is enforced today: <code>component-byte-integrity</code> — the check
+that the shipped PE32 bytes of every hashable module match the SBOM's declared hash (the one that
+catches a same-GUID trojan swap). That <em>single</em> check is claimed against several controls
+across several frameworks, each of which describes it in its own words:</p>
+
+<table>
+<thead><tr><th>Framework</th><th>Control</th><th>How that framework phrases the ask</th></tr></thead>
+<tbody>
+<tr><td><span class="tag nist">NIST 800-53</span></td><td><code>SI-7(1)</code> Integrity Checks</td>
+  <td>"The information system performs an integrity check of [software, firmware, information]…"</td></tr>
+<tr><td><span class="tag nist">NIST 800-53 / 800-161</span></td><td><code>SR-4(3)</code> Validate as Genuine &amp; Not Altered</td>
+  <td>"Employ [controls] to validate that the component received is genuine and has not been altered."</td></tr>
+<tr><td><span class="tag s2c2f">OpenSSF S2C2F</span></td><td><code>AUD-3</code></td>
+  <td>"Validate integrity of the OSS that you consume into your build."</td></tr>
+<tr><td><span class="tag cisa">CISA 2026 / BSI TR-03183-2</span></td><td>Component Hash · §5.2.2</td>
+  <td>"Cryptographic hash of the deployable component" (SHA-512 tier for BSI).</td></tr>
+</tbody>
+</table>
+
+<p>One check, four to five framework "renderings," each wanting its own reference number and
+sentence. That is the shape the output should take — and the reuse the data model should capture
+<em>once</em>.</p>
+
+<h2>2 · Current state — and its honest limitation</h2>
+
+<p>Two separate places encode "which control does this satisfy," and <strong>neither carries a
+description or framework language</strong>:</p>
+
+<h3>a. Hard-coded messages + bare control tags in the rego</h3>
+<p>Each of the 19 <code>verifier_reports</code> is built by
+<code>_report(name, ok, pass_msg, fail_msg, controls)</code>. The messages are fixed English
+strings and the <code>controls</code> field is an array of <em>bare</em> id strings:</p>
+<pre><code>_report(
+    "component-byte-integrity", _byte_integrity_ok,
+    "shipped module bytes match the SBOM's declared hash (byte-integrity — detects a same-GUID swap)",
+    _byte_integrity_msg,
+    ["SI-7(1)", "SR-4(3)", "S2C2F-AUD-3"],   // &lt;- free strings, no description, no citation
+),</code></pre>
+<p>The tag <code>"SI-7(1)"</code> tells a reader nothing about what SI-7(1) <em>is</em>, and the
+pass/fail message is a generic sentence — not NIST's language, not S2C2F's.</p>
+
+<h3>b. The initiative manifest (<code>frameworks.yaml</code>)</h3>
+<p>The declarative layer is <em>already</em> framework-partitioned and already models rule-reuse
+correctly — one report name is referenced from many controls' <code>satisfied_by</code>:</p>
+<pre><code>sp-800-53:
+  controls:
+    - id: SI-7(1)
+      name: "Integrity checks over components"
+      satisfied_by: [component-integrity, component-byte-integrity]
+    - id: SR-4(3)
+      name: "Validate genuine and not altered"
+      satisfied_by: [..., component-byte-integrity]</code></pre>
+<p>Controls have <code>id</code>, a short <code>name</code>, and <code>satisfied_by</code> — but
+<strong>no <code>description</code></strong> and <strong>no per-framework citation/quote</strong>.
+The rego <code>control_assessments</code> rule already walks this manifest and emits OSCAL-shaped
+findings (<code>framework</code>, <code>controlId</code>, <code>name</code>, <code>status</code>),
+so a description added here would flow straight into the signed verdict.</p>
+
+<div class="callout warn">
+<p><strong>Finding — two vocabularies that have already drifted.</strong> The rego <code>controls</code>
+tags and the <code>frameworks.yaml</code> control ids are maintained independently and use different
+conventions (<code>"CRA-AnnexI-1"</code> vs. <code>cra-annex-I-II-1</code>;
+<code>"CISA-2026-hash"</code> vs. <code>cisa-hash</code>). They have already diverged: the rego tags
+<code>component-byte-integrity</code> with <code>"S2C2F-AUD-3"</code>, but the
+<code>s2c2f</code> block in <code>frameworks.yaml</code> defines only SCA-1, SCA-2, and REB-3 —
+<em>there is no AUD-3 control there at all</em>. FRAMEWORKS.md even concedes the rego tags are
+"a representative subset, not the exhaustive mapping." So today there is no single source of truth
+that a machine can render: the meaning and the framework wording live only in FRAMEWORKS.md prose.</p>
+</div>
+
+<p><strong>The limitation in one sentence:</strong> the gate's machine output can tell you a control
+<em>passed or failed</em>, but not what it <em>means</em> or how its <em>owning framework phrases it</em> —
+because descriptions and framework language exist only as human prose, disconnected from the two
+id vocabularies the gate actually emits.</p>
+
+<h2>3 · How mature systems model "one control, many frameworks"</h2>
+
+<p>This is a solved problem, and every mature approach lands on the same shape: a <strong>canonical
+requirement defined once, referenced by many frameworks, each with its own citation</strong> — a
+star topology, not per-framework duplication.</p>
+
+<table>
+<thead><tr><th>System</th><th>Model</th><th>Takeaway for us</th></tr></thead>
+<tbody>
+<tr><td><strong>OpenCRE</strong> (OWASP)</td>
+  <td>Each standard section links to a shared <em>Common Requirement</em>; a star topology plus
+  transitivity (A→CRE, B→CRE ⇒ A↔B) yields all cross-mappings.</td>
+  <td>The canonical-node idea in its purest form. And it is the linking layer CDXA already embeds.</td></tr>
+<tr><td><strong>NIST OSCAL</strong> mapping model</td>
+  <td>A machine-readable <em>mapping</em> layer expressing many-to-many control relations
+  (<code>equivalent-to</code>, <code>subset-of</code>, <code>intersects-with</code>) across catalogs
+  "without restating or duplicating the source control content."</td>
+  <td>Our verdict is already OSCAL-Assessment-Results-shaped; OSCAL is the NIST-native fit and keeps
+  the crosswalk as data, not prose.</td></tr>
+<tr><td><strong>Secure Controls Framework (SCF)</strong></td>
+  <td>A "Rosetta Stone" metaframework: ~1,500 common controls mapped to 200+ laws/frameworks via a
+  rigorous Set-Theory Relationship Mapping — "implement once, comply many times."</td>
+  <td>Validates the direction, but its scale is the over-engineering warning: we have 6 frameworks,
+  not 200.</td></tr>
+<tr><td><strong>CycloneDX CDXA</strong></td>
+  <td><code>definitions.standards[].requirements[]</code>: each requirement has
+  <code>identifier</code>, <code>title</code>, <code>text</code>, <code>descriptions[]</code>, and an
+  <code>openCre[]</code> array for cross-standard linking. Claims bind evidence → requirement.</td>
+  <td>A catalog with per-requirement descriptions <em>and</em> cross-mapping is <em>already</em> what
+  CDXA gives — and it is the leading A2-A4 verdict-format candidate and pairs with our CycloneDX SBOM.</td></tr>
+<tr><td><strong>valint / Scribe</strong></td>
+  <td>A declarative <em>initiative</em> file maps framework guidelines → controls → executable rules
+  (<code>uses: rule@v1</code>); output is a signed <strong>SARIF</strong> report where each rule
+  carries an <code>id</code> + <code>shortDescription</code>.</td>
+  <td>The pattern this repo already adopted. The natural next step is to give those controls the
+  description + framework text the SARIF/verdict can surface.</td></tr>
+</tbody>
+</table>
+
+<p><strong>The standard pattern:</strong> define the requirement once (id + description), let each
+framework <em>reference</em> it with a framework-specific citation and quoted text, and keep the
+rule→requirement binding separate (many rules can satisfy one requirement; one rule can satisfy
+many). Our <code>frameworks.yaml</code> already does the rule-binding half well — the gap is purely
+the description + citation half.</p>
+
+<h2>4 · The proposed data model</h2>
+
+<p>A rule is the reusable atom. It flows to a control that owns the description, and that control is
+rendered into whichever framework(s) reference it — each rendering carrying its own citation and
+language:</p>
+
+<div class="figure">
+<svg viewBox="0 0 860 470" role="img" aria-label="Data-flow diagram: one rule flows through a canonical control to many framework renderings">
+  <!-- Rule -->
+  <rect class="svg-rule" x="20" y="180" width="180" height="90" rx="10"/>
+  <text class="svg-t" x="110" y="208" text-anchor="middle" font-size="13" font-weight="700">RULE (report)</text>
+  <text class="svg-tm" x="110" y="230" text-anchor="middle" font-size="11">component-</text>
+  <text class="svg-tm" x="110" y="245" text-anchor="middle" font-size="11">byte-integrity</text>
+  <text class="svg-lbl" x="110" y="262" text-anchor="middle" font-size="9">1 real OPA check</text>
+
+  <!-- arrow rule -> canonical -->
+  <path class="svg-line" d="M200 225 H270" stroke-width="2" marker-end="url(#ah)"/>
+  <text class="svg-lbl" x="235" y="217" text-anchor="middle" font-size="9">satisfied_by</text>
+
+  <!-- Canonical control -->
+  <rect class="svg-canon" x="270" y="150" width="230" height="150" rx="10"/>
+  <text class="svg-t" x="385" y="178" text-anchor="middle" font-size="13" font-weight="700">CANONICAL CONTROL</text>
+  <text class="svg-tm" x="385" y="198" text-anchor="middle" font-size="10.5">id: integrity-check</text>
+  <text class="svg-t" x="385" y="220" text-anchor="middle" font-size="10.5" font-style="italic">description (defined ONCE):</text>
+  <text class="svg-t" x="385" y="236" text-anchor="middle" font-size="9.5">"verify shipped component bytes</text>
+  <text class="svg-t" x="385" y="249" text-anchor="middle" font-size="9.5">match the declared hash to detect</text>
+  <text class="svg-t" x="385" y="262" text-anchor="middle" font-size="9.5">unauthorized change / swap"</text>
+  <text class="svg-lbl" x="385" y="285" text-anchor="middle" font-size="9">openCre / canonical seam →</text>
+
+  <!-- arrows canonical -> frameworks -->
+  <path class="svg-line" d="M500 185 C560 150, 580 110, 640 92" stroke-width="1.6" marker-end="url(#ah)"/>
+  <path class="svg-line" d="M500 210 C560 205, 580 195, 640 182" stroke-width="1.6" marker-end="url(#ah)"/>
+  <path class="svg-line" d="M500 240 C560 260, 580 268, 640 272" stroke-width="1.6" marker-end="url(#ah)"/>
+  <path class="svg-line" d="M500 265 C560 320, 580 350, 640 362" stroke-width="1.6" marker-end="url(#ah)"/>
+  <text class="svg-lbl" x="545" y="140" text-anchor="middle" font-size="9">rendered as</text>
+
+  <!-- Framework renderings -->
+  <rect class="svg-fw" x="640" y="60" width="200" height="66" rx="8"/>
+  <text class="svg-t" x="740" y="82" text-anchor="middle" font-size="11" font-weight="700">NIST 800-53 · SI-7(1)</text>
+  <text class="svg-t" x="740" y="99" text-anchor="middle" font-size="8.5">"performs an integrity check</text>
+  <text class="svg-t" x="740" y="111" text-anchor="middle" font-size="8.5">of software, firmware…"</text>
+
+  <rect class="svg-fw" x="640" y="152" width="200" height="66" rx="8"/>
+  <text class="svg-t" x="740" y="174" text-anchor="middle" font-size="11" font-weight="700">800-53 · SR-4(3)</text>
+  <text class="svg-t" x="740" y="191" text-anchor="middle" font-size="8.5">"validate…genuine and</text>
+  <text class="svg-t" x="740" y="203" text-anchor="middle" font-size="8.5">has not been altered"</text>
+
+  <rect class="svg-fw" x="640" y="244" width="200" height="66" rx="8"/>
+  <text class="svg-t" x="740" y="266" text-anchor="middle" font-size="11" font-weight="700">S2C2F · AUD-3</text>
+  <text class="svg-t" x="740" y="283" text-anchor="middle" font-size="8.5">"validate integrity of the</text>
+  <text class="svg-t" x="740" y="295" text-anchor="middle" font-size="8.5">OSS you consume into your build"</text>
+
+  <rect class="svg-fw" x="640" y="336" width="200" height="66" rx="8"/>
+  <text class="svg-t" x="740" y="358" text-anchor="middle" font-size="11" font-weight="700">CISA'26 / BSI §5.2.2</text>
+  <text class="svg-t" x="740" y="375" text-anchor="middle" font-size="8.5">"cryptographic hash of the</text>
+  <text class="svg-t" x="740" y="387" text-anchor="middle" font-size="8.5">deployable component (SHA-512)"</text>
+
+  <defs>
+    <marker id="ah" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 Z" fill="var(--border2)"/>
+    </marker>
+  </defs>
+</svg>
+<div class="figcap">One real check → one canonical control that owns the description → many framework
+renderings, each with its own citation and language. The description is written <em>once</em>; only
+the citation differs per framework.</div>
+</div>
+
+<h2>5 · Options, right-sized</h2>
+
+<table>
+<thead><tr><th>Option</th><th>What it is</th><th>Effort</th><th>Payoff</th><th>Over-engineering risk</th></tr></thead>
+<tbody>
+<tr>
+  <td><strong>(a) Minimal</strong><br><span class="small">enrich the existing catalog</span></td>
+  <td>Add <code>description</code> + a per-framework <code>citation</code> (ref + quoted text + url)
+  to each control in <code>frameworks.yaml</code> (already framework-partitioned, so the "framework
+  language" has a natural home). Flow both into <code>controlAssessments[]</code>. Stop hand-writing
+  the rego <code>controls</code> tags — <em>derive</em> them by inverting <code>satisfied_by</code>.</td>
+  <td><span class="pill low">Low</span><br><span class="small">1 YAML pass + ~2 small rego/py edits</span></td>
+  <td>Delivers all three asks. Reader sees the meaning and the framework wording in the signed
+  verdict; the two-vocabulary drift is eliminated.</td>
+  <td><span class="pill low">Low</span></td>
+</tr>
+<tr>
+  <td><strong>(b) Moderate</strong><br><span class="small">canonical catalog + crosswalk</span></td>
+  <td>Invert the model: a canonical <code>controls:</code> catalog (id + description + satisfying
+  rules, defined once) plus a <code>frameworks:</code> section mapping framework-control-id →
+  canonical-id + per-framework citation. A resolver joins them (OSCAL/SCF pattern).</td>
+  <td><span class="pill med">Medium</span><br><span class="small">restructure + resolver in rego + py</span></td>
+  <td>Removes description duplication and makes the crosswalk explicit as data.</td>
+  <td><span class="pill med">Medium</span><br><span class="small">the duplication it removes is small
+  at 6 frameworks; adds an indirection layer + resolver for little near-term gain</span></td>
+</tr>
+<tr>
+  <td><strong>(c) Full</strong><br><span class="small">adopt CDXA as the catalog</span></td>
+  <td>Model each framework as a CDXA <code>standard</code> and each control as a
+  <code>requirement</code> (<code>identifier</code>/<code>title</code>/<code>text</code>/
+  <code>descriptions[]</code>/<code>openCre[]</code>); the gate emits CDXA declarations
+  (claim → requirement → evidence). Cross-mapping comes free via OpenCRE.</td>
+  <td><span class="pill high">High</span><br><span class="small">build+maintain standards defs; new
+  verdict emitter; gated on A2-A4</span></td>
+  <td>Standards-native, signed, the catalog <em>is</em> the output format, pairs with the CycloneDX
+  1.6 SBOM already emitted. The right end state.</td>
+  <td><span class="pill high">High <span class="small">if done now</span></span><br>
+  <span class="small">the verdict format is explicitly still under review; building this before
+  A2-A4 locks CDXA risks throwaway work</span></td>
+</tr>
+</tbody>
+</table>
+
+<h2>6 · Recommendation</h2>
+
+<div class="callout rec">
+<p><strong>Do Minimal (a) now. Build the seam toward Full (c). Skip Moderate (b) as a standalone
+step.</strong></p>
+</div>
+
+<p>The reasoning, honestly:</p>
+<ul>
+<li><strong>The reuse problem is already ~80% solved.</strong> The reusable atom the owner is worried
+about is the <em>rule</em>, and <code>frameworks.yaml</code> <em>already</em> references one report from
+many controls' <code>satisfied_by</code>. What is genuinely missing is only the <strong>description
+and the per-framework citation</strong> — which is exactly, and only, the Minimal option.</li>
+
+<li><strong>The manifest is already framework-partitioned</strong>, so per-framework language has a
+natural home (one <code>citation</code> block per control). No new indirection is needed to get
+NIST-vs-S2C2F wording into the output.</li>
+
+<li><strong>Minimal also fixes a real bug, not just cosmetics:</strong> deriving the rego
+<code>controls</code> tags from <code>frameworks.yaml</code> kills the two-vocabulary drift (the
+missing-AUD-3 mismatch above) and makes the manifest the single source of truth the signed verdict
+renders from.</li>
+
+<li><strong>Moderate is ceremony without proportionate payoff <em>today</em>.</strong> A canonical
+catalog + crosswalk + resolver is the correct pattern (OSCAL, SCF, OpenCRE all use it) — but it earns
+its keep at <em>scale</em> (SCF does it for 200+ frameworks). At <strong>6 frameworks / ~27 controls /
+19 rules</strong>, the description duplication it removes is a handful of lines, and it adds an
+indirection layer and resolver code. Build it only if the framework count grows materially or a
+control's description genuinely needs to diverge from a copy — not preemptively.</li>
+
+<li><strong>Full is the right destination, but it is gated on a decision that is still open.</strong>
+A2-A4 is actively choosing the signed-verdict format, with CDXA a leading candidate <em>precisely
+because</em> its <code>requirements[]</code> already give per-requirement descriptions + OpenCRE
+cross-mapping — i.e. a control catalog is largely what CDXA hands you for free. Standing up a bespoke
+canonical catalog (Moderate) now, only to discard it when CDXA lands, is wasted motion. If you invest
+past Minimal, invest in CDXA — once A2-A4 picks it.</li>
+
+<li><strong>So make Minimal a down-payment on Full, not a detour.</strong> Choose field names that map
+1:1 onto CDXA (<code>description</code>→<code>descriptions[]</code>,
+<code>citation.text</code>→requirement <code>text</code>, <code>id</code>→<code>identifier</code>),
+and add one cheap optional key now — <code>canonical</code> (or <code>openCre</code>) per control. That
+single field captures the "these are the same underlying requirement" crosswalk <em>as data</em>
+immediately, at almost no cost, and is the exact seam that lets you grow into Moderate's resolver or
+Full's CDXA <code>openCre[]</code> later without re-touching every control.</li>
+</ul>
+
+<p class="small"><strong>What "not yet" applies to:</strong> not the whole idea — the description +
+framework language is worth doing now and is cheap. It is specifically the <em>canonical-catalog
+machinery</em> (Moderate) and the <em>CDXA migration</em> (Full) that should wait: the first on
+evidence of scale, the second on the A2-A4 format decision.</p>
+
+<h2>7 · Data-model sketch (recommended option)</h2>
+
+<p>Keep the existing framework-partitioned layout of <code>frameworks.yaml</code>; enrich each control
+in place. Nothing about <code>satisfied_by</code> or the downstream <code>control_assessments</code> /
+<code>verify-initiative.py</code> iteration changes shape — they gain fields, they don't restructure.</p>
+
+<pre><code>sp-800-53:
+  name: "NIST SP 800-53 Rev 5 (SR/SI/CM/RA)"
+  help: https://csf.tools/reference/nist-sp-800-53/r5/
+  controls:
+    - id: SI-7(1)
+      name: "Integrity checks over components"
+      # NEW — defined once, the meaning of the control:
+      description: >
+        Perform integrity verification of software/firmware components to detect
+        unauthorized change. Here: every hashable module carries a verified hash
+        and its shipped bytes match the SBOM's declared hash.
+      # NEW — the framework's OWN language + a real citation (renders in output):
+      citation:
+        ref:  "NIST SP 800-53 Rev 5 — SI-7(1) Integrity Checks"
+        text: "The information system performs an integrity check of [software,
+                firmware, information] at [defined transitional states]."
+        url:  https://csf.tools/reference/nist-sp-800-53/r5/si/si-7/si-7-1/
+      # NEW — the forward-compatible seam (maps to OpenCRE / CDXA openCre[] later):
+      canonical: component-integrity-check
+      # UNCHANGED — the rule-reuse this file already models correctly:
+      satisfied_by: [component-integrity, component-byte-integrity]
+
+s2c2f:
+  name: "OpenSSF S2C2F v2"
+  controls:
+    - id: AUD-3                       # <- add the control the rego tag already referenced
+      name: "Validate integrity of OSS consumed into the build"
+      description: >
+        Validate that the open-source components pulled into the build have not
+        been altered — byte-level integrity of each consumed module.
+      citation:
+        ref:  "OpenSSF S2C2F v2 — AUD-3"
+        text: "Validate integrity of the OSS that you consume into your build."
+        url:  https://github.com/ossf/s2c2f
+      canonical: component-integrity-check   # <- SAME canonical id => the crosswalk, as data
+      satisfied_by: [component-byte-integrity]</code></pre>
+
+<p>Two controls in two frameworks now share <code>canonical: component-integrity-check</code>. Today a
+reader (or a diff, or a coverage report) can already see they are the same underlying requirement
+rendered two ways. Tomorrow a resolver (Moderate) or CDXA's <code>openCre[]</code> (Full) reads that
+same field — no re-modeling.</p>
+
+<p>The emitted finding grows correspondingly (illustrative <code>controlAssessments[]</code> entry):</p>
+<pre><code>{
+  "framework": "sp-800-53",
+  "controlId": "SI-7(1)",
+  "name": "Integrity checks over components",
+  "description": "Perform integrity verification of software/firmware components…",
+  "citation": {
+    "ref":  "NIST SP 800-53 Rev 5 — SI-7(1) Integrity Checks",
+    "text": "The information system performs an integrity check of [software, firmware…]",
+    "url":  "https://csf.tools/reference/nist-sp-800-53/r5/si/si-7/si-7-1/"
+  },
+  "canonical": "component-integrity-check",
+  "status": "satisfied",
+  "relatedObservations": ["component-integrity", "component-byte-integrity"]
+}</code></pre>
+
+<h3>Concrete change points (all small)</h3>
+<ul>
+<li><code>oss-lane/initiatives/frameworks.yaml</code> — add <code>description</code>, <code>citation</code>,
+<code>canonical</code> per control; add the missing S2C2F <code>AUD-3</code> control.</li>
+<li><code>oss-lane/policy/firmware.rego</code> — <code>control_assessments</code> (~L537): carry
+<code>description</code>/<code>citation</code>/<code>canonical</code> into each finding. Optionally
+replace the hand-written <code>_report(..., controls)</code> tag arrays with a derived lookup that
+inverts <code>satisfied_by</code>, so the tags can no longer drift.</li>
+<li><code>oss-lane/verify-initiative.py</code> — print the <code>description</code>/<code>citation.ref</code>
+alongside each control row (purely additive to the existing reporter).</li>
+<li>Regenerate <code>oss-lane/policy/initiatives.json</code> and update the sync test fixture.</li>
+</ul>
+
+<hr>
+
+<h2>Sources</h2>
+<ul class="small">
+<li>OpenCRE — <a href="https://www.opencre.org/">opencre.org</a> ·
+  <a href="https://github.com/OWASP/OpenCRE">OWASP/OpenCRE</a> ·
+  <a href="https://cloudsecurityalliance.org/blog/2023/09/27/opencre-org-the-how-and-the-why-of-security-best-practices">CSA: the how &amp; why</a></li>
+<li>NIST OSCAL mapping model —
+  <a href="https://pages.nist.gov/OSCAL/learn/concepts/layer/control/mapping">OSCAL control mapping</a> ·
+  <a href="https://pages.nist.gov/OSCAL/documentation/schema/">layers &amp; models</a></li>
+<li>Secure Controls Framework —
+  <a href="https://securecontrolsframework.com/">securecontrolsframework.com</a> ·
+  <a href="https://complianceforge.com/start-here/secure-controls-framework-scf/what-is-the-scf">ComplianceForge: what is the SCF</a></li>
+<li>CycloneDX Attestations (CDXA) —
+  <a href="https://cyclonedx.org/capabilities/attestations/">capabilities/attestations</a> ·
+  <a href="https://www.cyclonedx.org/use-cases/machine-readable-standards/">machine-readable standards</a>
+  (standards[].requirements[] with <code>descriptions[]</code> + <code>openCre[]</code>)</li>
+<li>valint / Scribe policy engine + SARIF output —
+  <a href="https://scribesecurity.com/blog/using-valint-to-apply-policies-to-your-sdlc/">Using valint to apply policies</a> ·
+  <a href="https://scribesecurity.com/blog/from-chaos-to-clarity-navigating-policy-engine-for-compliance/">Navigating the policy engine for compliance</a></li>
+</ul>
+
+<p class="meta">Internal references — oss-lane/initiatives/frameworks.yaml ·
+oss-lane/policy/firmware.rego (verifier_reports ~L265, control_assessments ~L537) ·
+oss-lane/verify-initiative.py · FRAMEWORKS.md · planning/A2-A4-PLAN.md</p>
+
+</div>

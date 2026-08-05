@@ -378,12 +378,30 @@ verifier_reports := [
 	),
 ]
 
-_report(name, ok, pass_msg, _fail, controls) := {
-	"name": name, "isSuccess": true, "message": pass_msg, "controls": controls,
+# Framework+control tags for a report, DERIVED from the manifest (data.initiatives) so the
+# rego reports and frameworks.yaml can never drift — one source of truth. Each tag is
+# "<framework>:<control-id>", so every verdict line is traceable to its framework + control
+# number. (The hardcoded 5th arg to _report is now vestigial — kept only to avoid churning
+# all 19 call sites; the manifest is authoritative.)
+_controls_for(rep) := sort([t |
+	some fwkey, fw in data.initiatives
+	some ctrl in fw.controls
+	rep in ctrl.satisfied_by
+	t := sprintf("%s:%s", [fwkey, ctrl.id])
+])
+
+_report(name, ok, pass_msg, _fail, _controls) := {
+	"name": name,
+	"id": sprintf("firmware-sbom-supplychain/%s@v1", [name]), # versioned rule id (neutral namespace)
+	"isSuccess": true, "message": pass_msg,
+	"controls": _controls_for(name),
 } if ok
 
-_report(name, ok, _pass, fail_msg, controls) := {
-	"name": name, "isSuccess": false, "message": fail_msg, "controls": controls,
+_report(name, ok, _pass, fail_msg, _controls) := {
+	"name": name,
+	"id": sprintf("firmware-sbom-supplychain/%s@v1", [name]),
+	"isSuccess": false, "message": fail_msg,
+	"controls": _controls_for(name),
 } if not ok
 
 _provenance_msg := sprintf(
@@ -539,9 +557,15 @@ control_assessments := [ca |
 	some ctrl in fw.controls
 	ca := {
 		"framework": fwkey,
+		"frameworkName": fw.name,
 		"controlId": ctrl.id,
 		"name": ctrl.name,
+		"description": object.get(ctrl, "description", ""), # the control in the framework's language
+		"citation": object.get(ctrl, "citation", ""), # exact framework reference a reader can look up
+		"canonical": object.get(ctrl, "canonical", ""), # shared crosswalk id (same across frameworks)
 		"status": _control_status(ctrl.satisfied_by),
+		"satisfied_by": [r | some r in ctrl.satisfied_by; _report_pass(r)], # reports that PASS it
+		"missing_evidence": [r | some r in ctrl.satisfied_by; not _report_present(r)], # required reports ABSENT from the verdict
 		"relatedObservations": ctrl.satisfied_by,
 	}
 ]
