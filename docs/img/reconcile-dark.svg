@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 472" width="980" height="472" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, 'DejaVu Sans', sans-serif" role="img" aria-label="Step 1 Reconcile: membership passes, but matches on the GUID not the bytes">
+  <defs>
+    <marker id="rc-arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/></marker>
+  </defs>
+
+  <text x="40" y="34" font-size="18" font-weight="700" fill="#e2e8f0">Step 1 &#8212; Reconcile: is the right module present?</text>
+  <text x="40" y="56" font-size="12.5" fill="#94a3b8">Carve the shipped image with FMMT and match every module by <tspan font-weight="600" fill="#e2e8f0">FILE_GUID</tspan> against the declared SBOM.</text>
+
+  <!-- declared -->
+  <rect x="40" y="78" width="300" height="58" rx="10" fill="#94a3b8" fill-opacity="0.06" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="56" y="102" font-size="12.5" font-weight="700" fill="#e2e8f0">Declared SBOM  (by FILE_GUID)</text>
+  <text x="56" y="124" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" fill="#94a3b8">a1b2&#8230;  &#183;  c3d4&#8230;  &#183;  e5f6&#8230;</text>
+  <!-- observed -->
+  <rect x="40" y="144" width="300" height="58" rx="10" fill="#94a3b8" fill-opacity="0.06" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="56" y="168" font-size="12.5" font-weight="700" fill="#e2e8f0">Shipped image &#8212; FMMT-carved</text>
+  <text x="56" y="190" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" fill="#94a3b8">a1b2&#8230;  &#183;  c3d4&#8230;  &#183;  e5f6&#8230;</text>
+
+  <!-- join + match arrow -->
+  <path d="M340 107 L352 107 L352 173 L340 173" fill="none" stroke="#94a3b8" stroke-width="1.4"/>
+  <line x1="352" y1="140" x2="426" y2="140" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#rc-arw)"/>
+  <text x="389" y="132" text-anchor="middle" font-size="10" fill="#94a3b8">match</text>
+
+  <!-- result: membership PASS -->
+  <rect x="430" y="90" width="510" height="112" rx="12" fill="#2dd4bf" fill-opacity="0.10" stroke="#2dd4bf" stroke-width="1.8"/>
+  <text x="452" y="120" font-size="15" font-weight="700" fill="#2dd4bf">MEMBERSHIP &#8212; PASS</text>
+  <text x="452" y="146" font-size="11.5" fill="#94a3b8">every declared FILE_GUID is observed in the image;</text>
+  <text x="452" y="164" font-size="11.5" fill="#94a3b8">no undeclared artifact is present. Genuinely useful.</text>
+  <text x="452" y="188" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" fill="#64748b">on OVMF: 123/123 modules &#183; 0 missing &#183; 0 suspicious</text>
+
+  <!-- divider -->
+  <line x1="40" y1="234" x2="940" y2="234" stroke="#64748b" stroke-width="1" stroke-dasharray="4 4"/>
+  <text x="40" y="258" font-size="12.5" font-weight="600" fill="#e2e8f0">But membership matches on the GUID, not the bytes:</text>
+
+  <!-- limitation card -->
+  <rect x="40" y="274" width="440" height="108" rx="12" fill="#f87171" fill-opacity="0.05" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="56" y="300" font-size="13" font-weight="700" fill="#e2e8f0">Bytes swapped, GUID kept</text>
+  <text x="56" y="326" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" fill="#94a3b8">FILE_GUID e5f6&#8230;</text>
+  <rect x="238" y="314" width="74" height="17" rx="8.5" fill="#2dd4bf" fill-opacity="0.12" stroke="#2dd4bf" stroke-width="1"/>
+  <text x="275" y="326.5" text-anchor="middle" font-size="10" fill="#2dd4bf" font-weight="600">unchanged</text>
+  <text x="56" y="350" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" fill="#94a3b8">code replaced by malware</text>
+  <rect x="238" y="338" width="66" height="17" rx="8.5" fill="#f87171" fill-opacity="0.12" stroke="#f87171" stroke-width="1"/>
+  <text x="271" y="350.5" text-anchor="middle" font-size="10" fill="#f87171" font-weight="600">swapped</text>
+
+  <line x1="480" y1="328" x2="556" y2="328" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#rc-arw)"/>
+
+  <!-- still passes (amber) -->
+  <rect x="560" y="294" width="380" height="68" rx="11" fill="#fbbf24" fill-opacity="0.10" stroke="#fbbf24" stroke-width="1.6"/>
+  <text x="580" y="324" font-size="14" font-weight="700" fill="#fbbf24">MEMBERSHIP: STILL PASSES</text>
+  <text x="580" y="346" font-size="11" fill="#94a3b8">e5f6&#8230; is present &#8594; membership is satisfied</text>
+
+  <text x="40" y="410" font-size="12" fill="#94a3b8">Reconcile is <tspan font-weight="600" fill="#e2e8f0">necessary but not sufficient</tspan> &#8212; byte-integrity (step 2) closes this gap.</text>
+
+  <!-- legend -->
+  <g transform="translate(40,446)">
+    <rect x="0" y="-9" width="12" height="12" rx="3" fill="#2dd4bf" fill-opacity="0.14" stroke="#2dd4bf" stroke-width="1.2"/>
+    <text x="18" y="1" font-size="11" fill="#94a3b8">membership holds</text>
+    <rect x="170" y="-9" width="12" height="12" rx="3" fill="#fbbf24" fill-opacity="0.14" stroke="#fbbf24" stroke-width="1.2"/>
+    <text x="188" y="1" font-size="11" fill="#94a3b8">passes, but not sufficient</text>
+  </g>
+</svg>

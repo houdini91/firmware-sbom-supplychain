@@ -13,13 +13,6 @@
 
 **[Primer](PRIMER.md)** · **[Design](DESIGN.md)** · **[Frameworks](FRAMEWORKS.md)** · **[Live demo output](docs/DEMO.md)** · **[Quickstart](#quickstart)**
 
-<br/>
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/img/same-guid-trojan-dark.svg">
-  <img alt="A module whose FILE_GUID is unchanged but whose bytes were swapped: membership passes, byte-integrity catches it" src="docs/img/same-guid-trojan.svg" width="860">
-</picture>
-
 </div>
 
 > **Threat model.** A compromised build step swaps a module's bytes, keeps its `FILE_GUID`, and re-signs the
@@ -31,21 +24,55 @@
 An **evidence-centric supply-chain gate** for firmware, built on the open **OVMF / edk2** UEFI reference target.
 Every claim about a build — its SBOM, its signature, its provenance, its shipped bytes, its CVEs — becomes signed
 evidence; a policy engine ANDs those facts into **one signed verdict**; the release is blocked unless the
-**executable code that ships in the image** matches the signed SBOM. The headline check, **byte-integrity**,
-catches a *same-GUID trojan*: a module whose code was swapped but whose ID (`FILE_GUID`) was kept — so it passes
-an inventory check, but fails a byte check. This is an **admission-time** gate over artifacts at rest, not a
-runtime/boot measurement.
+**executable code that ships in the image** matches the signed SBOM. This is an **admission-time** gate over
+artifacts at rest, not a runtime/boot measurement.
 
 > **New to firmware, SBOMs, or GUIDs?** [**PRIMER.md**](PRIMER.md) explains it all from scratch (~2 min).
+
+## How it works: two checks, in sequence
+
+**Step 1 — Reconcile** carves the shipped image and confirms every declared module is present. Useful, but it
+matches on the `FILE_GUID`, so a module whose *bytes* were swapped under the same GUID still passes:
+
+<div align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/img/reconcile-dark.svg">
+  <img alt="Reconcile: membership passes, but matches on the GUID not the bytes, so a same-GUID swap slips through" src="docs/img/reconcile.svg" width="900">
+</picture>
+</div>
+
+> **Reconcile answers "is the right module *present*?" Byte-integrity answers "are its *bytes* the ones
+> declared?"** — you can forge the badge (GUID) for free, but not the fingerprint (hash).
+
+**Step 2 — Byte-integrity** re-hashes each shipped PE32 and compares it to the SBOM's declared hash, so the swap
+reconcile passed is caught (**122 of the 123 code modules**; `ResetVector`, a raw non-PE32 blob, is the one skip):
+
+<div align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/img/byte-integrity-dark.svg">
+  <img alt="Byte-integrity: re-hashing the shipped module catches the same-GUID swap that membership let through" src="docs/img/byte-integrity.svg" width="900">
+</picture>
+</div>
+
+A third check runs on a *different* axis entirely — **CHIPSEC** asks whether the platform's own firmware
+protections (BIOS-write-protect, SMM) are switched on, which is about the chip's defenses, not the ingredients:
+
+| Check | Question | Catches |
+|---|---|---|
+| **Reconcile** (membership) | Are all declared modules **present**, and nothing undeclared? | a missing module, or an **undeclared** one |
+| **Byte-integrity** | Do each module's shipped **bytes** match the declared hash? | a **same-GUID trojan** — same ID, swapped code |
+| **CHIPSEC** (platform posture) | Are the platform's own firmware **protections** on? | BIOS-write-protect / SMM misconfiguration |
+
+The full pipeline: `generate → verify(sig + provenance) → reconcile(bytes == SBOM) → CVE map → attest →
+OPA gate → signed VSA`. Each stage is described in [`DESIGN.md`](DESIGN.md).
 
 ## Why it's different
 
 The three that matter most, each verified against the code in this repo:
 
-- **Byte-integrity catches a same-GUID trojan.** Membership checks (the usual approach) only confirm a module's
-  ID is present, so they wave through a module whose bytes were swapped under the same `FILE_GUID`. Byte-integrity
-  re-hashes each shipped module's PE32 and compares it to the SBOM's *own declared hash* — **122 of the 123 code
-  modules** (`ResetVector`, a raw non-PE32 blob, is the one skip) — so the swap is caught.
+- **Byte-integrity catches a same-GUID trojan.** Membership checks only confirm a module's ID is present, so
+  they wave through a module whose bytes were swapped under the same `FILE_GUID`. Byte-integrity re-hashes each
+  shipped module's PE32 and compares it to the SBOM's *own declared hash* — so the swap is caught.
 - **Evidence is anchored to the firmware image digest `D`.** The signed SLSA VSA's **subject is the firmware
   bytes**, not a JSON file. A consumer re-hashes their own image and re-checks the verdict against `D` — the
   evidence is provably about *those* bytes.
@@ -61,19 +88,31 @@ coverage to the SBOM's declared module count, so an under-scoped verdict is deni
 independent policy tool (report mode) · the `-Y SBOM` generator adds **no new build dependency** (it consumes
 edk2's existing `-Y COMPILE_INFO` data) · and a **consumer-side CLI** scorecards *your* image.
 
-## How it works
+## The signed verdict
 
-Admission-time: static analysis of artifacts at rest (image, SBOM, attestation) — no device involved. Three
-checks answer three *different* questions, and it's worth keeping them apart:
+The gate ANDs every evidence atom into a **standard SLSA VSA** whose **subject is the firmware digest `D`** — so
+the verdict travels with the bytes and anyone downstream can re-verify it.
 
-| Check | Question | Catches |
-|---|---|---|
-| **Reconcile** (membership) | Are all declared modules **present**, and nothing undeclared? | a missing module, or an **undeclared** one |
-| **Byte-integrity** | Do each module's shipped **bytes** match the declared hash? | a **same-GUID trojan** — same ID, swapped code |
-| **CHIPSEC** (platform posture) | Are the platform's own firmware **protections** on? | BIOS-write-protect / SMM misconfiguration |
+<div align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/img/evidence-to-vsa-dark.svg">
+  <img alt="Evidence atoms feed the gate, which emits a signed SLSA VSA whose subject is the firmware digest D" src="docs/img/evidence-to-vsa.svg" width="960">
+</picture>
+</div>
 
-The full pipeline: `generate → verify(sig + provenance) → reconcile(bytes == SBOM) → CVE map → attest →
-OPA gate → signed VSA`. Each stage is described in [`DESIGN.md`](DESIGN.md).
+```jsonc
+{
+  "predicateType": "https://slsa.dev/verification_summary/v1",
+  "subject": [{ "name": "firmware-image",
+               "digest": { "sha256": "7965c317…62fb8f37" } }],   // ← D: the immutable OVMF_CODE.fd bytes
+  "predicate": {
+    "verificationResult": "PASSED",
+    "verifiedLevels": ["SLSA_BUILD_LEVEL_2"],
+    "verifierReports":     [ /* 19 per-rule observations, each framework-tagged */ ],   // extension
+    "controlAssessments":  [ /* 27 per-control findings across 6 frameworks, each cited */ ] // extension
+  }
+}
+```
 
 ## Framework &amp; control coverage
 
@@ -135,37 +174,24 @@ make verify FW=path/to/OVMF_CODE.fd VSA=vsa.intoto.json   # hash it, bind it, pe
 bytes*, and prints a `PASS / FAIL / MISSING_EVIDENCE` scorecard — degrading honestly to `MISSING_EVIDENCE` on
 unattested firmware it has never seen, never a silent pass. See [`docs/DEMO.md`](docs/DEMO.md) for full output.
 
-## The signed verdict
-
-The gate ANDs every evidence atom into a **standard SLSA VSA** whose **subject is the firmware digest `D`** — so
-the verdict travels with the bytes and anyone downstream can re-verify it.
-
-<div align="center">
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/img/evidence-to-vsa-dark.svg">
-  <img alt="Evidence atoms feed the gate, which emits a signed SLSA VSA whose subject is the firmware digest D" src="docs/img/evidence-to-vsa.svg" width="960">
-</picture>
-</div>
-
-```jsonc
-{
-  "predicateType": "https://slsa.dev/verification_summary/v1",
-  "subject": [{ "name": "firmware-image",
-               "digest": { "sha256": "7965c317…62fb8f37" } }],   // ← D: the immutable OVMF_CODE.fd bytes
-  "predicate": {
-    "verificationResult": "PASSED",
-    "verifiedLevels": ["SLSA_BUILD_LEVEL_2"],
-    "verifierReports":     [ /* 19 per-rule observations, each framework-tagged */ ],   // extension
-    "controlAssessments":  [ /* 27 per-control findings across 6 frameworks, each cited */ ] // extension
-  }
-}
-```
+## Honest scope &amp; what's next: runtime attestation
 
 > **Honest scope.** SLSA level is **L2** (platform-generated provenance), not L3. Byte-integrity covers each
 > module's **PE32 executable** (122/123; DEPEX/TE/compressed sections are out of scope). In this demo the
 > image-derived verdicts (reconcile, byte-integrity, CHIPSEC, binary-hardening) are **committed, not regenerated
-> in CI** — a production pipeline regenerates them inside the isolated builder from the real image. See the
-> [Trust model](FRAMEWORKS.md#honest-caveats-read-before-citing) notes.
+> in CI** — a production pipeline regenerates them inside the isolated builder from the real image.
+
+Everything above is **admission-time**: it proves the bytes *at rest*, before anything ships, with no device
+involved. The next class of evidence is **runtime attestation** — at boot, a **TPM quote** (signed PCR
+measurements of what actually loaded) appraised against a signed **golden RIM** derived from the same SBOM/VSA.
+It is documented as direction, not shipped (the `FUTURISTIC` rows in [`FRAMEWORKS.md`](FRAMEWORKS.md)):
+
+<div align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/img/futuristic-runtime-dark.svg">
+  <img alt="Admission-time gate today (solid); runtime measured-boot attestation next (dashed)" src="docs/img/futuristic-runtime.svg" width="1000">
+</picture>
+</div>
 
 ## Documentation
 

@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 432" width="980" height="432" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, 'DejaVu Sans', sans-serif" role="img" aria-label="Step 2 Byte-integrity: re-hash each shipped module and catch the same-GUID swap membership missed">
+  <text x="40" y="34" font-size="18" font-weight="700" fill="#e2e8f0">Step 2 &#8212; Byte-integrity: are its bytes the ones declared?</text>
+  <text x="40" y="56" font-size="12.5" fill="#94a3b8">Re-hash each shipped PE32 and compare it to the SBOM&#8217;s declared hash &#8212; this closes reconcile&#8217;s gap.</text>
+
+  <!-- the swapped module recap -->
+  <rect x="40" y="78" width="900" height="94" rx="12" fill="#94a3b8" fill-opacity="0.06" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="60" y="104" font-size="13" font-weight="700" fill="#e2e8f0">The swapped module (the one step 1 let through)</text>
+  <text x="60" y="132" font-size="12.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" fill="#94a3b8">FILE_GUID  2ec9da37&#8230;</text>
+  <rect x="238" y="120" width="74" height="17" rx="8.5" fill="#2dd4bf" fill-opacity="0.12" stroke="#2dd4bf" stroke-width="1"/>
+  <text x="275" y="132.5" text-anchor="middle" font-size="10" fill="#2dd4bf" font-weight="600">unchanged</text>
+  <text x="60" y="158" font-size="12.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" fill="#94a3b8">declared SHA-256 <tspan fill="#2dd4bf" font-weight="700">71a4&#8230;3c</tspan>    shipped bytes hash <tspan fill="#f87171" font-weight="700">dead&#8230;be</tspan></text>
+  <rect x="640" y="146" width="66" height="17" rx="8.5" fill="#f87171" fill-opacity="0.12" stroke="#f87171" stroke-width="1"/>
+  <text x="673" y="158.5" text-anchor="middle" font-size="10" fill="#f87171" font-weight="600">swapped</text>
+
+  <!-- Bar 1: membership (recap, fooled) -->
+  <rect x="40" y="196" width="900" height="76" rx="12" fill="#fbbf24" fill-opacity="0.05" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="62" y="228" font-size="13.5" font-weight="700" fill="#e2e8f0">Membership <tspan font-weight="400" fill="#94a3b8" font-size="11">(step 1)</tspan></text>
+  <text x="62" y="250" font-size="11" fill="#94a3b8">matches on the FILE_GUID</text>
+  <text x="380" y="232" font-size="12.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" fill="#94a3b8">2ec9da37&#8230;  ==  2ec9da37&#8230;</text>
+  <text x="380" y="252" font-size="11" fill="#64748b">the badge still checks out</text>
+  <rect x="742" y="216" width="180" height="36" rx="9" fill="#fbbf24" fill-opacity="0.12" stroke="#fbbf24" stroke-width="1.5"/>
+  <text x="832" y="239" text-anchor="middle" font-size="13" font-weight="700" fill="#fbbf24">PASS &#8212; fooled</text>
+
+  <!-- Bar 2: byte-integrity (caught) -->
+  <rect x="40" y="284" width="900" height="88" rx="12" fill="#2dd4bf" fill-opacity="0.06" stroke="#2dd4bf" stroke-width="2"/>
+  <text x="62" y="318" font-size="13.5" font-weight="700" fill="#2dd4bf">Byte-integrity <tspan font-weight="400" fill="#94a3b8" font-size="11">(step 2)</tspan></text>
+  <text x="62" y="340" font-size="11" fill="#94a3b8">compares the hash to the bytes</text>
+  <text x="380" y="322" font-size="12.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" fill="#94a3b8">declared <tspan fill="#2dd4bf" font-weight="700">71a4&#8230;</tspan>  !=  shipped <tspan fill="#f87171" font-weight="700">dead&#8230;</tspan></text>
+  <text x="380" y="342" font-size="11" fill="#64748b">the fingerprint broke; the badge can&#8217;t hide it</text>
+  <rect x="742" y="306" width="180" height="44" rx="9" fill="#f87171" fill-opacity="0.12" stroke="#f87171" stroke-width="1.8"/>
+  <text x="832" y="327" text-anchor="middle" font-size="13" font-weight="700" fill="#f87171">DENY &#8212; caught</text>
+  <text x="832" y="342" text-anchor="middle" font-size="9.5" fill="#f87171">release blocked</text>
+
+  <text x="40" y="406" font-size="11.5" fill="#94a3b8">You can forge the <tspan font-weight="600" fill="#e2e8f0">badge</tspan> (GUID) for free &#8212; but not the <tspan font-weight="600" fill="#e2e8f0">fingerprint</tspan> (hash), computed from the bytes themselves.</text>
+</svg>
