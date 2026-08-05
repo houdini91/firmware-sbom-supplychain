@@ -77,8 +77,7 @@ not asserted.
 | **E1** | **CycloneDX 1.6 SBOM** | in-toto SBOM predicate | declared composition of the firmware | 311 components (3 app / 108 driver / 12 firmware / 188 lib **incl. `openssl` as an in-image third-party dep with PURL/CPE/Apache-2.0**, R1); **SHA-256+512 on 122 of the 123 non-library modules** (`ResetVector`, a raw blob, is the one skip); `metadata` timestamp/authors/tools/`lifecycle:build` populated; edk2 FFS modules carry no PURL/license (no sensible PURL — N/A by design) | `sbom-present` *(gate)* — presence only |
 | **E2** | **SLSA Build L2 provenance** | `slsa.dev/provenance/v1` | build origin is authentic (platform-generated) | GitHub `attest-build-provenance`, **verified green in CI** with `gh attestation verify` | `slsa-provenance` *(gate)* backed by `gh attestation verify` *(CI)*; `provenance-identity` *(gate, identity)* |
 | **E3** | **Reconcile verdict + byte-integrity** | custom in-toto predicates | shipped bytes match the declared components | FMMT-carved FFS vs SBOM by GUID (**123/123 membership**) **plus byte-integrity: 122 of the 123 modules'** shipped PE32 bytes match the declared SHA-256 (R4 — DXE direct, XIP/PEI via un-rebase canonicalization; the 123rd, `ResetVector`, is a raw blob with no PE32, covered by membership); a same-GUID swap is caught | `reconcile` + `component-byte-integrity` *(gate)* |
-| **E4** | **CVE + VEX** | grype JSON + OpenVEX | no un-triaged critical vulnerability ships | scan over E1 + OpenVEX triage allowlist | `cve-triage` *(gate)* |
-| **E5** | **Signature + signer identity** | cosign keyless (Fulcio/Rekor) DSSE | the signed artifact came from the expected build identity | OIDC SAN extracted from the Fulcio cert and **checked**, not asserted; **signed subject is the SBOM/attestation, not the firmware image** | `attestation-signature` + `sbom-binding` *(gate)* |
+| **E4** | **CVE + VEX** | grype JSON + **OpenVEX** (in-toto `openvex.dev/ns`, subjects = firmware `D` + OpenVEX file `H`) | no un-triaged critical vulnerability ships | scan over E1 + OpenVEX triage allowlist; the BSI **CSAF** view is **collapsed into a reference inside the OpenVEX attestation** (not a second VEX attestation) | `cve-triage` *(gate)* |
 | **E6** | **Policy verdict (VSA)** | **`slsa.dev/verification_summary/v1`** (in-toto/DSSE), subject = firmware digest `D` | the gate's verdict, as portable signed evidence | Standard SLSA VSA (`verificationResult`, `verifiedLevels:[L2]`) with the rich detail as **extensions**: `verifierReports[]` (19 observations, each framework-tagged) + **`controlAssessments[]`** (27 per-control findings across 6 frameworks — `satisfied`/`not-satisfied`/`not-applicable`, each carrying `description`/`citation`/`satisfied_by`/`missing_evidence`). in-toto/SLSA predicates are extensible: a SLSA-VSA consumer reads the standard summary, ours reads the detail. A later CDXA/SARIF rendering is an *added format over the same data* | output artifact |
 | **E7** | **Build-tools SBOM** | CycloneDX + SHA-pins | the *build* toolchain is inventoried + signed | CI actions/tools, SHA-pinned + keyless-signed; **direct only, not transitive** | `build-tools-signed` *(gate)* |
 | **E8** | **SAST report** | CodeQL SARIF (keyless-signed) | static code-analysis findings | `codeql-sast` workflow — `python` (this repo's tooling, **0 findings**) on push + scoped edk2 `c-cpp` (NetworkPkg) on dispatch; **green in CI**, Security-tab uploaded, keyless-signed, and **severity-gated** (fails ≥7.0) | `codeql-sast` severity gate *(CI)* |
@@ -86,8 +85,22 @@ not asserted.
 | **E10** | **CHIPSEC posture** | in-toto predicate | platform-firmware protections | `producers/chipsec` — CHIPSEC modules vs the OVMF/QEMU target → `critical_passed` (applicable critical modules PASS; `NOTAPPLICABLE` HW-root checks excluded). Config assessment, not runtime measured boot (R3) | `chipsec-posture` *(gate)* |
 | **E11** | **Binary-hardening posture** | in-toto predicate | shipped modules declare exploit-mitigation compatibility | `producers/reconcile/binary-hardening.py` — reads each carved PE32's `DllCharacteristics`: **106/106 DXE-class modules NX_COMPAT** (W^X-ready), all keep relocations. **`DYNAMIC_BASE`/`GUARD_CF`/`HIGH_ENTROPY_VA` = 0 across the image** — reported honestly (edk2 does no load-address ASLR; NX is enforced by the DXE image-protection policy, so this is *declared posture*, not runtime enforcement) (R8) | `binary-hardening` *(gate)* |
 
-> **The trust anchor:** the eighteen gate reports are `sbom-present` (E1), `attestation-signature` (E5),
-> `sbom-binding` (E1↔E5 digest), `provenance-identity` (E2), `slsa-provenance` (E2, backed by the
+> **Multi-subject binding.** Every attestation WE build (E1, E3, E4, E6, E7, E10) is a `cosign attest-blob
+> --statement` in-toto Statement carrying **two** subjects: **#1 `firmware-image` = `D`** (the shared
+> evidence-graph anchor — the firmware bytes) and **#2 the evidence file's own digest `H`** (tamper-after-signing
+> integrity of that artifact). **E2 SLSA provenance is the exception** — it is platform-generated by GitHub
+> `attest-build-provenance` over the SBOM file, so it is **single-subject `H`**; its firmware binding to `D` is a
+> `DEV_ASSUME`-class mapping, not asserted by the gate.
+>
+> **E5 (signature + signer identity) is not a standalone evidence row — it is the DSSE *signing envelope***
+> that wraps every attestation above. Because it is the envelope rather than a distinct artifact, it is not
+> counted as its own evidence atom, but its **three gate reports remain**: `attestation-signature` (a keyless
+> signature verified), `sbom-binding` (the SBOM **file** digest `H` matches the attestation's **file** subject `H`
+> — the tamper-after-signing check), and `signer-identity-pinned` (the Fulcio cert SAN is in the trusted set). The
+> OIDC SAN is extracted from the cert and **checked**, not asserted.
+
+> **The trust anchor:** the eighteen gate reports are `sbom-present` (E1), `attestation-signature` (DSSE envelope),
+> `sbom-binding` (E1 file digest `H` ↔ attestation **file** subject `H`), `provenance-identity` (E2), `slsa-provenance` (E2, backed by the
 > `gh attestation verify` CI hard-gate), `reconcile` (E3), `cve-triage` (E4), `chipsec-posture` (E10),
 > `reconcile-membership` (E3, SI-7/CM-8(3)), `component-integrity` (E1, SI-7(1)),
 > `component-byte-integrity` (E3, SI-7(1)/SR-4(3) — the shipped PE32 bytes of each byte-checkable module match
@@ -104,8 +117,9 @@ not asserted.
 > verifier can two-state check: whole-image against a *fresh* flash, code-region `D` against a *booted* one —
 > so the evidence set is about *these* firmware bytes, not a detached JSON file),
 > `slsa-level-floor` (E2, SR-4/SR-4(3) — SLSA level ≥ 2),
-> `evidence-chain-bound` (E1/E2/E5, one subject digest across SBOM↔attestation↔provenance), and
-> `signer-identity-pinned` (E5, SI-7(15)/CM-14/SR-4(1) — the cert SAN is in the trusted set) — the gate ANDs all
+> `evidence-chain-bound` (E1/E2 + attestation: the SBOM-file digests agree at `H` across
+> SBOM↔attestation↔provenance **and** the reconcile attestation's firmware subject == the anchor `D`), and
+> `signer-identity-pinned` (DSSE envelope, SI-7(15)/CM-14/SR-4(1) — the cert SAN is in the trusted set) — the gate ANDs all
 > eighteen and emits E6. The
 > `component-integrity` rule passes only with an explicit reviewed `data.hash_exempt` entry (ResetVector), never a
 > relaxed threshold.

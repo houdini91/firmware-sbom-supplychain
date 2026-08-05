@@ -16,7 +16,8 @@
     }
   },
   "attestation": {
-    "subject_digest": "sha256:3b1f0a9c8e2d4b6a7c5e9f01234567890abcdef1122334455667788990011aabb"
+    "file_subject": "sha256:3b1f0a9c8e2d4b6a7c5e9f01234567890abcdef1122334455667788990011aabb",
+    "firmware_subject": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37"
   },
   "signature": {
     "verified": true,
@@ -27,7 +28,8 @@
     "source_repo": "https://github.com/houdini91/firmware-sbom-supplychain",
     "slsa_verified": true,
     "slsa_level": 2,
-    "subject_digest": "sha256:3b1f0a9c8e2d4b6a7c5e9f01234567890abcdef1122334455667788990011aabb"
+    "file_subject": "sha256:3b1f0a9c8e2d4b6a7c5e9f01234567890abcdef1122334455667788990011aabb",
+    "firmware_subject": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37"
   },
   "reconcile": {
     "clean": true,

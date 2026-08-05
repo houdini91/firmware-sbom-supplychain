@@ -27,8 +27,12 @@ _sbom_present if input.sbom.present
 default _sig_verified := false
 _sig_verified if input.signature.verified
 
+# SBOM-file integrity (tamper-after-signing): the SBOM file digest H matches the FILE
+# subject of the reconcile attestation (a multi-subject in-toto Statement carries both a
+# firmware-image subject D and the bound SBOM-file subject H). This is distinct from the
+# firmware binding below — it catches a swap of the SBOM bytes after signing.
 default _sbom_bound := false
-_sbom_bound if input.sbom.hash == input.attestation.subject_digest
+_sbom_bound if input.sbom.hash == input.attestation.file_subject
 
 default _provenance_ok := false
 _provenance_ok if {
@@ -203,14 +207,25 @@ _build_tools_ok if {
 default _slsa_level_floor := false
 _slsa_level_floor if input.provenance.slsa_level >= 2
 
-# SLSA subject binding across the chain: the SBOM, the cosign attestation, and the
-# SLSA provenance all commit to one subject digest. (The VSA is THIS gate's output
-# and cannot be in the chain — that would be circular; see POLICY-EXPANSION.md.)
+# Evidence-chain binding — two distinct, both-required legs on the multi-subject evidence:
+#   (a) SBOM-FILE consistency at H: the SBOM file, the reconcile attestation's FILE subject,
+#       and the SLSA provenance's FILE subject all commit to one SBOM-file digest H (the
+#       tamper/swap-after-signing guard across the H-subjects); and
+#   (b) FIRMWARE binding at D: the WE-built reconcile attestation's FIRMWARE subject equals
+#       the firmware anchor D (== input.firmware.sbom_digest; firmware-digest-anchor separately
+#       cross-checks D across the SBOM/reconcile/deployed image legs). E2 SLSA provenance is
+#       platform-generated (single-subject H — GitHub attest-build-provenance over the SBOM
+#       file), so its firmware binding is a DEV_ASSUME-class mapping, not asserted here.
+# (The VSA is THIS gate's output and cannot be in the chain — that would be circular; see
+# POLICY-EXPANSION.md.)
 default _evidence_chain_bound := false
 _evidence_chain_bound if {
-	input.attestation.subject_digest != ""
-	input.sbom.hash == input.attestation.subject_digest
-	input.provenance.subject_digest == input.attestation.subject_digest
+	input.attestation.file_subject != ""
+	# (a) SBOM-file consistency at H
+	input.sbom.hash == input.attestation.file_subject
+	input.provenance.file_subject == input.attestation.file_subject
+	# (b) firmware binding at D
+	input.attestation.firmware_subject == input.firmware.sbom_digest
 }
 
 # Firmware-image anchor (the keystone). Three digests of the FIRMWARE BYTES agree:
@@ -355,8 +370,8 @@ verifier_reports := [
 	),
 	_report(
 		"evidence-chain-bound", _evidence_chain_bound,
-		"SBOM, attestation, and SLSA provenance all bound to one subject digest",
-		"evidence chain not bound: SBOM / attestation / provenance subject digests differ",
+		"evidence chain bound: SBOM-file digests agree (H) across SBOM/attestation/provenance AND the attestation's firmware subject == the firmware anchor D",
+		"evidence chain not bound: SBOM-file digests differ across SBOM/attestation/provenance (H), or the attestation's firmware subject != the firmware anchor D",
 		["SLSA-subject-binding", "SR-4(3)"],
 	),
 	_report(
@@ -489,7 +504,7 @@ deny contains _thirdparty_msg if not _thirdparty_ok
 
 deny contains _slsa_level_msg if not _slsa_level_floor
 
-deny contains "evidence chain not bound: SBOM / attestation / provenance subject digests differ" if not _evidence_chain_bound
+deny contains "evidence chain not bound: SBOM-file digests differ across SBOM/attestation/provenance (H), or the attestation's firmware subject != the firmware anchor D" if not _evidence_chain_bound
 
 deny contains _firmware_anchor_msg if not _firmware_anchored
 
@@ -504,7 +519,7 @@ deny contains _build_tools_msg if not _build_tools_ok
 deny contains "reconcile failed: SBOM does not match firmware bytes" if not input.reconcile.clean
 
 deny contains "SBOM bytes do not match the signed attestation subject (possible swap after signing)" if {
-	input.sbom.hash != input.attestation.subject_digest
+	input.sbom.hash != input.attestation.file_subject
 }
 
 deny contains msg if {
@@ -586,6 +601,10 @@ vsa_predicate := {
 	"policy": {"uri": "https://github.com/houdini91/firmware-sbom-supplychain/blob/main/oss-lane/policy/firmware.rego"},
 	"verificationResult": _result,
 	"verifiedLevels": _levels,
+	# The evidence graph rooted at D: {uri,digest} for each signed evidence attestation
+	# (SBOM/provenance/reconcile/VEX/CHIPSEC/build-tools). Empty offline — the CI signing
+	# step injects the real bundle digests (they are only known after each blob is signed).
+	"inputAttestations": [],
 	"slsaVersion": "1.0",
 	# --- extensions: the detail the standard VSA summary intentionally omits ---
 	"verifierReports": verifier_reports, # per-rule observations (framework-tagged)

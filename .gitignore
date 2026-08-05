@@ -35,6 +35,15 @@ inputs/sbom.slsa.bundle
 inputs/slsa-predicate.json
 inputs/build-tools.cdx.json
 inputs/build-tools.sig.bundle
+# per-run in-toto Statements + DSSE attestation bundles (multi-subject: firmware D + file H), signed in CI
+inputs/*.intoto.json
+inputs/vex.pred.json
+inputs/chipsec.pred.json
+inputs/sbom.cdx.att.bundle
+inputs/vex.att.bundle
+inputs/chipsec.att.bundle
+inputs/build-tools.att.bundle
+inputs/vsa.att.bundle
 
 # downloaded tool binary (not source)
 bin/sbom-convert

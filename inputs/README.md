@@ -13,7 +13,7 @@ without a full firmware build:
 | `reconcile-verdict.json` | declared-vs-observed **membership** verdict (+ `image_digest`, anchor leg 2) | `producers/reconcile/carve.sh` |
 | `byte-integrity.json` | **byte-integrity** verdict — each module's shipped PE32 bytes vs the SBOM hash (R4, 122 of 123). Carries a **full per-module manifest** (every module + method); any module that can't be byte-verified must be a reviewed entry in `data.byte_integrity_exempt` (with a documented reason) or the gate **denies and names it**. | `producers/reconcile/byte-integrity.py` |
 | `chipsec.json` | CHIPSEC platform-posture predicate — **sample/illustrative data** (`producers/chipsec/sample-results.json`), not a live CHIPSEC run | `producers/chipsec/to-predicate.py` |
-| `vex.openvex.json` / `vex.csaf.json` | CVE triage (OpenVEX) + BSI CSAF view | authored / `producers/interop/to-csaf.py` |
+| `vex.openvex.json` / `vex.csaf.json` | CVE triage (**OpenVEX** — the signed evidence, in-toto `openvex.dev/ns`, subjects = firmware `D` + the OpenVEX file `H`) + BSI **CSAF** view (**collapsed into a reference inside the OpenVEX attestation**, not a second VEX attestation) | authored / `producers/interop/to-csaf.py` |
 
 > **How these are trusted.** `reconcile-verdict.json`, `byte-integrity.json`, `chipsec.json`, and `binary-hardening.json` are produced
 > **offline against the real deployed `.fd`** (they need an edk2 tree + a built OVMF image) and committed here;
@@ -23,8 +23,15 @@ without a full firmware build:
 > + edk2 FMMT; ~6 min — one FMMT extraction per module).
 
 **Generated at run time (gitignored)** — recreated by `make demo` / the gate; safe to `make clean`:
-`grype.json` (CVE scan), `gate-input.json` (assembled facts), `sbom.att.bundle` (cosign bundle),
-`build-tools.cdx.json` (CI toolchain inventory).
+`grype.json` (CVE scan), `gate-input.json` (assembled facts), `build-tools.cdx.json` (CI toolchain inventory),
+and the keyless DSSE attestation bundles. Each WE-built attestation carries **two subjects** — #1
+`firmware-image` = `D` (the evidence-graph anchor) and #2 the artifact's own digest `H` (tamper-after-signing):
+`sbom.att.bundle` (reconcile, legacy-format so the assembler can decode both subjects; file subject = the SBOM),
+`sbom.cdx.att.bundle` (E1 SBOM), `vex.att.bundle` (E4 OpenVEX, CSAF referenced), `chipsec.att.bundle` (E10),
+`build-tools.att.bundle` (E7), `vsa.att.bundle` (E6 VSA, `inputAttestations` = the evidence graph). **E2 SLSA
+provenance is single-subject `H`** (platform-generated over the SBOM file); its firmware binding to `D` is a
+`DEV_ASSUME`-class mapping. The DSSE signature + signer identity (the former "E5") is the **signing envelope**
+over these bundles, not a standalone artifact.
 
 > Not to be confused with `oss-lane/fixtures/` — those are hand-authored **test vectors** (one per gate
 > failure mode), not real evidence.

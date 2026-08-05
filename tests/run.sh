@@ -33,6 +33,7 @@ expect thirdparty-missing.json deny
 expect build-tools-unsigned.json deny
 expect slsa-level-low.json    deny
 expect chain-mismatch.json    deny
+expect firmware-subject-unbound.json deny
 expect untrusted-signer.json  deny
 expect firmware-digest-mismatch.json deny
 expect byte-integrity-modified.json deny

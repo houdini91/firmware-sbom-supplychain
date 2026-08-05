@@ -5,8 +5,11 @@ Ported from assemble-gate-input.sh (kept as a thin shim). Same env-var contract,
 same output, so the local runner and the CI workflow can never drift. Every field
 is derived from evidence, never asserted:
 
-  - subject_digest + reconcile predicate: decoded from the VERIFIED DSSE bundle
-  - sbom.hash: the SBOM file's actual SHA-256 (the policy binds it to subject_digest)
+  - attestation.file_subject (H) + attestation.firmware_subject (D) + reconcile predicate:
+    decoded from the VERIFIED multi-subject DSSE bundle — the "firmware-image" subject is the
+    firmware anchor D (evidence-graph binding); the bound SBOM-file subject is H (tamper-after-
+    signing binding)
+  - sbom.hash: the SBOM file's actual SHA-256 H (the policy binds it to attestation.file_subject)
   - provenance.builder_id: the signer identity (cert SAN URI) extracted from the bundle
   - cve.findings: the grype scan
   - firmware.*: the firmware-image anchor legs (build SBOM digest / reconcile re-hash / deployed)
@@ -250,14 +253,29 @@ def main():
             "(CI verifies it via cosign verify-blob of the build-tools bundle)")
     bt = build_tools(env("BUILD_TOOLS_JSON"), bt_sig == "true")
 
-    # DSSE decode (from the VERIFIED bundle) + cert-SAN signer identity
+    # DSSE decode (from the VERIFIED bundle) + cert-SAN signer identity.
+    # The reconcile attestation is a MULTI-SUBJECT in-toto Statement: subject "firmware-image"
+    # is the firmware anchor D, and a second subject (the bound SBOM file) carries H. We surface
+    # both separately — D drives the firmware/evidence-graph binding, H drives the SBOM-file
+    # (tamper-after-signing) binding. A legacy single-subject bundle degrades to file_subject=that
+    # subject, firmware_subject="".
     if sig == "true":
         stmt, bundle = decode_dsse(bundle_path)
-        subject_digest = dflt(stmt.get("subject", [{}])[0].get("digest", {}), "sha256", "")
+        subjects = stmt.get("subject", []) or []
+        att_firmware = ""
+        att_file = ""
+        for s in subjects:
+            h = dflt(s.get("digest", {}) or {}, "sha256", "")
+            if s.get("name") == "firmware-image":
+                att_firmware = h
+            elif not att_file:
+                att_file = h
+        if not att_file and subjects:  # legacy single-subject: the lone subject is the file digest H
+            att_file = dflt(subjects[0].get("digest", {}) or {}, "sha256", "")
         pred = stmt.get("predicate", {}) or {}
         signer_id = signer_san(bundle)
     else:
-        subject_digest, pred, signer_id = "", {}, ""
+        att_firmware, att_file, pred, signer_id = "", "", {}, ""
 
     # EFFECTIVE_BUILDER: the extracted identity, else assumed, else unverifiable
     if signer_id:
@@ -275,19 +293,30 @@ def main():
     clean = (dflt(summary, "missing", 1) == 0 and dflt(summary, "modified", 1) == 0
              and dflt(summary, "added_suspicious", 1) == 0)
 
-    # provenance subject (evidence-chain-bound)
-    prov_sub = env("PROVENANCE_SUBJECT")
-    if not prov_sub and env("DEV_ASSUME_CHAIN") == "1":
-        prov_sub = "sha256:" + sbom_hash
-        warnings.append("DEV_ASSUME_CHAIN=1 — provenance subject ASSUMED = SBOM digest for local demo "
-                        "(CI extracts it from the verified attestation)")
-
-    # firmware-image anchor legs
+    # firmware-image anchor D: the SBOM's own metadata.component SHA-256 — the digest
+    # of the firmware bytes the build says it shipped. The evidence graph is rooted at D
+    # (see _evidence_chain_bound), so the provenance subject binds to D, not to the SBOM
+    # file digest H.
     fw_sbom = ""
     for h in (sbom.get("metadata", {}).get("component", {}).get("hashes") or []):
         if h.get("alg") == "SHA-256":
             fw_sbom = "sha256:" + h.get("content", "")
             break
+
+    # provenance subjects. E2 SLSA provenance is platform-generated (GitHub attest-build-
+    # provenance over the SBOM file), so its real subject is the SBOM-file digest H — that is
+    # the FILE subject, consumed by the H-consistency leg of evidence-chain-bound. Its FIRMWARE
+    # binding to D cannot be extracted (single-subject H), so it is a DEV_ASSUME-class mapping to
+    # the firmware anchor D (informational — the rego's firmware binding is checked on the WE-built
+    # reconcile attestation, not on E2).
+    prov_file_sub = env("PROVENANCE_SUBJECT")
+    if not prov_file_sub and env("DEV_ASSUME_CHAIN") == "1":
+        prov_file_sub = "sha256:" + sbom_hash
+        warnings.append("DEV_ASSUME_CHAIN=1 — provenance FILE subject ASSUMED = SBOM file digest H for "
+                        "local demo (CI extracts it from the verified attestation)")
+    prov_firmware_sub = fw_sbom  # DEV_ASSUME-class: E2 is single-subject H; D is the anchor mapping
+
+    # firmware-image anchor legs
     fw_reconcile = dflt(pred, "image_digest", "")
     fw_image = env("FW_IMAGE")
     if fw_image and os.path.isfile(fw_image):
@@ -302,11 +331,12 @@ def main():
     gate_input = {
         "sbom": {"present": len(sbom.get("components", [])) > 0, "hash": "sha256:" + sbom_hash,
                  "integrity": integrity(sbom), "thirdparty": thirdparty(sbom)},
-        "attestation": {"subject_digest": ("" if subject_digest == "" else "sha256:" + subject_digest)},
+        "attestation": {"file_subject": ("" if att_file == "" else "sha256:" + att_file),
+                        "firmware_subject": ("" if att_firmware == "" else "sha256:" + att_firmware)},
         "signature": {"verified": sig == "true", "identity": effective_builder},
         "provenance": {"builder_id": effective_builder, "source_repo": repo,
                        "slsa_verified": slsa_verified == "true", "slsa_level": slsa_level,
-                       "subject_digest": prov_sub},
+                       "file_subject": prov_file_sub, "firmware_subject": prov_firmware_sub},
         "reconcile": {"clean": clean, "missing": dflt(pred, "missing", []),
                       "added": dflt(pred, "added", []), "modified": dflt(pred, "modified", []),
                       "declared": dflt(summary, "declared_modules", 0),

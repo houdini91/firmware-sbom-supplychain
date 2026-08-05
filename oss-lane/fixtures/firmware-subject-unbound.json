@@ -17,7 +17,7 @@
   },
   "attestation": {
     "file_subject": "sha256:3b1f0a9c8e2d4b6a7c5e9f01234567890abcdef1122334455667788990011aabb",
-    "firmware_subject": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37"
+    "firmware_subject": "sha256:beefbeefbeefbeefbeefbeefbeefbeefbeefbeefbeefbeefbeefbeefbeefbeef"
   },
   "signature": {
     "verified": true,
@@ -37,8 +37,8 @@
     "added": [],
     "modified": [],
     "declared": 123,
-    "matched": 120,
-    "missing_count": 3,
+    "matched": 123,
+    "missing_count": 0,
     "undeclared_observed": 0
   },
   "cve": {
