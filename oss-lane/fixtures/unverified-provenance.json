@@ -54,6 +54,7 @@
     "dxe_class_checked": 122,
     "dxe_nx_compat": 122,
     "missing_nx_count": 0,
-    "errored_count": 0
+    "errored_count": 0,
+    "unverifiable": []
   }
 }

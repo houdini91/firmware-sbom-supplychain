@@ -108,6 +108,21 @@ def build_tools(path, sig_verified):
     return {"present": False, "unpinned": [], "all_pinned": False, "signature_verified": sig_verified}
 
 
+# DXE-class module types the image-protection policy governs — NX-compat is required
+# for these (mirrors producers/reconcile/binary-hardening.py DXE_CLASS). Used as the
+# SBOM-derived coverage denominator for binary-hardening, so a cherry-picked verdict
+# cannot fake its own coverage.
+DXE_CLASS = {"DXE_DRIVER", "DXE_RUNTIME_DRIVER", "DXE_SAL_DRIVER", "UEFI_DRIVER",
+             "UEFI_APPLICATION", "DXE_CORE", "SMM_CORE", "DXE_SMM_DRIVER", "MM_STANDALONE"}
+
+
+def _module_type(c):
+    for p in (c.get("properties") or []):
+        if p.get("name") == "edk2:moduleType":
+            return p.get("value")
+    return None
+
+
 def integrity(sbom):
     mods = [c for c in sbom.get("components", []) if c.get("type") != "library"]
     def hashed(c):
@@ -115,7 +130,8 @@ def integrity(sbom):
         return isinstance(h, list) and len(h) > 0
     return {"hashable_total": len(mods),
             "hashed": sum(1 for c in mods if hashed(c)),
-            "unhashed": [c.get("name") for c in mods if not hashed(c)]}
+            "unhashed": [c.get("name") for c in mods if not hashed(c)],
+            "dxe_class_total": sum(1 for c in mods if _module_type(c) in DXE_CLASS)}
 
 
 def thirdparty(sbom):
@@ -177,21 +193,32 @@ def byte_integrity_fact(path):
 def binary_hardening_fact(path):
     """R8: fold the binary-hardening producer's verdict into a gate fact. ran=False
     when no image+edk2 was available (distinct from a clean run). Surfaces the
-    DXE-class NX-compat coverage so the gate can refuse a vacuous pass (no DXE-class
-    module examined) — an unexamined image is NOT a hardened one."""
+    DXE-class NX-compat coverage AND the DXE-class modules that could not be scanned
+    (unverifiable) so the gate can refuse a vacuous/under-covered pass and name exactly
+    what did not pass — an unexamined image is NOT a hardened one."""
     absent = {"ran": False, "dxe_class_checked": 0, "dxe_nx_compat": 0,
-              "missing_nx_count": 0, "errored_count": 0}
+              "missing_nx_count": 0, "errored_count": 0, "unverifiable": []}
     if not (path and os.path.isfile(path)):
         return absent
     try:
         d = load_json(path)
     except ValueError:
         return absent
+    # NAMES of DXE-class modules that could not be scanned (skipped OR errored). Only
+    # DXE-class matters for the NX expectation, so non-DXE skips (PEI/SEC/TE) are not
+    # "unverifiable" here. Each is checked against data.binary_hardening_exempt; an
+    # unexpected one denies. (skipped/errored entries carry their module `type`.)
+    unverifiable = [x.get("name") for x in (d.get("skipped", []) or [])
+                    if x.get("type") in DXE_CLASS] \
+        + [x.get("name") for x in (d.get("errored", []) or [])
+           if x.get("type") in DXE_CLASS]
+    unverifiable = sorted(n for n in unverifiable if n)
     return {"ran": True,
             "dxe_class_checked": d.get("dxe_class_checked", 0),
             "dxe_nx_compat": d.get("dxe_nx_compat", 0),
             "missing_nx_count": len(d.get("dxe_missing_nx", []) or []),
-            "errored_count": len(d.get("errored", []) or [])}
+            "errored_count": len(d.get("errored", []) or []),
+            "unverifiable": unverifiable}
 
 
 def main():

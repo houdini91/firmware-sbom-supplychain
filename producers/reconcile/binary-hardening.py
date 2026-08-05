@@ -97,17 +97,17 @@ def main():
             try:
                 dst = os.path.join(td, guid + ".ffs")
                 if not fmmt_extract(fmmt_py, a.edk2, a.image, guid, dst):
-                    skipped.append({"name": name, "guid": guid, "reason": "not extractable from image"})
+                    skipped.append({"name": name, "guid": guid, "type": mtype, "reason": "not extractable from image"})
                     continue
                 with open(dst, "rb") as f:
                     pe = pe32_from_ffs(f.read())
                 if pe is None:
-                    skipped.append({"name": name, "guid": guid, "reason": "no PE32 section (TE / compressed)"})
+                    skipped.append({"name": name, "guid": guid, "type": mtype, "reason": "no PE32 section (TE / compressed)"})
                     continue
                 rec = {"name": name, "guid": guid, "type": mtype, **posture(pe)}
                 checked.append(rec)
             except Exception as e:  # noqa: BLE001 — fail closed, record, keep going
-                errored.append({"name": name, "guid": guid, "error": str(e)[:200]})
+                errored.append({"name": name, "guid": guid, "type": mtype, "error": str(e)[:200]})
 
     dxe = [m for m in checked if m["type"] in DXE_CLASS]
     dxe_nx = [m for m in dxe if m["nx_compat"]]
@@ -120,6 +120,10 @@ def main():
         "tool": "binary-hardening",
         "granularity": "module/PE32-DllCharacteristics",
         "checked": len(checked),
+        # coverage denominator (transparency): declared DXE-class modules in scope.
+        # The gate binds against the assembler's SBOM-derived count, not this, so a
+        # tampered verdict cannot fake its own coverage.
+        "dxe_class_declared": sum(1 for _n, _t in modules.values() if _t in DXE_CLASS),
         "dxe_class_checked": len(dxe),
         "dxe_nx_compat": len(dxe_nx),
         "by_flag": by_flag,

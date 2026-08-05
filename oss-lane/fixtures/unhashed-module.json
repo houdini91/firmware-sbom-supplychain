@@ -8,7 +8,8 @@
       "unhashed": [
         "ResetVector",
         "SomeDxe"
-      ]
+      ],
+      "dxe_class_total": 122
     },
     "thirdparty": {
       "total": 1,
@@ -69,6 +70,7 @@
     "dxe_class_checked": 122,
     "dxe_nx_compat": 122,
     "missing_nx_count": 0,
-    "errored_count": 0
+    "errored_count": 0,
+    "unverifiable": []
   }
 }

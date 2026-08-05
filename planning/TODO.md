@@ -19,6 +19,17 @@ The actionable next steps, in execution order. Detail lives in [`DESIGN-REVIEW.m
     CRA/BSI/CISA). *Verified: clean VSA → all PASS; a failing report lights up the right control.*
   - [ ] Fold `control_id → satisfied_by[]` (+ `missing_evidence[]`) into the VSA `predicate` itself.
   - [ ] Versioned rule IDs (`ns/name@vN`) + metadata sidecars + a standard verdict schema.
+- [ ] **A2b · Framework-aware control output (DESIGN question — do NOT over-build).** The compliance gate
+  should *reflect the controls/frameworks it covers*: each control/rule exposes its **description**, and the
+  gate emits messaging in the **target framework's own language** so a reader understands what they're actually
+  seeing (valint-inspired). Because many frameworks **reuse** the same underlying control, model a **control
+  catalog** (id + description + per-framework phrasing) that rules reference *once*, not duplicated per framework.
+  **Open design Q** — reviewed via an HTML design doc + recommendation; keep proportionate, drop if it adds
+  ceremony without payoff. Ties to A2's verdict-format + rule-catalog work (2026-08-05).
+- [x] **A2c · binary-hardening → byte-integrity parity** — **DONE (2026-08-05).** binary-hardening now has
+  coverage-binding (`dxe_class_checked == sbom.integrity.dxe_class_total`, cherry-pick guard), a reviewed
+  exemption mechanism (`data.binary_hardening_exempt`, DXE-class only; missing-NX stays a hard deny), the
+  per-module manifest surfaced, + 2 new fixtures and an exemption ALLOW test. `make test` green.
 - [x] **A3 · `fw-supplychain-verify` CLI** (the headline) — **DONE.** `cli/fw-supplychain-verify`: hash the
   image, bind it to the VSA's firmware-image subject, per-framework scorecard; degrades honestly to
   `MISSING_EVIDENCE` on unattested firmware. `--verify-bundle` verifies the VSA signature (cosign) first.

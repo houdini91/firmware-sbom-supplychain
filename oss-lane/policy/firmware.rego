@@ -115,22 +115,39 @@ default _binary_hardening_ok := false
 _binary_hardening_ok if {
 	input.binary_hardening.ran
 	input.binary_hardening.dxe_class_checked > 0 # non-vacuous: DXE-class modules were examined
-	input.binary_hardening.missing_nx_count == 0 # every DXE-class module is NX-compatible
-	input.binary_hardening.errored_count == 0
+	input.binary_hardening.dxe_class_checked == input.sbom.integrity.dxe_class_total # coverage: EVERY declared DXE-class module was scanned — not a cherry-picked / stale subset (parity with byte-integrity)
+	input.binary_hardening.missing_nx_count == 0 # a missing-NX DXE module is a regression — NO exemption (parity with byte-integrity's MODIFIED)
+	count(_binary_hardening_unexpected) == 0 # every un-scannable DXE-class module is a REVIEWED exemption (data.binary_hardening_exempt), else DENY and name it
+}
+
+# DXE-class modules that could not be scanned (skipped or errored) and are NOT on the
+# reviewed exemption list. Only DXE-class matters for the NX expectation — a non-DXE skip
+# (PEI/SEC/TE) is expected and never "unverifiable" here. Accepted ONLY when listed in
+# data.binary_hardening_exempt with a documented reason; anything else denies and is named.
+_binary_hardening_unexpected contains m if {
+	some m in object.get(input.binary_hardening, "unverifiable", [])
+	not data.binary_hardening_exempt[m]
 }
 
 default _binary_hardening_msg := "binary-hardening not run (no image + edk2 supplied to the producer)"
 _binary_hardening_msg := sprintf("binary-hardening: %d DXE-class module(s) NOT NX-compatible — W^X cannot be enforced on them", [input.binary_hardening.missing_nx_count]) if input.binary_hardening.missing_nx_count > 0
+_binary_hardening_msg := sprintf("binary-hardening: %d DXE-class module(s) could NOT be scanned and are not a reviewed exemption: %v — investigate, or add to data.binary_hardening_exempt with a documented reason", [count(_binary_hardening_unexpected), sort([m | some m in _binary_hardening_unexpected])]) if {
+	input.binary_hardening.ran
+	input.binary_hardening.missing_nx_count == 0
+	count(_binary_hardening_unexpected) > 0
+}
 _binary_hardening_msg := "binary-hardening: no DXE-class module examined — a vacuous scan is not a hardened image" if {
 	input.binary_hardening.ran
 	input.binary_hardening.missing_nx_count == 0
+	count(_binary_hardening_unexpected) == 0
 	input.binary_hardening.dxe_class_checked == 0
 }
-_binary_hardening_msg := sprintf("binary-hardening: %d module(s) errored during scan — not assessed", [input.binary_hardening.errored_count]) if {
+_binary_hardening_msg := sprintf("binary-hardening: verdict covers only %d of %d declared DXE-class modules — an under-scoped or stale verdict is not full coverage (cherry-picking guard)", [input.binary_hardening.dxe_class_checked, input.sbom.integrity.dxe_class_total]) if {
 	input.binary_hardening.ran
 	input.binary_hardening.missing_nx_count == 0
+	count(_binary_hardening_unexpected) == 0
 	input.binary_hardening.dxe_class_checked > 0
-	input.binary_hardening.errored_count > 0
+	input.binary_hardening.dxe_class_checked != input.sbom.integrity.dxe_class_total
 }
 
 # SI-7(1), CISA hash field: every hashable (non-library) module carries a hash,

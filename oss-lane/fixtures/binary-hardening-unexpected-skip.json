@@ -47,7 +47,7 @@
   },
   "build_tools": {
     "present": true,
-    "signature_verified": false,
+    "signature_verified": true,
     "all_pinned": true,
     "unpinned": []
   },
@@ -70,6 +70,8 @@
     "dxe_nx_compat": 122,
     "missing_nx_count": 0,
     "errored_count": 0,
-    "unverifiable": []
+    "unverifiable": [
+      "SomeUnscannableDxeModule"
+    ]
   }
 }

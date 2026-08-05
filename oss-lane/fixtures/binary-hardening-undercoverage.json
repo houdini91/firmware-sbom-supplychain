@@ -47,7 +47,7 @@
   },
   "build_tools": {
     "present": true,
-    "signature_verified": false,
+    "signature_verified": true,
     "all_pinned": true,
     "unpinned": []
   },
@@ -66,8 +66,8 @@
   },
   "binary_hardening": {
     "ran": true,
-    "dxe_class_checked": 122,
-    "dxe_nx_compat": 122,
+    "dxe_class_checked": 1,
+    "dxe_nx_compat": 1,
     "missing_nx_count": 0,
     "errored_count": 0,
     "unverifiable": []

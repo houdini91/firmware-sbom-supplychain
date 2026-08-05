@@ -9,6 +9,9 @@
   "byte_integrity_exempt": {
     "_comment": "Reviewed exemptions for the byte-integrity gate — {\"ModuleName\": \"reason it genuinely cannot be byte-verified (e.g. a TE-only or compressed section) + reviewer + date\"}. EMPTY today: the reference build byte-verifies all 122 PE-carrying modules. A module is added ONLY after human review; anything un-verifiable and NOT listed here fails the gate and is named."
   },
+  "binary_hardening_exempt": {
+    "_comment": "Reviewed exemptions for the binary-hardening gate — {\"ModuleName\": \"reason a DXE-class module genuinely cannot be scanned (e.g. a TE-only or compressed section) + reviewer + date\"}. Only DXE-class modules that could NOT be scanned are eligible; a missing-NX finding is a regression and is NEVER exemptable. EMPTY today: the reference build scans all declared DXE-class modules. Added ONLY after human review; anything un-scannable and NOT listed here fails the gate and is named."
+  },
   "trusted_signer_identities": [
     "https://github.com/houdini91/firmware-sbom-supplychain/.github/workflows/supply-chain.yml@refs/heads/main"
   ]

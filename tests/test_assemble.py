@@ -25,9 +25,13 @@ integ = a.integrity({"components": [
     {"type": "driver", "name": "EmptyArr", "hashes": []},
     {"type": "driver", "name": "NoHash"},
     {"type": "library", "name": "LibIgnored"},
+    {"type": "driver", "name": "Dxe", "hashes": [{"content": "cd"}],
+     "properties": [{"name": "edk2:moduleType", "value": "DXE_DRIVER"}]},
 ]})
 check("integrity: empty/missing hashes flagged unhashed, libs excluded",
-      integ["hashable_total"] == 3 and integ["hashed"] == 1 and set(integ["unhashed"]) == {"EmptyArr", "NoHash"})
+      integ["hashable_total"] == 4 and integ["hashed"] == 2 and set(integ["unhashed"]) == {"EmptyArr", "NoHash"})
+check("integrity: dxe_class_total counts DXE-class module types (edk2:moduleType)",
+      integ["dxe_class_total"] == 1)
 
 # thirdparty (F7): empty purl/licenses flagged missing; first-party excluded
 tp = a.thirdparty({"components": [
@@ -67,11 +71,14 @@ import tempfile as _tempfile  # noqa: E402
 _fd, _p = _tempfile.mkstemp(suffix=".json")
 with os.fdopen(_fd, "w") as _f:
     _json.dump({"dxe_class_checked": 106, "dxe_nx_compat": 104,
-                "dxe_missing_nx": [{"name": "A"}, {"name": "B"}], "errored": [{"name": "C"}]}, _f)
+                "dxe_missing_nx": [{"name": "A"}, {"name": "B"}],
+                "skipped": [{"name": "DxeSkip", "type": "DXE_DRIVER"}, {"name": "PeiSkip", "type": "PEIM"}],
+                "errored": [{"name": "DxeErr", "type": "UEFI_DRIVER"}]}, _f)
 bh = a.binary_hardening_fact(_p)
 os.unlink(_p)
-check("binary_hardening: derives missing_nx_count + errored_count from lists",
-      bh["ran"] and bh["dxe_class_checked"] == 106 and bh["missing_nx_count"] == 2 and bh["errored_count"] == 1)
+check("binary_hardening: missing_nx + errored + DXE-class-only unverifiable (non-DXE PeiSkip excluded)",
+      bh["ran"] and bh["dxe_class_checked"] == 106 and bh["missing_nx_count"] == 2
+      and bh["errored_count"] == 1 and bh["unverifiable"] == ["DxeErr", "DxeSkip"])
 
 print("----")
 print("ALL PASS" if ok else "FAILURES")
