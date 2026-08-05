@@ -239,13 +239,15 @@ doesn't protect:
   builder identity). A commit that edits these can change the verdict, so they are covered by
   [`CODEOWNERS`](.github/CODEOWNERS) and **require branch protection on `main`** to be meaningful. Signing
   does *not* protect them — they're inside the signed repo.
-- **Demo limitation:** in this demo the reconcile verdict is *committed*, not regenerated in CI (CI has the
-  SBOM but not the multi-hundred-MB firmware image to re-carve). A real operator pipeline would **regenerate
-  the reconcile verdict inside the isolated builder** from the actual firmware, so the gate *proves* the
+- **Demo limitation:** in this demo the **image-derived verdicts — reconcile, byte-integrity, CHIPSEC, and binary-hardening** —
+  are *committed*, not regenerated in CI (CI has the SBOM but not the multi-hundred-MB firmware image to
+  re-carve/scan). A real operator pipeline would **regenerate them inside the isolated builder** from the actual firmware, so the gate *proves* the
   bytes rather than *trusting* a committed file. That's the intended production shape; the demo shows the
   policy/attestation machinery around it.
 - The local runner's `DEV_ASSUME_IDENTITY` fallback (used only when signing with a local key, which carries
   no cert identity) is **unreachable in CI** — CI keyless signing always yields a real, extracted signer
-  identity. A local `ALLOW` therefore proves less than a CI `ALLOW`.
+  identity. A local `ALLOW` therefore proves less than a CI `ALLOW`. (One `DEV_ASSUME_*` **is** used in CI:
+  `DEV_ASSUME_FWIMAGE` assumes the deployed `.fd` digest equals the SBOM's — CI doesn't rebuild OVMF — so the
+  firmware-anchor's *deployed* leg is assumed there, not independently measured. The other two legs are real.)
 
 [Valint]: https://github.com/scribe-public

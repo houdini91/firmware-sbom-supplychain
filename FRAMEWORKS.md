@@ -96,8 +96,10 @@ not asserted.
 > every high/critical CVE needs a non-empty justification), `thirdparty-identifiers` (E1, CISA License/PURL),
 > `build-tools-signed` (E7, SSDF PO.3.2 / S2C2F REB-3 — the build toolchain is signed + SHA/version-pinned),
 > `firmware-digest-anchor` (E1↔E3↔image — the SBOM's `metadata.component` digest `D`, the reconcile
-> `image_digest`, and the digest of the **deployed `.fd`** all agree, so the whole evidence set is about
-> *these* firmware bytes, not a detached JSON file), `slsa-level-floor` (E2, SR-4/SR-4(3) — SLSA level ≥ 2),
+> `image_digest` (a genuine *second* re-hash of the carved image), and the digest of the **deployed `.fd`**
+> (real at flash time; in CI/offline it is assumed = `D` via `DEV_ASSUME_FWIMAGE`, since neither rebuilds
+> OVMF) all agree — so the evidence set is about *these* firmware bytes, not a detached JSON file),
+> `slsa-level-floor` (E2, SR-4/SR-4(3) — SLSA level ≥ 2),
 > `evidence-chain-bound` (E1/E2/E5, one subject digest across SBOM↔attestation↔provenance), and
 > `signer-identity-pinned` (E5, SI-7(15)/CM-14/SR-4(1) — the cert SAN is in the trusted set) — the gate ANDs all
 > eighteen and emits E6. The
@@ -348,7 +350,7 @@ enforcement it asks for is still futuristic.)*
 
 | Ref | Ask | New evidence required | Status | Note |
 |---|---|---|:--:|---|
-| **§4.2.1** Protection and Update of Mutable Code | only authenticated firmware updates apply | E5, E2, **E10** (CHIPSEC `bios_wp`/`bios_ts`) | **ENFORCED ◐** *(gate: chipsec-posture)* | CHIPSEC BIOS write-protection config checks are gate-enforced (config-level, OVMF target) via `chipsec-posture`; E5+E2 prove the update image is authentic. The on-device RTU + runtime enforcement remains futuristic. |
+| **§4.2.1** Protection and Update of Mutable Code | only authenticated firmware updates apply | E5, E2, **E10** (CHIPSEC `bios_wp`/`bios_ts`) | **PARTIAL** *(gate: chipsec-posture)* | CHIPSEC BIOS write-protection is *config-level* on the OVMF/**QEMU** target with **no hardware root of trust**, and the demo's `chipsec.json` is **sample data**, not a live run — evidence-shaped, not enforced platform resiliency. E5+E2 prove the update image is authentic; on-device RTU + runtime enforcement remains futuristic. |
 | **§4.3.1** Detection of Corrupted Code | detect corruption vs an authorized reference | measured-boot measurement + golden RIM, on-device | **FUTURISTIC ◐ analog** | Runtime twin of E3 reconcile — E3 compares *build outputs to SBOM*, not *running firmware to a reference*. |
 | **§4.3.2** Detection of Corrupted Critical Data | detect critical-data corruption vs reference | as above | **FUTURISTIC** | — |
 | **§4.4.1 / §4.4.2** Recovery of Mutable Code / of Critical Data | auto-recover to a known-good state | golden recovery image + on-device RTRec | **FUTURISTIC** | We can *supply* a signed known-good image (E2/E5); the recovery mechanism is runtime-only. |

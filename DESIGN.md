@@ -30,7 +30,7 @@ flowchart LR
 > **The signed verdict is framework-agnostic.** Because this gate verifies many frameworks (not just SLSA), the
 > output isn't a SLSA-specific VSA — it's a **`policy-verdict`** in-toto predicate (RATS Attestation-Result
 > framing; the gate is the *Verifier*, the deploy step is the *Relying Party*) carrying **OSCAL-shaped
-> `controlAssessments`** — 25 per-control findings (`satisfied` / `not-satisfied` / `not-applicable`) across six
+> `controlAssessments`** — 27 per-control findings (`satisfied` / `not-satisfied` / `not-applicable`) across six
 > frameworks — with the SLSA VSA demoted to one `profile`. See E6 in [`FRAMEWORKS.md`](FRAMEWORKS.md).
 
 **Terms used below:** *SBOM* software bill of materials; *CycloneDX/SPDX* SBOM formats; *coSWID / uSWID*
@@ -187,11 +187,13 @@ PE32, yielding the observable **module** set. But that granularity matters:
   they have no separate byte range and are not independently carvable. So of the 311 declared components,
   reconcile directly observes the ~120 FFS **modules**; the library instances and the 122-edge dependsOn
   graph are checked only *transitively* (present inside the module that links them), not one-by-one.
-- **Membership vs integrity.** The current SBOM carries no per-component binary digest, so the SBOM *alone*
-  supports only set-membership (is a `FILE_GUID` present/absent). Detecting a *modified* module needs an
-  expected digest to compare against; in the reference those digests come from the build tree's `.efi`
-  outputs, so reconcile is really "build outputs vs image bytes, with the SBOM as the index." Adding
-  per-component digests to the generator would let the SBOM stand on its own here (open question below).
+- **Membership vs integrity.** Reconcile *alone* checks set-membership (is a `FILE_GUID` present/absent).
+  Detecting a *modified* module needs an expected digest — and R4 supplies it: the generator now writes
+  **per-module SHA-256/512 into the SBOM**, so byte-integrity compares each module's shipped bytes to the
+  SBOM's *own* declared digest. The SBOM stands on its own here now (no longer "build outputs with the SBOM
+  as index"). **Known bound:** a *replacement* under a declared `FILE_GUID` is caught, but a
+  **shadow-duplicate** — a second FFS added under an already-declared GUID — can evade both membership
+  (GUID-set keyed) and byte-integrity (one FFS extracted per GUID). Duplicate-GUID detection is the next hardening step.
 - **Carving's hard edges** (where the real engineering risk sits): FV sections are LZMA/GUIDed-compressed and
   some GUIDed extractors are vendor-custom; the PE copy inside the FV is rebased/relocated/debug-stripped
   versus the build `.efi`, so bytes must be *canonicalized* before hashing or legitimate images mismatch; and

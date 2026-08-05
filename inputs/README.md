@@ -12,10 +12,10 @@ without a full firmware build:
 | `sbom.uswid` | coSWID view + embed carrier | `producers/interop/to-coswid.sh` (uSWID) |
 | `reconcile-verdict.json` | declared-vs-observed **membership** verdict (+ `image_digest`, anchor leg 2) | `producers/reconcile/carve.sh` |
 | `byte-integrity.json` | **byte-integrity** verdict — each module's shipped PE32 bytes vs the SBOM hash (R4, 122 of 123) | `producers/reconcile/byte-integrity.py` |
-| `chipsec.json` | CHIPSEC platform-posture predicate | `producers/chipsec/to-predicate.py` |
+| `chipsec.json` | CHIPSEC platform-posture predicate — **sample/illustrative data** (`producers/chipsec/sample-results.json`), not a live CHIPSEC run | `producers/chipsec/to-predicate.py` |
 | `vex.openvex.json` / `vex.csaf.json` | CVE triage (OpenVEX) + BSI CSAF view | authored / `producers/interop/to-csaf.py` |
 
-> **How these are trusted.** `reconcile-verdict.json`, `byte-integrity.json`, and `chipsec.json` are produced
+> **How these are trusted.** `reconcile-verdict.json`, `byte-integrity.json`, `chipsec.json`, and `binary-hardening.json` are produced
 > **offline against the real deployed `.fd`** (they need an edk2 tree + a built OVMF image) and committed here;
 > the gate — locally and in CI — **consumes them as evidence, it does not regenerate them** (CI has no built
 > firmware). A consumer verifying their *own* firmware re-runs the producers against their image. To
