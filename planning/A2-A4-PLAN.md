@@ -18,15 +18,14 @@ evidence graph rooted at `D`**, using standard in-toto/SLSA shapes.
    (v1.2 schema), `subject = D`, `verificationResult` PASSED/FAILED, coarse control outcomes as
    **custom non-`SLSA_`-prefixed `verifiedLevels` tokens** (e.g. `OATS_BYTEINTEGRITY_PASS`),
    `inputAttestations[]` referencing each evidence attestation by `{uri,digest}`.
-2. **Rich per-control data = a companion verdict predicate**, `subject = D`, referenced by the VSA via
-   `inputAttestations` (the VSA schema has **no** native per-control slot). A2+A4 emits it in a **simple
-   neutral-namespace canonical form** — `<neutral>/control-verdict/v1`, e.g. `firmware-sbom-supplychain/…`
-   (NOT `oats.tech`) — carrying `controls:[{id,status,satisfied_by[],missing_evidence[]}]`, computed **once**
-   by the rego engine.
-   **DE-COUPLED (2026-08-05):** the *choice of rich-verdict output format* — SARIF / CDXA / framework-aware
-   messaging (see **A2b** in TODO) — is an **additive view over this same engine + data**, decided later. It
-   does **NOT** block A2+A4: the VSA is not being replaced, and adding a format is just a serializer on the
-   same model. A2+A4 completes with the standard VSA + the computed control model in the canonical form above.
+2. **Rich per-control data rides as EXTENSIONS on the standard VSA** (chosen 2026-08-05, "option B").
+   in-toto/SLSA predicates are **explicitly extensible**, so the VSA carries the standard summary
+   (`verificationResult`, `verifiedLevels`) *and* `verifierReports[]` + `controlAssessments[]` (with
+   `description`/`citation`/`satisfied_by`/`missing_evidence`) as documented extensions. A SLSA-VSA consumer
+   reads the summary; our CLI/initiative layer reads the detail. **No separate bespoke companion predicate**
+   (that would be throwaway when CDXA lands) and **no consumer churn**.
+   **DE-COUPLED:** a later **CDXA/SARIF** rendering (see **A2b** in TODO) is an *added format over the same
+   engine + data*, **not a replacement** — the VSA-with-extensions stays. That's the deferred step.
 3. **`subject = D` primary on every image-scoped attestation**, built via
    `cosign attest-blob --statement <self-built Statement>` — pin **cosign ≥ 2.6.0**;
    `--new-bundle-format` for offline verification; **never `--type custom`** (it wraps the predicate).

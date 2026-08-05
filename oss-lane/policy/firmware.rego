@@ -571,22 +571,26 @@ control_assessments := [ca |
 ]
 
 # --- The signed verdict -------------------------------------------------------
-# A generalized policy-verdict predicate: RATS Attestation-Result framing (this gate
-# is the Verifier; the CLI/deploy step is the Relying Party) with OSCAL-shaped
-# controlAssessments. This gate verifies MANY frameworks, so the SLSA VSA is demoted
-# to one profile rather than being the whole predicate.
-policy_verdict_predicate := {
+# The signed verdict: a standard SLSA Verification Summary Attestation
+# (predicateType https://slsa.dev/verification_summary/v1, subject = the firmware
+# digest D — stamped by gate.sh). The VSA summary fields are the standard ones; the
+# rich per-rule observations (verifierReports) and per-framework findings
+# (controlAssessments) ride as predicate EXTENSIONS. in-toto/SLSA predicates are
+# explicitly extensible, so a SLSA-VSA consumer reads the standard summary and ignores
+# the rest, while our CLI + initiative layer read the detail. A later step MAY render
+# that same detail as an ADDITIONAL CDXA/SARIF attestation — another format over the
+# same engine + data, not a replacement (see planning/A2-A4-PLAN.md).
+vsa_predicate := {
 	"verifier": {"id": "https://github.com/houdini91/firmware-sbom-supplychain/oss-lane"},
-	"policy": {"uri": "https://github.com/houdini91/firmware-sbom-supplychain/blob/main/oss-lane/policy/firmware.rego"},
 	"resourceUri": object.get(input, ["artifact", "uri"], "firmware-sbom-attestation"),
+	"policy": {"uri": "https://github.com/houdini91/firmware-sbom-supplychain/blob/main/oss-lane/policy/firmware.rego"},
 	"verificationResult": _result,
-	"verifierReports": verifier_reports, # OSCAL observations (unchanged shape)
-	"controlAssessments": control_assessments, # OSCAL findings across frameworks
-	"profiles": {"slsa-vsa": {"verifiedLevels": _levels, "slsaVersion": "1.0"}},
+	"verifiedLevels": _levels,
+	"slsaVersion": "1.0",
+	# --- extensions: the detail the standard VSA summary intentionally omits ---
+	"verifierReports": verifier_reports, # per-rule observations (framework-tagged)
+	"controlAssessments": control_assessments, # per-framework findings + citations
 }
-
-# Backward-compatible alias: the old SLSA-VSA shape (verifiedLevels at top level).
-vsa_predicate := object.union(policy_verdict_predicate, {"verifiedLevels": _levels, "slsaVersion": "1.0"})
 
 _result := "PASSED" if allow
 _result := "FAILED" if not allow

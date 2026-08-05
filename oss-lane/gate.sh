@@ -46,22 +46,19 @@ printf '%s' "$val" | jq -r '
   .verifier_reports[]
   | "   \(if .isSuccess then "✅" else "⛔" end) \(.name): \(.message)  [\(.controls | join(", "))]"'
 
-# --- emit the VSA (in-toto Statement wrapping the SLSA VSA predicate) ---
-subject_digest="$(jq -r '.attestation.subject_digest // "sha256:unknown"' "$INPUT")"
-alg="${subject_digest%%:*}"; hex="${subject_digest#*:}"
-# Also carry the FIRMWARE image digest as a subject, so a consumer can verify the
-# VSA is about the bytes they hold (the anchor, consumer-side). Empty -> omitted.
-fw_digest="$(jq -r '.firmware.sbom_digest // ""' "$INPUT")"
+# --- emit the VSA (in-toto Statement wrapping the standard SLSA VSA predicate) ---
+# subject = the FIRMWARE image digest D (the artifact this gate verifies), named
+# "firmware-image" so a consumer can bind the VSA to the bytes they hold. D is the
+# primary (and only) subject — the evidence is about the firmware, not a JSON file.
+fw_digest="$(jq -r '.firmware.sbom_digest // "sha256:unknown"' "$INPUT")"
 fw_alg="${fw_digest%%:*}"; fw_hex="${fw_digest#*:}"
 ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-vsa_stmt="$(printf '%s' "$val" | jq -c --arg alg "$alg" --arg hex "$hex" --arg ts "$ts" \
-  --arg fwalg "$fw_alg" --arg fwhex "$fw_hex" '
+vsa_stmt="$(printf '%s' "$val" | jq -c --arg fwalg "$fw_alg" --arg fwhex "$fw_hex" --arg ts "$ts" '
   {
     "_type": "https://in-toto.io/Statement/v1",
-    "subject": ([ { "name": .policy_verdict_predicate.resourceUri, "digest": { ($alg): $hex } } ]
-                + (if $fwhex != "" then [ { "name": "firmware-image", "digest": { ($fwalg): $fwhex } } ] else [] end)),
-    "predicateType": "https://oats.tech/policy-verdict/v0.1",
-    "predicate": (.policy_verdict_predicate + { "timeVerified": $ts })
+    "subject": [ { "name": "firmware-image", "digest": { ($fwalg): $fwhex } } ],
+    "predicateType": "https://slsa.dev/verification_summary/v1",
+    "predicate": (.vsa_predicate + { "timeVerified": $ts })
   }')"
 if [ -n "$VSA_OUT" ]; then
   mkdir -p "$(dirname "$VSA_OUT")"
