@@ -37,6 +37,13 @@ The actionable next steps, in execution order. Detail lives in [`DESIGN-REVIEW.m
   as DSSE Statements (`subject = D`); collapse CSAF into an E4b reference; drop E5 as an "evidence" row (it's the
   signing envelope). ⛔ blocked-by A1 (needs the D subject).
 
+- [ ] **A5 · Repo presentation / docs polish (portfolio-facing).** Make the README + key docs **sleek and
+  professional** — the GitHub-rendered docs currently read plain. Strong hero/overview, badges, tight
+  structure, and clear **diagrams**. Constraint: GitHub renders **Markdown + mermaid natively** but sanitizes
+  the inline-CSS/SVG HTML design docs — so use **mermaid** (architecture/data-flow/evidence-graph) and/or
+  **committed SVGs**, not the HTML-design-doc approach. Aim for the *quality* of the HTML docs in
+  GitHub-renderable form. (2026-08-05)
+
 ## Track B — upstream engagement (queued; gated on signals)
 
 - [x] **B1 · uSWID #98** — **MERGED 2026-08-04** by Richard Hughes (CycloneDX component-type fix; first merged contribution in his ecosystem).

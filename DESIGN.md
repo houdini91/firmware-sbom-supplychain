@@ -27,11 +27,15 @@ flowchart LR
     GATE -->|no| NO(["✕ Blocked → triage"])
 ```
 
-> **The signed verdict is framework-agnostic.** Because this gate verifies many frameworks (not just SLSA), the
-> output isn't a SLSA-specific VSA — it's a **`policy-verdict`** in-toto predicate (RATS Attestation-Result
-> framing; the gate is the *Verifier*, the deploy step is the *Relying Party*) carrying **OSCAL-shaped
-> `controlAssessments`** — 27 per-control findings (`satisfied` / `not-satisfied` / `not-applicable`) across six
-> frameworks — with the SLSA VSA demoted to one `profile`. See E6 in [`FRAMEWORKS.md`](FRAMEWORKS.md).
+> **The signed verdict is a standard SLSA VSA, extended.** The output is a standard SLSA **Verification Summary
+> Attestation** (`predicateType` `https://slsa.dev/verification_summary/v1`), subject = the firmware digest `D`,
+> carrying the standard summary fields (`verificationResult`, `verifiedLevels`). Because this gate verifies many
+> frameworks (not just SLSA), the rich detail rides as predicate **extensions** — `verifierReports[]` (19 per-rule
+> observations, each framework-tagged) plus **OSCAL-shaped `controlAssessments[]`** — 27 per-control findings
+> (`satisfied` / `not-satisfied` / `not-applicable`) across six frameworks. in-toto/SLSA predicates are
+> explicitly extensible, so a stock SLSA-VSA consumer reads the summary and ignores the rest, while our CLI +
+> initiative layer read the detail. The RATS framing still holds (the gate is the *Verifier*, the deploy step is
+> the *Relying Party*). See E6 in [`FRAMEWORKS.md`](FRAMEWORKS.md).
 
 **Terms used below:** *SBOM* software bill of materials; *CycloneDX/SPDX* SBOM formats; *coSWID / uSWID*
 Concise SWID tags and the tool that writes/embeds them (fwupd reads them on-device); *SLSA* supply-chain
