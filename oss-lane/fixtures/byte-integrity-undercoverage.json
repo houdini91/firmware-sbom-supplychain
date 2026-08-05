@@ -46,7 +46,7 @@
   },
   "build_tools": {
     "present": true,
-    "signature_verified": false,
+    "signature_verified": true,
     "all_pinned": true,
     "unpinned": []
   },
@@ -57,8 +57,8 @@
   },
   "byte_integrity": {
     "ran": true,
-    "checked": 122,
-    "verified": 122,
+    "checked": 1,
+    "verified": 1,
     "modified_count": 0,
     "skipped_count": 0
   },

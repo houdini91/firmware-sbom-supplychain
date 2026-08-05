@@ -63,8 +63,8 @@
   },
   "byte_integrity": {
     "ran": true,
-    "checked": 10,
-    "verified": 10,
+    "checked": 122,
+    "verified": 122,
     "modified_count": 0,
     "skipped_count": 0
   },

@@ -57,10 +57,10 @@
   },
   "byte_integrity": {
     "ran": true,
-    "checked": 10,
+    "checked": 122,
     "verified": 0,
     "modified_count": 0,
-    "skipped_count": 10
+    "skipped_count": 122
   },
   "binary_hardening": {
     "ran": true,

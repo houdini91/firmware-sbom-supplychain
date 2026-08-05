@@ -74,6 +74,7 @@ _byte_integrity_ok if {
 	input.byte_integrity.ran
 	input.byte_integrity.checked > 0
 	input.byte_integrity.verified > 0 # non-vacuous: something was actually byte-verified
+	input.byte_integrity.checked == input.sbom.integrity.hashed # coverage: the verdict covers EVERY declared hashable module — not a cherry-picked / stale subset (parity with reconcile's matched==declared)
 	input.byte_integrity.verified == input.byte_integrity.checked # EVERY checked module verified — a skip is not a pass
 	input.byte_integrity.modified_count == 0
 }
@@ -87,6 +88,12 @@ _byte_integrity_msg := sprintf("byte-integrity: %d module(s) UN-VERIFIED (skippe
 	input.byte_integrity.ran
 	input.byte_integrity.modified_count == 0
 	input.byte_integrity.verified != input.byte_integrity.checked
+}
+_byte_integrity_msg := sprintf("byte-integrity: verdict covers only %d of %d declared hashable modules — an under-scoped or stale verdict is not full coverage (cherry-picking guard)", [input.byte_integrity.checked, input.sbom.integrity.hashed]) if {
+	input.byte_integrity.ran
+	input.byte_integrity.modified_count == 0
+	input.byte_integrity.verified == input.byte_integrity.checked
+	input.byte_integrity.checked != input.sbom.integrity.hashed
 }
 
 # R8 binary-hardening: every DXE-class module the image-protection policy governs

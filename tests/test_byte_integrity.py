@@ -21,6 +21,7 @@ bi = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(bi)
 
 ok = True
+skipped = 0  # crux test groups that did NOT run (e.g. pefile missing) — surfaced loudly below
 
 
 def check(name, cond):
@@ -54,8 +55,10 @@ check("pe32_from_ffs: too-short blob -> None (no crash)", bi.pe32_from_ffs(b"\x0
 decl_p = os.path.join(HERE, "fixtures", "pe", "pcdpeim.declared.efi")
 flash_p = os.path.join(HERE, "fixtures", "pe", "pcdpeim.inflash.pe32")
 if bi.pefile is None:
+    skipped += 1
     print("SKIP  canon_unrebase tests (pefile not installed — pip install -r requirements.txt)")
 elif not (os.path.isfile(decl_p) and os.path.isfile(flash_p)):
+    skipped += 1
     print("SKIP  canon_unrebase tests (fixtures missing)")
 else:
     declared = open(decl_p, "rb").read()
@@ -85,5 +88,8 @@ else:
               hashlib.sha256(bytes(bi.canon_unrebase(bytes(nr_t)))).hexdigest() != nr_declared)
 
 print("----")
-print("ALL PASS" if ok else "FAILURES")
+if skipped:
+    print("⚠  %d CRUX TEST GROUP(S) SKIPPED — the byte-integrity un-rebase guard did NOT run here "
+          "(install pefile: pip install -r requirements.txt). CI installs it and runs it." % skipped)
+print(("ALL PASS%s" % (" (with %d SKIPPED — see warning)" % skipped if skipped else "")) if ok else "FAILURES")
 sys.exit(0 if ok else 1)
