@@ -38,8 +38,18 @@ expect firmware-digest-mismatch.json deny
 expect byte-integrity-modified.json deny
 expect byte-integrity-vacuous.json deny
 expect byte-integrity-undercoverage.json deny
+expect byte-integrity-unexpected-skip.json deny
 expect binary-hardening-missing-nx.json deny
 expect binary-hardening-vacuous.json deny
+
+# byte-integrity exemption ALLOW path: the same un-verifiable module that DENYs above must
+# ALLOW once it is a reviewed entry in data.byte_integrity_exempt — proves the escape hatch works.
+OPA="${OPA:-$HERE/../bin/opa}"; POL="$HERE/../oss-lane/policy"
+_td="$(mktemp)"; jq '.byte_integrity_exempt += {"SomeUnverifiableModule":"reviewed test exemption"}' "$POL/data.json" > "$_td"
+_av="$("$OPA" eval -I -f json -d "$POL/firmware.rego" -d "$_td" -d "$POL/cve-allowlist.json" -d "$POL/initiatives.json" 'data.firmware.deploy.allow' < "$IN/byte-integrity-unexpected-skip.json" 2>/dev/null | jq -r '.result[0].expressions[0].value')"
+rm -f "$_td"
+if [ "$_av" = "true" ]; then echo "PASS  byte-integrity exemption: the same module, listed in byte_integrity_exempt -> ALLOW"; else echo "FAIL  byte-integrity exemption ALLOW path (got $_av)"; fail=1; fi
+
 echo "================================"
 [ "$fail" -eq 0 ] && echo "ALL PASS" || echo "FAILURES"
 exit $fail

@@ -153,18 +153,25 @@ def byte_integrity_fact(path):
     when no image+edk2 was available to the producer (distinct from a clean run).
     Surfaces skipped_count so the gate can refuse a vacuous pass (all modules
     skipped / nothing verified) — a skip is NOT a pass."""
-    absent = {"ran": False, "checked": 0, "verified": 0, "modified_count": 0, "skipped_count": 0}
+    absent = {"ran": False, "checked": 0, "verified": 0, "modified_count": 0,
+              "skipped_count": 0, "unverifiable": []}
     if not (path and os.path.isfile(path)):
         return absent
     try:
         d = load_json(path)
     except ValueError:
         return absent
+    # NAMES of modules that could not be byte-verified (skipped OR errored) — surfaced so
+    # the gate can name exactly what did not pass and check each against a reviewed
+    # exemption list (data.byte_integrity_exempt); an unexpected one denies.
+    unverifiable = [x.get("name") for x in (d.get("skipped", []) or [])] \
+        + [x.get("name") for x in (d.get("errored", []) or [])]
+    unverifiable = sorted(n for n in unverifiable if n)
     return {"ran": True, "checked": d.get("checked", 0),
             "verified": d.get("byte_verified", 0),
             "modified_count": len(d.get("modified", []) or []),
-            # skipped OR errored modules are both un-verified (not passes)
-            "skipped_count": len(d.get("skipped", []) or []) + len(d.get("errored", []) or [])}
+            "unverifiable": unverifiable,
+            "skipped_count": len(unverifiable)}
 
 
 def binary_hardening_fact(path):

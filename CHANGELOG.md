@@ -6,6 +6,15 @@ coherent milestones rather than shipped products.
 
 ## [Unreleased]
 
+### Added
+- **byte-integrity production-hardening (the flagship control).** The verdict now emits a **full
+  per-module manifest** (every verified module + method, alongside modified/skipped/errored); the gate
+  **binds coverage** to the SBOM's declared hashable-module count, so a cherry-picked or stale verdict is
+  denied; and any module that cannot be byte-verified must be a **reviewed exemption** in
+  `data.byte_integrity_exempt` (with a documented reason) or the gate **denies and names it**. New negative
+  fixtures for the undercoverage and unexpected-un-verifiable paths, plus an exemption-allow test; the
+  un-rebase unit test now loudly flags a skipped crux group instead of passing silently.
+
 ### Fixed
 - **byte-integrity: rebased modules with no relocation table.** `canon_unrebase` now correctly
   canonicalizes an XIP/PEI module that was rebased but has no `.reloc` table (e.g.

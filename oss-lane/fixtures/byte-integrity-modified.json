@@ -60,7 +60,8 @@
     "checked": 122,
     "verified": 121,
     "modified_count": 1,
-    "skipped_count": 0
+    "skipped_count": 0,
+    "unverifiable": []
   },
   "binary_hardening": {
     "ran": true,

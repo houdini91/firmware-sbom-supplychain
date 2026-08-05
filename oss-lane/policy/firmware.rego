@@ -75,8 +75,17 @@ _byte_integrity_ok if {
 	input.byte_integrity.checked > 0
 	input.byte_integrity.verified > 0 # non-vacuous: something was actually byte-verified
 	input.byte_integrity.checked == input.sbom.integrity.hashed # coverage: the verdict covers EVERY declared hashable module — not a cherry-picked / stale subset (parity with reconcile's matched==declared)
-	input.byte_integrity.verified == input.byte_integrity.checked # EVERY checked module verified — a skip is not a pass
-	input.byte_integrity.modified_count == 0
+	input.byte_integrity.modified_count == 0 # a MODIFIED module always fails — there is NO exemption for tampering
+	count(_byte_integrity_unexpected) == 0 # every un-verifiable (skipped/errored) module is a REVIEWED exemption (data.byte_integrity_exempt), else DENY and name it
+}
+
+# Modules that could not be byte-verified (skipped or errored) and are NOT on the reviewed
+# exemption list. A genuinely-unverifiable module (e.g. a TE-only or compressed section) is
+# accepted ONLY when it is listed in data.byte_integrity_exempt with a documented reason;
+# anything else fails the gate and is named, so operators always know what did not pass.
+_byte_integrity_unexpected contains m if {
+	some m in object.get(input.byte_integrity, "unverifiable", [])
+	not data.byte_integrity_exempt[m]
 }
 
 # Distinct, honest failure messages. A SKIP (a module that could not be byte-checked —
@@ -84,10 +93,10 @@ _byte_integrity_ok if {
 # an un-verified module, not a clean one.
 default _byte_integrity_msg := "byte-integrity not run (no image + edk2 supplied to the producer)"
 _byte_integrity_msg := sprintf("byte-integrity: %d module(s) MODIFIED — shipped bytes differ from the SBOM's declared hash (possible same-GUID swap)", [input.byte_integrity.modified_count]) if input.byte_integrity.modified_count > 0
-_byte_integrity_msg := sprintf("byte-integrity: %d module(s) UN-VERIFIED (skipped) — not byte-checked; a skip is not a pass (verified %d of %d)", [input.byte_integrity.skipped_count, input.byte_integrity.verified, input.byte_integrity.checked]) if {
+_byte_integrity_msg := sprintf("byte-integrity: %d module(s) could NOT be byte-verified and are not a reviewed exemption: %v — investigate, or add to data.byte_integrity_exempt with a documented reason", [count(_byte_integrity_unexpected), sort([m | some m in _byte_integrity_unexpected])]) if {
 	input.byte_integrity.ran
 	input.byte_integrity.modified_count == 0
-	input.byte_integrity.verified != input.byte_integrity.checked
+	count(_byte_integrity_unexpected) > 0
 }
 _byte_integrity_msg := sprintf("byte-integrity: verdict covers only %d of %d declared hashable modules — an under-scoped or stale verdict is not full coverage (cherry-picking guard)", [input.byte_integrity.checked, input.sbom.integrity.hashed]) if {
 	input.byte_integrity.ran

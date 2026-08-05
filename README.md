@@ -35,7 +35,7 @@ inventory check, but not a byte check.
 
 ```bash
 make deps      # Python deps (PyYAML); see requirements.txt for the CLI tools (opa, jq, cosign, grype)
-make test      # gate honesty tests — ALLOW a clean release, DENY each failure mode (20 negative fixtures + clean + triaged-allow, exercising all 19 reports)
+make test      # gate honesty tests — ALLOW a clean release, DENY each failure mode (21 negative fixtures + clean + triaged-allow, exercising all 19 reports)
 make coverage  # per-framework, per-control compliance coverage from a fresh signed VSA
 make demo      # the full OSS lane end to end (needs cosign + grype)
 ```

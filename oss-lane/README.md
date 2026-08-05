@@ -23,7 +23,7 @@ evidence (../inputs/) ──▶ assemble-gate-input.sh ──▶ gate-input.json
 | [`assemble_gate_input.py`](assemble_gate_input.py) | derives the gate input from **verified** evidence (DSSE decode, cert-SAN identity, digests, CVE/VEX, firmware anchor). `assemble-gate-input.sh` is a thin shim over it. **Every fact comes from evidence; the policy only decides.** |
 | [`gate.sh`](gate.sh) | runs `opa eval`, prints the per-report result, and emits the signed VSA (with the firmware-image subject). |
 | [`verify-initiative.py`](verify-initiative.py) + [`initiatives/frameworks.yaml`](initiatives/frameworks.yaml) | map the reports to framework controls → per-framework `PASS / FAIL / MISSING_EVIDENCE`. |
-| [`fixtures/`](fixtures) | 22 gate-input **test vectors**: `clean.json` (ALLOW), `accepted-cve.json` (triaged ALLOW), and 20 negative fixtures each isolating a report's failure mode. Driven by [`../tests/run.sh`](../tests/run.sh). |
+| [`fixtures/`](fixtures) | 23 gate-input **test vectors**: `clean.json` (ALLOW), `accepted-cve.json` (triaged ALLOW), and 21 negative fixtures each isolating a report's failure mode. Driven by [`../tests/run.sh`](../tests/run.sh). |
 | [`compliance-map.md`](compliance-map.md) | the enforced-subset view + the two-lane story. |
 | [`run.sh`](run.sh) | the full local lane end-to-end (keygen → attest → verify → CVE → assemble → gate). |
 
