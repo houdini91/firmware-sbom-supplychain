@@ -5,6 +5,618 @@
   "byte_verified": 122,
   "verified_direct": 111,
   "verified_unrebase": 11,
+  "verified": [
+    {
+      "name": "AcpiTableDxe",
+      "guid": "9622e42c8e384a089e8f54f784652f6b",
+      "method": "direct"
+    },
+    {
+      "name": "AmdSevDxe",
+      "guid": "2ec9da37ee354de986c56d9a81dc38a7",
+      "method": "direct"
+    },
+    {
+      "name": "ArpDxe",
+      "guid": "529d3f93e8e94e73b1e1bdf6a9d50113",
+      "method": "direct"
+    },
+    {
+      "name": "AtaAtapiPassThruDxe",
+      "guid": "5e523cb4d397498687bda6dd8b22f455",
+      "method": "direct"
+    },
+    {
+      "name": "AtaBusDxe",
+      "guid": "19df145ab1d4453f850738816676d7f6",
+      "method": "direct"
+    },
+    {
+      "name": "BdsDxe",
+      "guid": "6d33944aec754855a54d809c75241f6c",
+      "method": "direct"
+    },
+    {
+      "name": "BootGraphicsResourceTableDxe",
+      "guid": "b8e62775bb0a43f0a8435be8b14f8ccd",
+      "method": "direct"
+    },
+    {
+      "name": "BootManagerMenuApp",
+      "guid": "eec25bdc67f24d95b1d5f81b2039d11d",
+      "method": "direct"
+    },
+    {
+      "name": "BootScriptExecutorDxe",
+      "guid": "fa20568b548b4b2b81ef1ba08d4a3cec",
+      "method": "direct"
+    },
+    {
+      "name": "CapsuleRuntimeDxe",
+      "guid": "42857f0a13f24b218a2353d3f714b840",
+      "method": "direct"
+    },
+    {
+      "name": "ConPlatformDxe",
+      "guid": "51ccf3994fdf4e55a45be123f84d456a",
+      "method": "direct"
+    },
+    {
+      "name": "ConSplitterDxe",
+      "guid": "408edceccf6d477ca5a8b4844e3de281",
+      "method": "direct"
+    },
+    {
+      "name": "CpuDxe",
+      "guid": "1a1e48869517440e9fde3be44cee2136",
+      "method": "direct"
+    },
+    {
+      "name": "CpuDxe",
+      "guid": "6490f1c5ebcc466588920075b9bb49b7",
+      "method": "direct"
+    },
+    {
+      "name": "CpuIo2Dxe",
+      "guid": "a19b1fe7c1bc49f8875f54a5d542443f",
+      "method": "direct"
+    },
+    {
+      "name": "CpuMpPei",
+      "guid": "280251c41d0940359062839acb5f18c1",
+      "method": "un-rebase"
+    },
+    {
+      "name": "CpuMpPei",
+      "guid": "edadeb9dddba48bd9d22c1c169c8c5c6",
+      "method": "un-rebase"
+    },
+    {
+      "name": "CxlDxe",
+      "guid": "29e54f5e365a4235ba62c832d7660852",
+      "method": "direct"
+    },
+    {
+      "name": "DevicePathDxe",
+      "guid": "9b680fcead6b4f3ab60bf59899003443",
+      "method": "direct"
+    },
+    {
+      "name": "Dhcp4Dxe",
+      "guid": "947347180bbc47fb96a5ee7a5ae6a2ad",
+      "method": "direct"
+    },
+    {
+      "name": "DiskIoDxe",
+      "guid": "6b38f7b4ad9840e99093aca2b5a253c4",
+      "method": "direct"
+    },
+    {
+      "name": "DisplayEngine",
+      "guid": "e660ea85058e4b55a54bf02f83a24707",
+      "method": "direct"
+    },
+    {
+      "name": "DpcDxe",
+      "guid": "a210f973229d4f4daa379895e6c9eaba",
+      "method": "direct"
+    },
+    {
+      "name": "DriverHealthManagerDxe",
+      "guid": "ebf8ed7c0dd1478784f1f48d537dcacf",
+      "method": "direct"
+    },
+    {
+      "name": "DxeCore",
+      "guid": "d6a2cb7f6a184e2fb43b9920a733700a",
+      "method": "direct"
+    },
+    {
+      "name": "DxeIpl",
+      "guid": "86d70125baa34296a62f602bebbb9081",
+      "method": "un-rebase"
+    },
+    {
+      "name": "EbcDxe",
+      "guid": "13ac6dd073d011d4b06b00aa00bd6de7",
+      "method": "direct"
+    },
+    {
+      "name": "EhciDxe",
+      "guid": "bdfe430e8f2a4db099916f856594777e",
+      "method": "direct"
+    },
+    {
+      "name": "EmmcDxe",
+      "guid": "2145f72fe6f14440a82859dc9aab5f89",
+      "method": "direct"
+    },
+    {
+      "name": "EmuVariableFvbRuntimeDxe",
+      "guid": "22dc2b60fe4042acb01f3ab1fad9aad8",
+      "method": "direct"
+    },
+    {
+      "name": "EnglishDxe",
+      "guid": "cd3bafb650fb4fe88e4eab74d2c1a600",
+      "method": "direct"
+    },
+    {
+      "name": "Fat",
+      "guid": "961578feb6b744c3af356bc705cd2b1f",
+      "method": "direct"
+    },
+    {
+      "name": "FaultTolerantWriteDxe",
+      "guid": "fe5cea764f7249e8986f2cd899dffe5d",
+      "method": "direct"
+    },
+    {
+      "name": "FvbServicesRuntimeDxe",
+      "guid": "733cbac2b23f4b92bc8efb01ce5907b7",
+      "method": "direct"
+    },
+    {
+      "name": "GraphicsConsoleDxe",
+      "guid": "cccb0c284b2411d59a5a0090273fc14d",
+      "method": "direct"
+    },
+    {
+      "name": "Hash2DxeCrypto",
+      "guid": "63e3bdcf2ac74ac09b9203a7541422ff",
+      "method": "direct"
+    },
+    {
+      "name": "HiiDatabase",
+      "guid": "348c4d62bfbd48829ecec80bb1c4783b",
+      "method": "direct"
+    },
+    {
+      "name": "IScsiDxe",
+      "guid": "86cddf93487245978af9a35ae4d3725f",
+      "method": "direct"
+    },
+    {
+      "name": "IncompatiblePciDeviceSupportDxe",
+      "guid": "f6697ac4a7764ee1b6431feff2b615bb",
+      "method": "direct"
+    },
+    {
+      "name": "IoMmuDxe",
+      "guid": "8657015bea43440d949aaf3be365c0fc",
+      "method": "direct"
+    },
+    {
+      "name": "Ip4Dxe",
+      "guid": "9fb1a1f33b714324b39a745cbb015fff",
+      "method": "direct"
+    },
+    {
+      "name": "LinuxInitrdDynamicShellCommand",
+      "guid": "2f30da26f51b4b6f85c431873c281bca",
+      "method": "direct"
+    },
+    {
+      "name": "LocalApicTimerDxe",
+      "guid": "52fe8196f9de4d07b22f51f77a0e7c41",
+      "method": "direct"
+    },
+    {
+      "name": "LogoDxe",
+      "guid": "f74d20ee37e748fc97f79b1047749c69",
+      "method": "direct"
+    },
+    {
+      "name": "Metronome",
+      "guid": "c8339973a5634561b858d8476f9defc4",
+      "method": "direct"
+    },
+    {
+      "name": "MnpDxe",
+      "guid": "025bbfc7e6a94b8b82ad6815a1aeaf4a",
+      "method": "direct"
+    },
+    {
+      "name": "MonotonicCounterRuntimeDxe",
+      "guid": "ad608272d07f4964801e7bd3b7888652",
+      "method": "direct"
+    },
+    {
+      "name": "Mtftp4Dxe",
+      "guid": "dc3641b82fa84ed3bc1ff9962a03454b",
+      "method": "direct"
+    },
+    {
+      "name": "NvmExpressDxe",
+      "guid": "5be3bdf453cf46a3a6a973c34a6e5ee3",
+      "method": "direct"
+    },
+    {
+      "name": "PartitionDxe",
+      "guid": "1fa1f39efeff4aaebd7b38a070a3b609",
+      "method": "direct"
+    },
+    {
+      "name": "PcRtc",
+      "guid": "378d7b658da94773b6e4a47826a833e1",
+      "method": "direct"
+    },
+    {
+      "name": "PcdDxe",
+      "guid": "80cf725787ab47f9a3fed50b76d89541",
+      "method": "direct"
+    },
+    {
+      "name": "PcdPeim",
+      "guid": "9b3ada4fae564c248deaf03b7558ae50",
+      "method": "un-rebase"
+    },
+    {
+      "name": "PciBusDxe",
+      "guid": "93b800049fb311d49a3a0090273fc14d",
+      "method": "direct"
+    },
+    {
+      "name": "PciHostBridgeDxe",
+      "guid": "128fb7705e7941769e519bb268a17dd1",
+      "method": "direct"
+    },
+    {
+      "name": "PciHotPlugInitDxe",
+      "guid": "11a6edf6a9be426da6ccb22fe51d9224",
+      "method": "direct"
+    },
+    {
+      "name": "PciSioSerialDxe",
+      "guid": "e2775b47d4534ee3ada7391a1b05ac17",
+      "method": "direct"
+    },
+    {
+      "name": "PeiCore",
+      "guid": "52c05b140b98496cbc3b04b50211d680",
+      "method": "un-rebase"
+    },
+    {
+      "name": "PlatformDxe",
+      "guid": "d9dcc5df4007435e90988970935504b2",
+      "method": "direct"
+    },
+    {
+      "name": "PlatformPei",
+      "guid": "222c386d5abc4fb4b124fbb82488acf4",
+      "method": "un-rebase"
+    },
+    {
+      "name": "Ps2KeyboardDxe",
+      "guid": "c4d1f932821f4744bf066d30f7730f8d",
+      "method": "direct"
+    },
+    {
+      "name": "QemuFwCfgAcpiPlatform",
+      "guid": "17985e6fe7784d94aefac5dd2b77e186",
+      "method": "direct"
+    },
+    {
+      "name": "QemuKernelLoaderFsDxe",
+      "guid": "806040cadad94978a3b42d2ab0c8a48f",
+      "method": "direct"
+    },
+    {
+      "name": "QemuRamfbDxe",
+      "guid": "dce1b0947dc645d09fddd7fc3cc3e4ef",
+      "method": "direct"
+    },
+    {
+      "name": "QemuVideoDxe",
+      "guid": "e3752948b9a1477090c4df41c38986be",
+      "method": "direct"
+    },
+    {
+      "name": "RamDiskDxe",
+      "guid": "28a03ff412b34305a417bb1a4f94081e",
+      "method": "direct"
+    },
+    {
+      "name": "ReportStatusCodeRouterPei",
+      "guid": "a3610442e69f4df382ca2360c4031a23",
+      "method": "un-rebase"
+    },
+    {
+      "name": "ReportStatusCodeRouterRuntimeDxe",
+      "guid": "d93ce3d8a7eb47308c8ecc466a9ecc3c",
+      "method": "direct"
+    },
+    {
+      "name": "ResetSystemRuntimeDxe",
+      "guid": "4b28e4c7ff364e1093cfa82159e777c5",
+      "method": "direct"
+    },
+    {
+      "name": "RngDxe",
+      "guid": "b981a8356ee84f4cae0b210aa0bfbf01",
+      "method": "direct"
+    },
+    {
+      "name": "RuntimeDxe",
+      "guid": "b601f8c443b7478495b1f4226cb40cee",
+      "method": "direct"
+    },
+    {
+      "name": "S3Resume2Pei",
+      "guid": "89e549b07cfe449d9ba310d8b2312d71",
+      "method": "un-rebase"
+    },
+    {
+      "name": "S3SaveStateDxe",
+      "guid": "bdce85bbfbaa4f4e9264501a2c249581",
+      "method": "direct"
+    },
+    {
+      "name": "SataController",
+      "guid": "820c59bb274c43b283eadac673035a59",
+      "method": "direct"
+    },
+    {
+      "name": "ScsiBus",
+      "guid": "0167ccc4d0f74f21a3ef9e64b7cdce8b",
+      "method": "direct"
+    },
+    {
+      "name": "ScsiDisk",
+      "guid": "0a66e32237404ccead62bd172cecca35",
+      "method": "direct"
+    },
+    {
+      "name": "SdDxe",
+      "guid": "430ac2f7eec6409394f79f825a7c1c40",
+      "method": "direct"
+    },
+    {
+      "name": "SdMmcPciHcDxe",
+      "guid": "8e3259793fe14927aae28f5c4bd2af0d",
+      "method": "direct"
+    },
+    {
+      "name": "SecMain",
+      "guid": "df1ccef6f3014a639661fc6030dcc880",
+      "method": "un-rebase"
+    },
+    {
+      "name": "SecurityStubDxe",
+      "guid": "f80697e97fd64665864688e33ef71dfc",
+      "method": "direct"
+    },
+    {
+      "name": "SetupBrowser",
+      "guid": "ebf342feb1d34ef8957c8048606ff671",
+      "method": "direct"
+    },
+    {
+      "name": "Shell",
+      "guid": "7c04a5839e3e4f1cad65e05268d0b4d1",
+      "method": "direct"
+    },
+    {
+      "name": "SioBusDxe",
+      "guid": "864e1ca885eb4d639dcc6e0fc90ffd55",
+      "method": "direct"
+    },
+    {
+      "name": "SmbiosDxe",
+      "guid": "f9d88642073749bc81b56889cd57d9ea",
+      "method": "direct"
+    },
+    {
+      "name": "SmbiosMeasurementDxe",
+      "guid": "d27fed59abb44fedbead2a878c7e4a7e",
+      "method": "direct"
+    },
+    {
+      "name": "SmbiosPlatformDxe",
+      "guid": "4110465d5ff34f4bb58024ed0d06747a",
+      "method": "direct"
+    },
+    {
+      "name": "SnpDxe",
+      "guid": "a2f436eaa1274ef8957c8048606ff670",
+      "method": "direct"
+    },
+    {
+      "name": "StatusCodeHandlerPei",
+      "guid": "9d225237fa01464ca949baabc02d31d0",
+      "method": "un-rebase"
+    },
+    {
+      "name": "StatusCodeHandlerRuntimeDxe",
+      "guid": "6c2004ef4e0e4be4b14c340eb4aa5891",
+      "method": "direct"
+    },
+    {
+      "name": "TcgMor",
+      "guid": "ad416ce3a48345b194c24b4e4d575562",
+      "method": "direct"
+    },
+    {
+      "name": "TcpDxe",
+      "guid": "1a7e44682f554a56903c01265eb7622b",
+      "method": "direct"
+    },
+    {
+      "name": "TdTcg2Dxe",
+      "guid": "f062221ec60744c2b0b4c3886331d351",
+      "method": "direct"
+    },
+    {
+      "name": "TdTcg2Pei",
+      "guid": "fcb3a3d66274411ca548bd0e717d533a",
+      "method": "un-rebase"
+    },
+    {
+      "name": "TdxDxe",
+      "guid": "e750224e7bce40afb5bb47e3611eb5c2",
+      "method": "direct"
+    },
+    {
+      "name": "TerminalDxe",
+      "guid": "9e863906a40f4875977f5b93ff237fc6",
+      "method": "direct"
+    },
+    {
+      "name": "TftpDynamicCommand",
+      "guid": "a487a47851ef48aa87947bee2a0562f1",
+      "method": "direct"
+    },
+    {
+      "name": "UdfDxe",
+      "guid": "905f13b08f914b0abd76e1e78f9422e4",
+      "method": "direct"
+    },
+    {
+      "name": "Udp4Dxe",
+      "guid": "6d6963ab906d4a65a7cabd40e5d6af2b",
+      "method": "direct"
+    },
+    {
+      "name": "UefiPxeBcDxe",
+      "guid": "b95e9fda26de48d288071f9107ac5e3a",
+      "method": "direct"
+    },
+    {
+      "name": "UhciDxe",
+      "guid": "2fb92efa2ee04bae9eb67464125e1ef7",
+      "method": "direct"
+    },
+    {
+      "name": "UiApp",
+      "guid": "462caa2176144503836e8ab6f4662331",
+      "method": "direct"
+    },
+    {
+      "name": "UsbBusDxe",
+      "guid": "240612b7a06311d49a3a0090273fc14d",
+      "method": "direct"
+    },
+    {
+      "name": "UsbKbDxe",
+      "guid": "2d2e62cf9ecf43b7821994e7fc713dfe",
+      "method": "direct"
+    },
+    {
+      "name": "UsbMassStorageDxe",
+      "guid": "9fb4b4a742c04bcd85409bcc6711f83e",
+      "method": "direct"
+    },
+    {
+      "name": "VariablePolicyDynamicCommand",
+      "guid": "17d0ef2a5933400789505749169d3dc5",
+      "method": "direct"
+    },
+    {
+      "name": "VariableRuntimeDxe",
+      "guid": "cbd2e4d570684ff5b4629822b4ad8d60",
+      "method": "direct"
+    },
+    {
+      "name": "VirtHstiDxe",
+      "guid": "60740cf3d428450080e604a5798241ed",
+      "method": "direct"
+    },
+    {
+      "name": "Virtio10",
+      "guid": "0170f60c1d404651956df0bd9879d527",
+      "method": "direct"
+    },
+    {
+      "name": "VirtioBlkDxe",
+      "guid": "11d92dfb3ca94f93ba2e4780ed3e03b5",
+      "method": "direct"
+    },
+    {
+      "name": "VirtioFsDxe",
+      "guid": "7bd9ddf78b83488eaec924c78610289c",
+      "method": "direct"
+    },
+    {
+      "name": "VirtioGpuDxe",
+      "guid": "d6099b94cd974cc587147f6312701a8a",
+      "method": "direct"
+    },
+    {
+      "name": "VirtioInputDxe",
+      "guid": "f141b1e59c7c44ccafaae87d7689b113",
+      "method": "direct"
+    },
+    {
+      "name": "VirtioNetDxe",
+      "guid": "a92cdb4b82f14e0ba5168a655d371524",
+      "method": "direct"
+    },
+    {
+      "name": "VirtioPciDeviceDxe",
+      "guid": "83dd3b397caf4faca542e050b767e3a7",
+      "method": "direct"
+    },
+    {
+      "name": "VirtioRngDxe",
+      "guid": "58e26f0dcbac4bbab70f18221415665a",
+      "method": "direct"
+    },
+    {
+      "name": "VirtioScsiDxe",
+      "guid": "fab5d4f483c04aaf8480442d11df6cea",
+      "method": "direct"
+    },
+    {
+      "name": "VirtioSerialDxe",
+      "guid": "23cace14eba449f69681c697ff0b649e",
+      "method": "direct"
+    },
+    {
+      "name": "VlanConfigDxe",
+      "guid": "e4f61863fe2c4b56a8f408519bc439df",
+      "method": "direct"
+    },
+    {
+      "name": "WatchdogTimer",
+      "guid": "f099d67f71ae4c36b2a3dceb0eb2b7d8",
+      "method": "direct"
+    },
+    {
+      "name": "WsmtDxe",
+      "guid": "f6394dd2bafd4d8e999e7590df8fc546",
+      "method": "direct"
+    },
+    {
+      "name": "XhciDxe",
+      "guid": "b7f50e91a759412cade4dcd03e7f7c28",
+      "method": "direct"
+    },
+    {
+      "name": "httpDynamicCommand",
+      "guid": "19618bce55ae09c637e94ce04084c7a1",
+      "method": "direct"
+    }
+  ],
   "modified": [],
   "skipped": [],
   "errored": [],

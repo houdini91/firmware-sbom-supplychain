@@ -186,6 +186,9 @@ def main():
         "byte_verified": len(verified),
         "verified_direct": sum(1 for v in verified if v.get("method") == "direct"),
         "verified_unrebase": sum(1 for v in verified if v.get("method") == "un-rebase"),
+        # FULL per-module manifest — every checked module's status is enumerated, not
+        # just counted, so an auditor can see exactly what was verified / not.
+        "verified": [{"name": v["name"], "guid": v["guid"], "method": v["method"]} for v in verified],
         "modified": modified,
         "skipped": skipped,
         "errored": errored,
