@@ -1,0 +1,83 @@
+name: release
+
+# Cut a keyless-signed GitHub Release. Tag the repo `vX.Y.Z` (or run manually) and this
+# builds a reproducible source tarball, keyless-signs it with cosign (Sigstore/Fulcio —
+# no long-lived key), and publishes the tarball + its signature, certificate, and Sigstore
+# bundle as release assets. That makes the release independently verifiable:
+#
+#   cosign verify-blob \
+#     --certificate firmware-sbom-supplychain-<tag>.tar.gz.crt \
+#     --signature   firmware-sbom-supplychain-<tag>.tar.gz.sig \
+#     --certificate-identity-regexp 'https://github.com/houdini91/firmware-sbom-supplychain/.*' \
+#     --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+#     firmware-sbom-supplychain-<tag>.tar.gz
+#
+# Also satisfies OpenSSF Scorecard's Signed-Releases check. All actions pinned by SHA.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to (re)release, e.g. v0.1.0"
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    name: build + keyless-sign + publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # create the release + upload assets
+      id-token: write   # OIDC for cosign keyless signing
+    env:
+      TAG: ${{ github.event.inputs.tag || github.ref_name }}
+    steps:
+      - name: Checkout the tag
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref_name }}
+          persist-credentials: false
+
+      - name: Build a reproducible source tarball
+        run: |
+          set -euo pipefail
+          ART="firmware-sbom-supplychain-${TAG}.tar.gz"
+          # git archive is deterministic (no timestamps/uid) for a given tree.
+          git archive --format=tar.gz --prefix="firmware-sbom-supplychain-${TAG}/" -o "$ART" "$TAG"
+          sha256sum "$ART" | tee "$ART.sha256"
+          echo "ART=$ART" >> "$GITHUB_ENV"
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac # v3
+
+      - name: Keyless-sign the tarball
+        run: |
+          set -euo pipefail
+          cosign sign-blob --yes \
+            --output-signature   "$ART.sig" \
+            --output-certificate "$ART.crt" \
+            --bundle             "$ART.sigstore.json" \
+            "$ART"
+          # Self-verify before publishing so a broken signature never ships.
+          cosign verify-blob \
+            --certificate "$ART.crt" \
+            --signature   "$ART.sig" \
+            --certificate-identity-regexp "https://github.com/${{ github.repository }}/.*" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            "$ART"
+          echo "✓ $ART keyless-signed + verified"
+
+      - name: Publish the release with signed assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release create "$TAG" \
+            --repo "${{ github.repository }}" \
+            --title "$TAG" \
+            --generate-notes \
+            "$ART" "$ART.sha256" "$ART.sig" "$ART.crt" "$ART.sigstore.json"

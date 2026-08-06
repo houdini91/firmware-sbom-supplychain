@@ -1,0 +1,30 @@
+version: 2
+
+# Dependency-update automation. Satisfies OpenSSF Scorecard's Dependency-Update-Tool
+# check and — more importantly — keeps the SHA-pinned GitHub Actions and the Python
+# tooling current with security patches. Grouped + weekly so it stays low-noise.
+updates:
+  # Keep the pinned-by-SHA GitHub Actions across every workflow up to date. Dependabot
+  # bumps the SHA and refreshes the `# vX.Y.Z` version comment in lock-step.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: "ci(deps)"
+
+  # Python tooling (requirements.txt — PyYAML, pefile).
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    groups:
+      python:
+        patterns: ["*"]
+    commit-message:
+      prefix: "chore(deps)"
