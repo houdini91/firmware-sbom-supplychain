@@ -12,7 +12,15 @@ name: release
 #     --certificate-oidc-issuer https://token.actions.githubusercontent.com \
 #     firmware-sbom-supplychain-<tag>.tar.gz
 #
-# Also satisfies OpenSSF Scorecard's Signed-Releases check. All actions pinned by SHA.
+# It also generates SLSA build provenance (actions/attest-build-provenance) for the
+# tarball and ships the in-toto bundle (<artifact>.intoto.jsonl) as a release asset, so
+# consumers can verify what built the artifact and where:
+#
+#   gh attestation verify firmware-sbom-supplychain-<tag>.tar.gz \
+#     --repo houdini91/firmware-sbom-supplychain
+#
+# That provenance is what takes OpenSSF Scorecard's Signed-Releases check from 8 → 10
+# (signed + provenance). All actions pinned by commit SHA.
 
 on:
   push:
@@ -31,8 +39,9 @@ jobs:
     name: build + keyless-sign + publish
     runs-on: ubuntu-latest
     permissions:
-      contents: write   # create the release + upload assets
-      id-token: write   # OIDC for cosign keyless signing
+      contents: write      # create the release + upload assets
+      id-token: write      # OIDC for cosign keyless signing + provenance
+      attestations: write  # store the SLSA build provenance attestation
     env:
       TAG: ${{ github.event.inputs.tag || github.ref_name }}
     steps:
@@ -71,6 +80,23 @@ jobs:
             "$ART"
           echo "✓ $ART keyless-signed + verified"
 
+      - name: Generate SLSA build provenance
+        id: provenance
+        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4.1.1
+        with:
+          subject-path: ${{ env.ART }}
+
+      - name: Stage provenance as a release asset
+        run: |
+          set -euo pipefail
+          # attest-build-provenance writes the signed in-toto bundle to a temp path
+          # (steps.provenance.outputs.bundle-path). Copy it next to the tarball with a
+          # stable *.intoto.jsonl name so it can ship as a release asset — Scorecard's
+          # Signed-Releases check inspects release assets and credits SLSA provenance,
+          # taking the score from 8 → 10.
+          cp "${{ steps.provenance.outputs.bundle-path }}" "$ART.intoto.jsonl"
+          echo "✓ staged $ART.intoto.jsonl"
+
       - name: Publish the release with signed assets
         env:
           GH_TOKEN: ${{ github.token }}
@@ -80,4 +106,4 @@ jobs:
             --repo "${{ github.repository }}" \
             --title "$TAG" \
             --generate-notes \
-            "$ART" "$ART.sha256" "$ART.sig" "$ART.crt" "$ART.sigstore.json"
+            "$ART" "$ART.sha256" "$ART.sig" "$ART.crt" "$ART.sigstore.json" "$ART.intoto.jsonl"
