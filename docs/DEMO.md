@@ -1,7 +1,8 @@
 # See it work — real output
 
 Actual output from this repo (OVMF / edk2), not mock-ups. Reproduce the self-contained ones with
-`make test` / `make coverage`; the firmware-derived ones need an edk2 tree + a built OVMF image.
+`make test` / `make coverage` / `make attack-demo`; the firmware-derived ones need an edk2 tree + a
+built OVMF image. Section 5 (the same-GUID trojan) is self-contained — it runs anywhere.
 
 ---
 
@@ -109,3 +110,86 @@ The killer feature: it doesn't guess or fail-confusingly. No attestation ⇒ eve
 ──────────────────────────────────────────────────────────────────
 VERDICT: ⛔ REJECT — no evidence — cannot attest this firmware (frameworks MISSING_EVIDENCE).
 ```
+
+---
+
+## 5. Attack demo: same-GUID trojan caught
+
+The flagship claim, proven end-to-end on a real module — not a hand-authored fixture.
+A same-GUID swap (a malicious module shipped under an existing module's `FILE_GUID`)
+sails past membership and signatures: the GUID is still "present," the SBOM file is
+unchanged and still validly signed. **Byte-integrity is the check that catches it** —
+it re-hashes the shipped PE32 bytes and compares them to the SBOM's declared hash.
+
+`make attack-demo` takes a committed real edk2 PE32 (`tests/fixtures/pe/pcdpeim.declared.efi`),
+registers it in a 1-module SBOM, wraps it in a real FFS, then ships a copy with **one
+byte flipped in the PE body under the SAME GUID/name**. It runs the **real producer**
+(`producers/reconcile/byte-integrity.py`) and the **real gate** (`oss-lane/gate.sh`)
+over both the clean and the trojaned image. Self-contained (committed fixtures + opa +
+python3) — runs locally and in CI (`tests/test_attack_demo.py`). It is genuine
+byte-tampering run through the genuine tools; the only substitution is the extraction
+*source* — the producer reads the pre-carved FFS via `--ffs-dir` instead of an
+`--image` + FMMT carve (the FFS is exactly what `FMMT -e` emits, so the downstream
+PE32-carve + SHA-256 verdict is byte-for-byte identical).
+
+```
+== attack demo: same-GUID trojan caught ==
+   real producer: producers/reconcile/byte-integrity.py    real gate: oss-lane/gate.sh
+
+▶ 0. Stage a real module + a same-GUID byte-tampered copy (from committed fixtures)
+staged same-GUID trojan demo in /tmp/attack-demo.XXXXXX
+  module          : DemoNetworkDxe  (GUID deadbeef-1111-2222-3333-444455556666)
+  known-good bytes : 3b830c78cb7480d6…  (19840 bytes, from tests/fixtures/pe/pcdpeim.declared.efi)
+  TAMPER           : flipped 1 byte at PE offset 0x1000: 0xE0 -> 0xE1  (SAME GUID/name)
+  tampered bytes   : e5fc5b4bad653e05…  (declared hash unchanged in the SBOM — that's the point)
+
+▶ 1. Clean image — the real producer byte-verifies the module
+$ python3 producers/reconcile/byte-integrity.py --sbom demo-sbom.cdx.json --ffs-dir clean -o verdict.json
+byte-integrity: verified=1 modified=0 skipped=0 errored=0 -> .../clean-verdict.json
+   producer exit=0
+{"checked":1,"byte_verified":1,"modified":[],"clean":true}
+
+▶ 2. Trojaned image — SAME GUID, 1 byte flipped — the real producer flags it MODIFIED
+$ python3 producers/reconcile/byte-integrity.py --sbom demo-sbom.cdx.json --ffs-dir tampered -o verdict.json
+byte-integrity: verified=0 modified=1 skipped=0 errored=0 -> .../tampered-verdict.json
+   producer exit=1
+  ⛔ MODIFIED DemoNetworkDxe: declared 3b830c78cb7480d6 != observed e5fc5b4bad653e05
+{"checked":1,"byte_verified":0,"modified":[{"name":"DemoNetworkDxe","guid":"deadbeef111122223333444455556666","declared":"3b830c78cb7480d6","observed":"e5fc5b4bad653e05"}],"clean":false}
+
+▶ 3. The deploy gate ALLOWs the clean image
+  verifier reports (clean-gate-input.json):
+   ✅ reconcile-membership: every declared module observed in the image; no undeclared artifact  [sp-800-53:CM-8(3), sp-800-53:SI-7, sp-800-53:SR-4(3)]
+   ✅ component-byte-integrity: shipped module bytes match the SBOM's declared hash (byte-integrity — detects a same-GUID swap)  [sp-800-53:SI-7(1), sp-800-53:SR-4(3)]
+   … (17 other reports, all ✅) …
+✅ ALLOW — clean-gate-input.json  (VSA: PASSED, verifiedLevels=[SLSA_BUILD_LEVEL_2])
+
+▶ 4. The deploy gate DENYs the trojaned image (membership passes, bytes fail)
+  verifier reports (tampered-gate-input.json):
+   ✅ reconcile-membership: every declared module observed in the image; no undeclared artifact  [sp-800-53:CM-8(3), sp-800-53:SI-7, sp-800-53:SR-4(3)]
+   ⛔ component-byte-integrity: byte-integrity: 1 module(s) MODIFIED — shipped bytes differ from the SBOM's declared hash (possible same-GUID swap)  [sp-800-53:SI-7(1), sp-800-53:SR-4(3)]
+   … (17 other reports, all ✅) …
+⛔ DENY — tampered-gate-input.json  (VSA: FAILED)
+   • byte-integrity: 1 module(s) MODIFIED — shipped bytes differ from the SBOM's declared hash (possible same-GUID swap)
+────────────────────────────────────────────────────────────────────
+RESULT: same-GUID byte swap — reconcile-membership PASSED, component-byte-integrity DENIED. ✔ caught.
+```
+
+The `… (17 other reports, all ✅) …` lines are the only elision — `make attack-demo`
+prints all 19 verifier reports in full both times. **The crux is the contrast:**
+`reconcile-membership` PASSES the swap in both runs (the GUID is present); only
+`component-byte-integrity` flips from ✅ to ⛔, and that flip is what turns the gate's
+verdict from ALLOW to DENY.
+
+**Real vs. user-supplied.** The run above is fully real — a real edk2 PE32, real
+byte-tampering, the real producer, the real OPA gate — over a **minimal 1-module demo
+image built from committed fixtures**, so it runs anywhere with no edk2 tree. To also
+exercise the producer's `--image` + **FMMT carve** path over a full multi-module image,
+supply your own OVMF build:
+
+```
+make attack-demo FW_IMAGE=/path/to/OVMF.fd EDK2=/path/to/edk2
+```
+
+That adds a step 5 that runs `byte-integrity.py --image … --edk2 …` against
+`inputs/sbom.cdx.json` (the real 122-module reference SBOM). A clean build byte-verifies
+every module; tamper a module in your `OVMF.fd` to see `MODIFIED` on the full image too.

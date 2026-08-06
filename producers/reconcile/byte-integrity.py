@@ -21,8 +21,12 @@ image without un-rebasing.)
   byte-integrity.py --sbom sbom.cdx.json --image OVMF.fd --edk2 <edk2 tree> \
                     [--modules AmdSevDxe,IoMmuDxe | --guids <g1,g2>] [-o verdict.json]
 
-Extraction uses edk2 FMMT (the same tool the observed-side carve uses). Exit 0 iff
-every checked module is byte-verified (none modified).
+Extraction uses edk2 FMMT (the same tool the observed-side carve uses). As an
+alternative to an --image+--edk2 FMMT carve, --ffs-dir points at a directory of
+already-carved <guid>.ffs blobs (exactly what `FMMT -e` emits) — the downstream
+verification (PE32 carve, hashing, un-rebase, verdict) is byte-for-byte identical,
+so it needs no edk2 tree. Exit 0 iff every checked module is byte-verified (none
+modified).
 """
 import argparse
 import hashlib
@@ -130,19 +134,34 @@ def canon_unrebase(pe_bytes):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--sbom", required=True)
-    ap.add_argument("--image", required=True, help="the firmware image (.fd)")
-    ap.add_argument("--edk2", required=True, help="edk2 tree (for FMMT extraction)")
+    ap.add_argument("--image", help="the firmware image (.fd) — extracted with FMMT (needs --edk2)")
+    ap.add_argument("--edk2", help="edk2 tree (for FMMT extraction)")
+    ap.add_argument("--ffs-dir", dest="ffs_dir",
+                    help="directory of pre-carved <guid>.ffs blobs — an extraction source "
+                         "that needs no image/FMMT (the FFS is exactly what FMMT -e emits). "
+                         "The verification logic (PE32 carve, hashing, un-rebase) is identical.")
     ap.add_argument("--modules", help="comma-separated module names to check (default: all with a GUID+hash)")
     ap.add_argument("--guids", help="comma-separated FILE_GUIDs to check")
     ap.add_argument("-o", "--out")
     a = ap.parse_args()
 
-    for label, p in (("sbom", a.sbom), ("image", a.image)):
-        if not os.path.isfile(p):
-            sys.exit("byte-integrity: --%s not found: %s" % (label, p))
-    fmmt_py = os.path.join(a.edk2, "BaseTools", "Source", "Python", "FMMT", "FMMT.py")
-    if not os.path.isfile(fmmt_py):
-        sys.exit("byte-integrity: FMMT.py not found under --edk2 (%s)" % fmmt_py)
+    if not os.path.isfile(a.sbom):
+        sys.exit("byte-integrity: --sbom not found: %s" % a.sbom)
+    # Two mutually-exclusive extraction sources: an --image+--edk2 (FMMT carve) OR a
+    # directory of already-carved --ffs-dir blobs. Both feed the SAME downstream
+    # verification path (pe32_from_ffs -> hash/un-rebase -> compare to declared).
+    fmmt_py = None
+    if a.ffs_dir:
+        if not os.path.isdir(a.ffs_dir):
+            sys.exit("byte-integrity: --ffs-dir not a directory: %s" % a.ffs_dir)
+    else:
+        if not (a.image and a.edk2):
+            sys.exit("byte-integrity: supply --image + --edk2 (FMMT carve) or --ffs-dir (pre-carved FFS)")
+        if not os.path.isfile(a.image):
+            sys.exit("byte-integrity: --image not found: %s" % a.image)
+        fmmt_py = os.path.join(a.edk2, "BaseTools", "Source", "Python", "FMMT", "FMMT.py")
+        if not os.path.isfile(fmmt_py):
+            sys.exit("byte-integrity: FMMT.py not found under --edk2 (%s)" % fmmt_py)
 
     declared = load_sbom_hashes(a.sbom)
     targets = dict(declared)
@@ -157,10 +176,16 @@ def main():
     with tempfile.TemporaryDirectory() as td:
         for guid, (name, dhash, mtype) in sorted(targets.items(), key=lambda kv: kv[1][0] or ""):
             try:  # one bad module must not abort the whole run — fail closed, keep going
-                dst = os.path.join(td, guid + ".ffs")
-                if not fmmt_extract(fmmt_py, a.edk2, a.image, guid, dst):
-                    skipped.append({"name": name, "guid": guid, "reason": "not extractable from image"})
-                    continue
+                if a.ffs_dir:
+                    dst = os.path.join(a.ffs_dir, guid + ".ffs")
+                    if not (os.path.isfile(dst) and os.path.getsize(dst) > 0):
+                        skipped.append({"name": name, "guid": guid, "reason": "no <guid>.ffs in --ffs-dir"})
+                        continue
+                else:
+                    dst = os.path.join(td, guid + ".ffs")
+                    if not fmmt_extract(fmmt_py, a.edk2, a.image, guid, dst):
+                        skipped.append({"name": name, "guid": guid, "reason": "not extractable from image"})
+                        continue
                 with open(dst, "rb") as f:
                     pe = pe32_from_ffs(f.read())
                 if pe is None:

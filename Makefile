@@ -28,6 +28,7 @@ test: ## Gate honesty tests (opa+jq) + assembler + byte-integrity unit tests + c
 	bash tests/run.sh
 	python3 tests/test_assemble.py
 	python3 tests/test_byte_integrity.py
+	python3 tests/test_attack_demo.py
 	python3 tests/test_reconcile.py
 	python3 tests/test_chipsec.py
 	python3 tests/test_interop.py
@@ -56,6 +57,10 @@ demo: ## Full OSS lane end to end (needs cosign + grype + opa)
 reconcile: ## Carve a real image + reconcile: make reconcile EDK2=<tree> IMG=<image.fd>
 	@test -n "$(EDK2)" -a -n "$(IMG)" || { echo "usage: make reconcile EDK2=<edk2 tree> IMG=<image.fd>"; exit 2; }
 	EDK2=$(EDK2) bash producers/reconcile/carve.sh $(IMG)
+
+.PHONY: attack-demo
+attack-demo: ## "Same-GUID trojan caught": byte-tamper a real module under its GUID; real producer -> MODIFIED -> gate DENY. Add FW_IMAGE=<OVMF.fd> EDK2=<tree> for the full real-image run.
+	OPA=$(or $(OPA),$(ROOT)bin/opa) bash scripts/attack-demo.sh
 
 .PHONY: byte-integrity
 byte-integrity: ## Regenerate byte-integrity: make byte-integrity EDK2=<tree> IMG=<image.fd> (needs pefile+FMMT, ~6min)

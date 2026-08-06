@@ -34,6 +34,7 @@ jobs:
           OPA=/usr/local/bin/opa ./tests/run.sh
           python3 tests/test_assemble.py
           python3 tests/test_byte_integrity.py
+          OPA=/usr/local/bin/opa python3 tests/test_attack_demo.py
           python3 tests/test_reconcile.py
           python3 tests/test_chipsec.py
           python3 tests/test_interop.py
