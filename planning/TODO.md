@@ -99,8 +99,16 @@ Track A core is complete; these are the genuine open items (mostly small or exte
   green. **Fix:** stripped the job to the approved minimal shape (checkout + scorecard-action + upload-sarif, no
   env, no id-token on any other job) and dropped the unused signing steps; **re-pointed the README badge at the
   current `api.scorecard.dev` / `scorecard.dev` domain** (the action publishes to `api.scorecard.dev`; the old
-  `api.securityscorecards.dev` results endpoint 404s). Publishes on the next push to `main` — verify the badge
-  renders after that run. *(NOT a scheduling problem — push runs do publish; ours were being rejected.)*
+  `api.securityscorecards.dev` results endpoint 404s). **CONFIRMED published — score 5.7** (a second bug surfaced
+  after the env-var fix: the action was pinned to the annotated-**tag object** SHA `55891bbd…`, which the webapp's
+  imposter-commit check rejects because it is not a commit; repinned to the v2.4.4 **commit** `2d114668`).
+- [x] **Scorecard score — honest bumps applied 2026-08-06 (5.7 baseline).** The low score is mostly a solo/new-repo
+  artifact (Code-Review 0 + Contributors 0 need a 2nd human; Maintained 0 is repo age <90d — self-heals). Taken,
+  no gaming: **Dependency-Update-Tool 0→10** (`.github/dependabot.yml`, github-actions + pip); **Branch-Protection
+  0→Tier 1** (`gh api` set on `main`: force-push + deletion blocked, `enforce_admins`, **no** required PRs so direct
+  push still works — Tier 2+ needs a PR/review flow, not worth faking solo); **Signed-Releases** ready via
+  `.github/workflows/release.yml` (keyless cosign-signed tarball + .sig/.crt/.sigstore) — becomes a counted 10 once
+  a `v*` tag is cut. Deferred (fiddly, low value): hash-pinning the `pip install` lines (Pinned-Dependencies 7→10).
 - [ ] **B3 · CHIPSEC** — held (above), pending the edk2 RFC.
 - **Off-repo:** the embargoed edk2 vuln-disclosure track (see the `edk2-candidate-findings` / disclosure notes).
 
