@@ -3,8 +3,8 @@
 #
 # verify-initiative.py needs PyYAML; byte-integrity.py needs pefile (XIP un-rebase).
 # The other reconcile/interop scripts are stdlib-only.
-PyYAML>=6.0
-pefile>=2023.2.7   # byte-integrity.py — PE parsing for XIP/PEI un-rebase (R4 phase 3)
+PyYAML>=6.0.3
+pefile>=2024.8.26   # byte-integrity.py — PE parsing for XIP/PEI un-rebase (R4 phase 3)
 
 # External CLI tools the lanes shell out to are NOT pip-installable — install
 # them via your package manager / release binaries:
