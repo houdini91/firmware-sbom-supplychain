@@ -48,7 +48,7 @@ jobs:
       actions: read            # read workflow run metadata (Scorecard best practice)
     steps:
       - name: Checkout (this repo)
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
@@ -65,6 +65,6 @@ jobs:
 
       # Upload the SARIF to the repository Security tab (code scanning alerts).
       - name: Upload SARIF to the Security tab
-        uses: github/codeql-action/upload-sarif@a2983b8bed1923f44751c5c43237f479442827b3 # v3.37.4
+        uses: github/codeql-action/upload-sarif@d1ba80a13dd99fba24a470575428917156a28b43 # v4.37.5
         with:
           sarif_file: results.sarif
