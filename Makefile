@@ -15,8 +15,8 @@ help: ## List targets
 	  | awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
 
 .PHONY: deps
-deps: ## Install Python deps (PyYAML) + fetch pinned opa (SHA-verified) — the test path
-	pip install -r requirements.txt
+deps: ## Install Python deps (hash-pinned PyYAML + pefile) + fetch pinned opa (SHA-verified)
+	pip install --require-hashes -r requirements.txt
 	ONLY=opa bash scripts/fetch-tools.sh
 
 .PHONY: bin

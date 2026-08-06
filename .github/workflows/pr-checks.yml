@@ -27,7 +27,7 @@ jobs:
           chmod +x /usr/local/bin/opa
 
       - name: Python deps
-        run: pip install --quiet pyyaml pefile
+        run: pip install --quiet --require-hashes -r requirements.txt
 
       - name: Gate honesty tests + assembler + byte-integrity unit tests
         run: |

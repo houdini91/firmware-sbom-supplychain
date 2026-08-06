@@ -194,7 +194,7 @@ jobs:
 
       - name: Framework coverage from the signed VSA (initiative layer)
         run: |
-          pip install --quiet pyyaml
+          pip install --quiet --require-hashes -r requirements.txt
           python3 oss-lane/verify-initiative.py --vsa inputs/vsa.intoto.json
 
       - name: Sign the gate verdict (SLSA VSA) keyless, with the evidence-graph inputAttestations
@@ -230,7 +230,7 @@ jobs:
 
       - name: Fixture honesty tests + assembler + byte-integrity unit tests
         run: |
-          pip install --quiet pyyaml pefile
+          pip install --quiet --require-hashes -r requirements.txt
           OPA=/usr/local/bin/opa ./tests/run.sh
           python3 tests/test_assemble.py
           python3 tests/test_byte_integrity.py
