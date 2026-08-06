@@ -336,7 +336,7 @@ verifier_reports := [
 		"component-byte-integrity", _byte_integrity_ok,
 		"shipped module bytes match the SBOM's declared hash (byte-integrity — detects a same-GUID swap)",
 		_byte_integrity_msg,
-		["SI-7(1)", "SR-4(3)", "S2C2F-AUD-3"],
+		["SI-7(1)", "SR-4(3)"],
 	),
 	_report(
 		"binary-hardening", _binary_hardening_ok,
