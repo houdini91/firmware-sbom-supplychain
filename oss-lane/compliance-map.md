@@ -19,7 +19,7 @@ re-tabulated here** — the authoritative list lives in two places that cannot d
 - **Mechanism (canonical):** [`policy/firmware.rego`](./policy/firmware.rego) — the `verifier_reports` array
   *is* the gate; each report carries its own `controls[]` tags.
 - **Prose + evidence mapping:** the "trust anchor" paragraph in [`../FRAMEWORKS.md`](../FRAMEWORKS.md) names all
-  18 and the evidence atom (E1–E10) each consumes.
+  19 and the evidence atom (E1–E10) each consumes.
 - **Framework → control → report (machine-readable):**
   [`initiatives/frameworks.yaml`](./initiatives/frameworks.yaml), consumed by
   [`verify-initiative.py`](./verify-initiative.py) to print per-framework, per-control coverage from a signed VSA.

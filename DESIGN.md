@@ -345,7 +345,7 @@ Not a claim that firmware SBOMs are solved; not a finished spec; not a request t
 edk2. Reconcile is module-granular (libraries verified only transitively) and the reference draws expected
 digests from the build tree. The measured-boot bind is aspirational, not implemented. Blob coverage is partial
 (FSP/microcode/ME have no build report — the generator is exact only for what's built from source). Component
-counts (e.g. 310) are for a specific OvmfPkgX64 DEBUG/GCC build and vary by platform/target. The reference
+counts (e.g. 311) are for a specific OvmfPkgX64 DEBUG/GCC build and vary by platform/target. The reference
 targets OVMF/edk2 for reproducibility. Defensive use only.
 
 [#10507]: https://github.com/tianocore/edk2/issues/10507

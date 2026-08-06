@@ -7,6 +7,8 @@ Actual output from this repo (OVMF / edk2), not mock-ups. Reproduce the self-con
 
 ## 1. The gate ALLOWs a clean release — 19 signed checks, each tagged with the control it earns
 
+A fixture carrying complete, valid evidence: the gate ANDs all 19 verifier reports and signs the VSA.
+
 ```
    ✅ sbom-present: SBOM attached to the artifact  [cra-bsi-cisa:cra-annex-I-II-1, ssdf:PS.3.1]
    ✅ attestation-signature: attestation signature verified (keyless)  [ssdf:PS.2.1]
@@ -37,7 +39,7 @@ declared hash.
 
 ```
    ⛔ component-byte-integrity: byte-integrity: 1 module(s) MODIFIED — shipped bytes differ from the
-      SBOM's declared hash (possible same-GUID swap)  [SI-7(1), SR-4(3), S2C2F-AUD-3]
+      SBOM's declared hash (possible same-GUID swap)  [sp-800-53:SI-7(1), sp-800-53:SR-4(3)]
 ⛔ DENY — byte-integrity-modified.json  (VSA: FAILED)
    • byte-integrity: 1 module(s) MODIFIED — shipped bytes differ from the SBOM's declared hash (possible same-GUID swap)
 ```
@@ -66,6 +68,8 @@ governs is NX-compatible — and *reports* the ASLR/CFG gap rather than papering
 skip is `ResetVector` (a raw blob, no PE32).
 
 ## 3. The consumer CLI — run the gate on YOUR firmware → a per-framework scorecard
+
+Hand it a firmware image plus its signed VSA; it re-checks the binding and prints per-framework coverage.
 
 ```
 fw-supplychain-verify — consumer-side supply-chain gate

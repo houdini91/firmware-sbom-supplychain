@@ -31,7 +31,14 @@ flowchart LR
 
 ## Posture in three tiers
 
-- **Enforced today** — the deploy pipeline **hard-blocks the release** on **eighteen OPA verifier reports** (SBOM
+<div align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/img/framework-coverage-dark.svg">
+  <img alt="One gate mapping to 27 controls across 6 frameworks" src="docs/img/framework-coverage.svg" width="940">
+</picture>
+</div>
+
+- **Enforced today** — the deploy pipeline **hard-blocks the release** on **nineteen OPA verifier reports** (SBOM
   present · attestation signature · SBOM↔subject binding · provenance identity · **SLSA L2 provenance** ·
   reconcile · CVE/VEX · **CHIPSEC platform posture** · **reconcile membership** (SI-7/CM-8(3)) · **component
   integrity** (SI-7(1)) · **VEX adjudication** (RV.1.1, high+critical) · **third-party identity** (CISA
@@ -60,16 +67,16 @@ framework  →  §control (exact ref)  →  evidence that proves it  →  status
 
 | Status | Meaning |
 |---|---|
-| **`ENFORCED`** | The release is **hard-blocked if this fails** — by one of the eighteen OPA `verifier_reports` in [`firmware.rego`](./oss-lane/policy/firmware.rego) *(gate)*; the `slsa-provenance` report is additionally backed by a CI hard-gate step *(CI)*, `gh attestation verify`. The mechanism is named per row. |
+| **`ENFORCED`** | The release is **hard-blocked if this fails** — by one of the nineteen OPA `verifier_reports` in [`firmware.rego`](./oss-lane/policy/firmware.rego) *(gate)*; the `slsa-provenance` report is additionally backed by a CI hard-gate step *(CI)*, `gh attestation verify`. The mechanism is named per row. |
 | **`EVIDENCE`** | We produce the artifact/field, but no gate rule checks it yet — the control is *satisfiable from what we emit*, just not *enforced*. |
 | **`PARTIAL`** | The evidence meets the control only in part; the named shortfall is in the note. |
 | **`PLANNED`** | A concrete, near-term artifact change (mostly SBOM enrichment + byte-integrity reconcile) would satisfy it. |
 | **`FUTURISTIC`** | Needs a new *class* of evidence we do not produce (runtime attestation: TPM quote + golden RIM). |
 | **`N/A (process)`** | An organizational/process obligation (a policy, an SLA, an acquisition process) that **no build artifact can satisfy** — listed so it is visibly out of scope, not silently dropped. |
 
-## Evidence inventory — what we actually produce (E1–E10)
+## Evidence inventory — what we actually produce (E1–E11)
 
-Every table references these eleven atoms. The ground-truth column is read from the real artifacts in this repo,
+Every table references these ten atoms. The ground-truth column is read from the real artifacts in this repo,
 not asserted.
 
 | # | Evidence | Format / predicate | What it proves | Ground-truth today | Enforced by |
@@ -99,13 +106,14 @@ not asserted.
 > — the tamper-after-signing check), and `signer-identity-pinned` (the Fulcio cert SAN is in the trusted set). The
 > OIDC SAN is extracted from the cert and **checked**, not asserted.
 
-> **The trust anchor:** the eighteen gate reports are `sbom-present` (E1), `attestation-signature` (DSSE envelope),
+> **The trust anchor:** the nineteen gate reports are `sbom-present` (E1), `attestation-signature` (DSSE envelope),
 > `sbom-binding` (E1 file digest `H` ↔ attestation **file** subject `H`), `provenance-identity` (E2), `slsa-provenance` (E2, backed by the
 > `gh attestation verify` CI hard-gate), `reconcile` (E3), `cve-triage` (E4), `chipsec-posture` (E10),
 > `reconcile-membership` (E3, SI-7/CM-8(3)), `component-integrity` (E1, SI-7(1)),
 > `component-byte-integrity` (E3, SI-7(1)/SR-4(3) — the shipped PE32 bytes of each byte-checkable module match
 > the SBOM's declared hash; catches a same-GUID swap; XIP/PEI modules verified via un-rebase canonicalization (122 of 123 modules); reported
-> honestly), `vex-adjudicated` (E4, RV.1.1 —
+> honestly), `binary-hardening` (E11, SI-16/PW.6.2 — every DXE-class module declares NX_COMPAT (W^X-ready);
+> declared-posture evidence, not runtime enforcement), `vex-adjudicated` (E4, RV.1.1 —
 > every high/critical CVE needs a non-empty justification), `thirdparty-identifiers` (E1, CISA License/PURL),
 > `build-tools-signed` (E7, SSDF PO.3.2 / S2C2F REB-3 — the build toolchain is signed + SHA/version-pinned),
 > `firmware-digest-anchor` (E1↔E3↔image — the SBOM's `metadata.component` digest `D` anchors the
@@ -120,7 +128,7 @@ not asserted.
 > `evidence-chain-bound` (E1/E2 + attestation: the SBOM-file digests agree at `H` across
 > SBOM↔attestation↔provenance **and** the reconcile attestation's firmware subject == the anchor `D`), and
 > `signer-identity-pinned` (DSSE envelope, SI-7(15)/CM-14/SR-4(1) — the cert SAN is in the trusted set) — the gate ANDs all
-> eighteen and emits E6. The
+> nineteen and emits E6. The
 > `component-integrity` rule passes only with an explicit reviewed `data.hash_exempt` entry (ResetVector), never a
 > relaxed threshold.
 
@@ -351,7 +359,7 @@ fields: **licenses, PURLs, supplier, submodule components**.
 | **§4.1.1** Image vulnerabilities | pipeline vuln scan + "quality gate" above a CVSS threshold | E4, E3 | **ENFORCED** *(gate)* | `cve-triage` at severity=critical is exactly the quality gate. |
 | **§4.1.5** Use of untrusted images | discrete signature identity + **validate signature before execution** | E5, E2, E6, E3 | **PARTIAL** | E5/E2/E6/E3 give sign+identify+verify+tamper-detect. **Caveat:** §4.1.5 (footnote 6 → CMVP) wants a **NIST-validated (FIPS 140)** crypto implementation — Sigstore/cosign keyless is **not** CMVP-validated. |
 | **§4.2.3** Registry auth/authz | signed + scanned before promotion to a registry | E5, E4 | **PARTIAL** | Pattern supported; registry admission enforcement not shown. |
-| **§4.1.2** Image config defects | secure config / minimal base | — | **N/A** | Not addressed by E1–E10. |
+| **§4.1.2** Image config defects | secure config / minimal base | — | **N/A** | Not addressed by E1–E11. |
 
 ## D. Firmware-runtime frameworks — FUTURISTIC (the honest zero)
 
