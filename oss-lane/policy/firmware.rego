@@ -281,35 +281,29 @@ verifier_reports := [
 	_report(
 		"sbom-present", _sbom_present,
 		"SBOM attached to the artifact", "no SBOM present",
-		["CRA-AnnexI-1", "CISA-2026-min-elements", "NTIA-2021"],
 	),
 	_report(
 		"attestation-signature", _sig_verified,
 		"attestation signature verified (keyless)", "attestation signature not verified",
-		["SSDF-PS.2", "in-toto-DSSE"],
 	),
 	_report(
 		"sbom-binding", _sbom_bound,
 		"SBOM digest bound to the signed attestation subject",
 		"SBOM bytes do not match the signed attestation subject (possible swap after signing)",
-		["in-toto-subject-binding"],
 	),
 	_report(
 		"firmware-digest-anchor", _firmware_anchored,
 		"firmware-image digest consistent: build-time SBOM digest == reconcile's independent re-hash (== deployed image when a flash-time verifier supplies FW_IMAGE; assumed equal otherwise)",
 		_firmware_anchor_msg,
-		["firmware-image-binding", "SI-7", "SR-4(3)", "CISA-2026-hash"],
 	),
 	_report(
 		"provenance-identity", _provenance_ok,
 		"built by the expected builder and source", _provenance_msg,
-		["SLSA-provenance-L1", "SSDF-PS.3"],
 	),
 	_report(
 		"slsa-provenance", _slsa_verified,
 		"SLSA L2 provenance verified (platform-generated: attest-build-provenance + gh attestation verify)",
 		"SLSA L2 provenance not verified (needs attest-build-provenance + gh attestation verify)",
-		["SLSA-provenance-L2", "SSDF-PO.3.3"],
 	),
 	# SP800-147 is anchored on the BIOS write-protection pillar (CHIPSEC bios_wp), which
 	# is what actually runs on the QEMU target — NOT the authenticated-update pillar,
@@ -318,86 +312,73 @@ verifier_reports := [
 		"chipsec-posture", _chipsec_posture,
 		"platform protections verified (CHIPSEC: applicable critical modules passed)",
 		"platform protections not verified (CHIPSEC: a critical module failed, or none ran)",
-		["SP800-193-4.2", "SP800-147-write-protect"],
 	),
 	_report(
 		"reconcile-membership", _reconcile_membership,
 		"every declared module observed in the image; no undeclared artifact",
 		_reconcile_membership_msg,
-		["SI-7", "CM-8(3)"],
 	),
 	_report(
 		"component-integrity", _integrity_coverage,
 		"every hashable module carries a hash (or a reviewed exemption)",
 		_integrity_msg,
-		["SI-7(1)", "CISA-2026-hash"],
 	),
 	_report(
 		"component-byte-integrity", _byte_integrity_ok,
 		"shipped module bytes match the SBOM's declared hash (byte-integrity — detects a same-GUID swap)",
 		_byte_integrity_msg,
-		["SI-7(1)", "SR-4(3)"],
 	),
 	_report(
 		"binary-hardening", _binary_hardening_ok,
 		"every DXE-class module declares NX_COMPAT (W^X-ready; declared-posture evidence, not runtime enforcement)",
 		_binary_hardening_msg,
-		["SI-16", "SSDF-PW.6.2"],
 	),
 	_report(
 		"vex-adjudicated", _vex_adjudicated,
 		"every high/critical CVE carries a non-empty VEX justification",
 		_vex_msg,
-		["SSDF-RV.1.1", "SSDF-RV.1.2", "S2C2F-SCA-1"],
 	),
 	_report(
 		"thirdparty-identifiers", _thirdparty_ok,
 		"every third-party component carries a purl + license",
 		_thirdparty_msg,
-		["CISA-2026-license", "CISA-2026-software-id", "S2C2F-SCA-2", "SSDF-PW.4.4"],
 	),
 	_report(
 		"build-tools-signed", _build_tools_ok,
 		"build-tools SBOM present, signature verified, and every component SHA/version-pinned",
 		_build_tools_msg,
-		["SSDF-PO.3.2", "S2C2F-REB-3"],
 	),
 	_report(
 		"slsa-level-floor", _slsa_level_floor,
 		"SLSA build level >= 2 (platform-generated provenance; not L3)",
 		_slsa_level_msg,
-		["SR-4", "SR-4(3)"],
 	),
 	_report(
 		"evidence-chain-bound", _evidence_chain_bound,
 		"evidence chain bound: SBOM-file digests agree (H) across SBOM/attestation/provenance AND the attestation's firmware subject == the firmware anchor D",
 		"evidence chain not bound: SBOM-file digests differ across SBOM/attestation/provenance (H), or the attestation's firmware subject != the firmware anchor D",
-		["SLSA-subject-binding", "SR-4(3)"],
 	),
 	_report(
 		"signer-identity-pinned", _signer_pinned,
 		"signed by a trusted keyless identity (cert SAN in the allowlist)",
 		_signer_msg,
-		["SI-7(15)", "CM-14", "SR-4(1)"],
 	),
 	_report(
 		"reconcile", _reconcile_clean,
 		"declared SBOM matches observed firmware bytes",
 		"reconcile failed: SBOM does not match firmware bytes",
-		["reconcile-declared-vs-observed"],
 	),
 	_report(
 		"cve-triage", _no_critical,
 		"no un-triaged critical CVEs", _cve_msg,
-		["NIST-800-161", "OpenVEX"],
 	),
 ]
 
 # Framework+control tags for a report, DERIVED from the manifest (data.initiatives) so the
 # rego reports and frameworks.yaml can never drift — one source of truth. Each tag is
 # "<framework>:<control-id>", so every verdict line is traceable to its framework + control
-# number. (The hardcoded 5th arg to _report is now vestigial — kept only to avoid churning
-# all 19 call sites; the manifest is authoritative.)
+# number. The manifest (frameworks.yaml → data.initiatives) is the sole authority for a
+# report's control tags — call sites pass only (name, predicate, pass_msg, fail_msg).
 _controls_for(rep) := sort([t |
 	some fwkey, fw in data.initiatives
 	some ctrl in fw.controls
@@ -405,14 +386,14 @@ _controls_for(rep) := sort([t |
 	t := sprintf("%s:%s", [fwkey, ctrl.id])
 ])
 
-_report(name, ok, pass_msg, _fail, _controls) := {
+_report(name, ok, pass_msg, _fail) := {
 	"name": name,
 	"id": sprintf("firmware-sbom-supplychain/%s@v1", [name]), # versioned rule id (neutral namespace)
 	"isSuccess": true, "message": pass_msg,
 	"controls": _controls_for(name),
 } if ok
 
-_report(name, ok, _pass, fail_msg, _controls) := {
+_report(name, ok, _pass, fail_msg) := {
 	"name": name,
 	"id": sprintf("firmware-sbom-supplychain/%s@v1", [name]),
 	"isSuccess": false, "message": fail_msg,

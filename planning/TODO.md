@@ -88,10 +88,19 @@ Track A core is complete; these are the genuine open items (mostly small or exte
   **selectable**, digest-linked back to the VSA, **never a replacement**. Absorbs A2's "metadata sidecars +
   standard verdict schema." Two agent format-reviews are on record (CDXA-canonical + SARIF-as-derived-view).
   Do when you want the extra formats.
-- [ ] **Vestigial rego cleanup (mechanical, low-risk).** The hardcoded 5th `controls` arg on `_report(...)` is
-  dead now (tags are manifest-derived); drop the arg + the 19 call-site arrays.
-- [ ] **OpenSSF Scorecard badge.** Repo is public ✅; the badge renders broken until one scheduled `scorecard.yml`
-  run has published to the OpenSSF API — confirm it, or drop the badge.
+- [x] **Vestigial rego cleanup — DONE 2026-08-06.** Dropped the dead 5th `controls` arg on `_report(...)` and the
+  19 call-site arrays (~40 lines); tags are manifest-derived. `opa check` clean, all 26 fixtures + unit tests green.
+- [x] **OpenSSF Scorecard badge — FIXED 2026-08-06 (real root cause).** The badge was empty because the publish
+  POST was **rejected 400 on every run** — from the run log: `workflow verification failed: scorecard job contains
+  env vars` (ossf/scorecard-action#workflow-restrictions). The `scorecard.yml` job violated the publish rules: a
+  job-level `env: WORKFLOW_REF`, an unapproved `sigstore/cosign-installer` action, and a raw `run:` step that
+  keyless-signed the SARIF (a codeql.yml-style "signed evidence" flourish that nothing downstream consumed). The
+  webapp re-verifies the publishing workflow, so those extras silently blocked publishing while the job stayed
+  green. **Fix:** stripped the job to the approved minimal shape (checkout + scorecard-action + upload-sarif, no
+  env, no id-token on any other job) and dropped the unused signing steps; **re-pointed the README badge at the
+  current `api.scorecard.dev` / `scorecard.dev` domain** (the action publishes to `api.scorecard.dev`; the old
+  `api.securityscorecards.dev` results endpoint 404s). Publishes on the next push to `main` — verify the badge
+  renders after that run. *(NOT a scheduling problem — push runs do publish; ours were being rejected.)*
 - [ ] **B3 · CHIPSEC** — held (above), pending the edk2 RFC.
 - **Off-repo:** the embargoed edk2 vuln-disclosure track (see the `edk2-candidate-findings` / disclosure notes).
 

@@ -6,7 +6,7 @@
 
 [![supply-chain](https://github.com/houdini91/firmware-sbom-supplychain/actions/workflows/supply-chain.yml/badge.svg)](https://github.com/houdini91/firmware-sbom-supplychain/actions/workflows/supply-chain.yml)
 [![pr-checks](https://github.com/houdini91/firmware-sbom-supplychain/actions/workflows/pr-checks.yml/badge.svg)](https://github.com/houdini91/firmware-sbom-supplychain/actions/workflows/pr-checks.yml)
-[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/houdini91/firmware-sbom-supplychain/badge)](https://scorecard.dev/viewer/?uri=github.com/houdini91/firmware-sbom-supplychain)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/houdini91/firmware-sbom-supplychain/badge)](https://scorecard.dev/viewer/?uri=github.com/houdini91/firmware-sbom-supplychain)
 ![SLSA VSA](https://img.shields.io/badge/SLSA-VSA%20signed-0d9488)
 ![frameworks](https://img.shields.io/badge/6%20frameworks-27%20controls-475569)
 ![license](https://img.shields.io/badge/license-MIT-475569)
@@ -140,13 +140,14 @@ in [`oss-lane/compliance-map.md`](oss-lane/compliance-map.md).
 ## Quickstart
 
 ```bash
-make deps      # Python deps (PyYAML); see requirements.txt for the CLI tools (opa, jq, cosign, grype)
+make deps      # Python deps (PyYAML + pefile); see requirements.txt for the CLI tools (opa, jq, cosign, grype)
 make test      # gate-honesty tests: ALLOW a clean release, DENY each failure mode (a negative fixture per report)
 make coverage  # per-framework, per-control coverage from a fresh signed VSA
 make demo      # the full OSS lane end to end (needs cosign + grype)
 ```
 
-`make test` and `make coverage` are self-contained (`opa` + `jq` + `python3`/PyYAML). The gate itself is
+`make test` and `make coverage` are self-contained (`opa` + `jq` + `python3`/PyYAML; `pefile` unlocks the
+byte-integrity un-rebase test — it is honestly skipped, not silently passed, when absent). The gate itself is
 [`oss-lane/policy/firmware.rego`](oss-lane/policy/firmware.rego) — **19 verifier reports** ANDed into a signed
 SLSA VSA, each with an isolating negative fixture under [`oss-lane/fixtures/`](oss-lane/fixtures).
 

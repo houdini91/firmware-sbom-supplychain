@@ -41,7 +41,9 @@ jobs:
 
       - name: In-pipeline negative test (post-sign tamper must be blocked)
         run: |
-          # self-skips if no signed bundle is present (bundles are gitignored / built in the heavy workflow)
+          # Runs for real on PRs: with no signed bundle present (gitignored / built in the heavy
+          # workflow), the test synthesizes a self-consistent unsigned bundle and exercises the
+          # binding assertions (unmodified -> ALLOW, tamper-after-signing -> DENY).
           OPA=/usr/local/bin/opa ./tests/pipeline-negative.sh
 
       - name: Framework coverage from a fresh VSA (initiative layer)
