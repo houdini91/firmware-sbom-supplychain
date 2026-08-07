@@ -50,3 +50,4 @@ bin/sbom-convert
 
 # FMMT writes a build log into CWD
 FMMT_Build.log
+bin/
