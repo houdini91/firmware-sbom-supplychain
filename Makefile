@@ -24,17 +24,22 @@ bin: ## Fetch + SHA-verify ALL pinned CLI tools (opa, cosign, grype) into bin/ â
 	bash scripts/fetch-tools.sh
 
 .PHONY: test
-test: ## Gate honesty tests (opa+jq) + assembler + byte-integrity unit tests + cosign-native policy
+test: ## Gate honesty tests (opa+jq) + assembler + byte-integrity unit tests + cosign-native policy. coSWID/PEI tests need python-uswid+pefile; set COSWID_PY=<venv>/bin/python to run them (else they SKIP loudly). Use `make test-full` to REQUIRE them.
 	bash tests/run.sh
 	python3 tests/test_assemble.py
-	python3 tests/test_byte_integrity.py
+	$(or $(COSWID_PY),python3) tests/test_byte_integrity.py
 	python3 tests/test_attack_demo.py
 	python3 tests/test_reconcile.py
 	python3 tests/test_chipsec.py
 	python3 tests/test_interop.py
-	python3 tests/test_coswid.py
+	$(or $(COSWID_PY),python3) tests/test_coswid.py $(COSWID_TEST_FLAGS)
 	python3 tests/test_initiatives_sync.py
 	bash tests/cosign-policy.sh
+
+.PHONY: test-full
+test-full: ## Like `test` but REQUIRES python-uswid + pefile so the coSWID round-trip + PEI/XIP BUG-1 regression actually run (fail, not skip). Usage: COSWID_PY=<venv>/bin/python make test-full
+	@test -n "$(COSWID_PY)" || { echo "set COSWID_PY=<venv>/bin/python (a python with python-uswid + pefile installed)"; exit 2; }
+	$(MAKE) test COSWID_PY="$(COSWID_PY)" COSWID_TEST_FLAGS=--require-deps
 
 .PHONY: coverage
 coverage: ## Per-framework, per-control coverage from a fresh signed VSA (opa+python+PyYAML)

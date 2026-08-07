@@ -118,9 +118,23 @@ else:
         check("no --source-hashes -> source hash is None (nothing fabricated)",
               m2[GUID]["source"] is None and m2[GUID]["declared"] == EVID)
 
-    # The documented spec-gap: uSwidEvidence has no hash field (only date/device_id).
-    check("SPEC-GAP: python-uswid evidence branch carries NO hash field (device-hash stays a proposal)",
-          not any("hash" in a.lower() for a in dir(uSwidEvidence()) if not a.startswith("_")))
+    # The documented spec-gap and its resolution. Stock python-uswid's uSwidEvidence
+    # carries only {date, device_id} — no hash field — which is *why* our shipped-byte
+    # hash currently rides the payload branch and the device-measured hash stays a
+    # proposal. Our upstream PR ("evidence: add an optional measured hash") closes that
+    # gap. This assertion is forward-compatible: it documents the gap on a stock uswid
+    # AND passes on a uswid that already has the fix, so landing our PR upstream does
+    # not turn this test red.
+    _evidence_has_hash = any(
+        "hash" in a.lower() for a in dir(uSwidEvidence()) if not a.startswith("_")
+    )
+    if _evidence_has_hash:
+        check("SPEC-GAP RESOLVED: this python-uswid's evidence branch now carries a hash "
+              "field (our upstream PR) — device-measured hash can migrate off proposal",
+              hasattr(uSwidEvidence(), "add_hash"))
+    else:
+        check("SPEC-GAP: stock python-uswid evidence branch carries NO hash field "
+              "(device-hash stays a proposal; shipped-byte hash rides the payload)", True)
 
 
 # ---------------------------------------------------------------------------
@@ -182,4 +196,12 @@ if skipped:
     print("⚠  %d TEST GROUP(S) SKIPPED (missing python-uswid / pefile / fixtures). "
           "CI installs them and runs every group." % skipped)
 print(("ALL PASS%s" % (" (with %d SKIPPED — see warning)" % skipped if skipped else "")) if ok else "FAILURES")
+
+# --require-deps: fail (non-zero) if any group SKIPPED, so a run that is *meant*
+# to cover the coSWID round-trip + PEI/XIP BUG-1 regression cannot pass green
+# with those groups silently absent. Used by `make test-full` / CI.
+if "--require-deps" in sys.argv and skipped:
+    print("ERROR  --require-deps set but %d group(s) skipped: install python-uswid + "
+          "pefile (and build PE fixtures) so every group runs." % skipped)
+    sys.exit(2)
 sys.exit(0 if ok else 1)
