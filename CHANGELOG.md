@@ -45,7 +45,7 @@ First tagged milestone: an end-to-end firmware supply-chain verification gate on
 with byte-level integrity.
 
 ### Added
-- **Enforcing OSS-lane gate** — 19 OPA `verifier_reports` ANDed into a signed SLSA **VSA**; each report has an
+- **Enforcing OSS-lane gate** — 21 OPA `verifier_reports` ANDed into a signed SLSA **VSA**; each report has an
   isolating negative fixture. Covers SBOM presence, keyless signature + signer identity, SLSA L2 provenance,
   reconcile membership, component + third-party integrity, VEX adjudication, CHIPSEC posture, build-tools
   signing, the firmware-digest anchor, and byte-integrity.

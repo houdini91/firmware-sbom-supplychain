@@ -18,7 +18,7 @@ evidence (../inputs/) ──▶ assemble-gate-input.sh ──▶ gate-input.json
 
 | File | Role |
 |---|---|
-| [`policy/firmware.rego`](policy/firmware.rego) | **the gate** — 19 `verifier_reports`, ANDed into `allow`; emits the VSA predicate. Each report is tagged with the controls it satisfies. |
+| [`policy/firmware.rego`](policy/firmware.rego) | **the gate** — 21 `verifier_reports`, ANDed into `allow`; emits the VSA predicate. Each report is tagged with the controls it satisfies. |
 | [`policy/data.json`](policy/data.json) | trust config: expected builder id / source repo, `hash_exempt`, `trusted_signer_identities`. |
 | [`assemble_gate_input.py`](assemble_gate_input.py) | derives the gate input from **verified** evidence (DSSE decode, cert-SAN identity, digests, CVE/VEX, firmware anchor). `assemble-gate-input.sh` is a thin shim over it. **Every fact comes from evidence; the policy only decides.** |
 | [`gate.sh`](gate.sh) | runs `opa eval`, prints the per-report result, and emits the signed VSA (with the firmware-image subject). |
