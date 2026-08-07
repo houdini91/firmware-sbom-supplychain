@@ -32,6 +32,7 @@ test: ## Gate honesty tests (opa+jq) + assembler + byte-integrity unit tests + c
 	python3 tests/test_reconcile.py
 	python3 tests/test_chipsec.py
 	python3 tests/test_interop.py
+	python3 tests/test_coswid.py
 	python3 tests/test_initiatives_sync.py
 	bash tests/cosign-policy.sh
 
@@ -61,6 +62,10 @@ reconcile: ## Carve a real image + reconcile: make reconcile EDK2=<tree> IMG=<im
 .PHONY: attack-demo
 attack-demo: ## "Same-GUID trojan caught": byte-tamper a real module under its GUID; real producer -> MODIFIED -> gate DENY. Add FW_IMAGE=<OVMF.fd> EDK2=<tree> for the full real-image run.
 	OPA=$(or $(OPA),$(ROOT)bin/opa) bash scripts/attack-demo.sh
+
+.PHONY: coswid-demo
+coswid-demo: ## coSWID emit + FULL-LOOP proof: emit coSWID (source+shipped-byte hash) -> PE .sbom embed/extract -> ingest -> reconcile -> byte-integrity -> gate ALLOW/DENY. Needs python-uswid: COSWID_PY=<venv>/bin/python USWID=<venv>/bin/uswid make coswid-demo
+	OPA=$(or $(OPA),$(ROOT)bin/opa) bash scripts/coswid-demo.sh
 
 .PHONY: byte-integrity
 byte-integrity: ## Regenerate byte-integrity: make byte-integrity EDK2=<tree> IMG=<image.fd> (needs pefile+FMMT, ~6min)
