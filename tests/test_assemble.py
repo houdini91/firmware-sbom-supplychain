@@ -62,6 +62,20 @@ check("generation: tool without a version, and a phaseless lifecycle -> both abs
 check("generation: empty metadata -> both absent",
       a.generation({}) == {"tool_present": False, "context_present": False})
 
+# osf_conformance: bom-ref in GUID form -> guid_tag_id; edk2:sourceHash -> source_hash_present;
+# libraries excluded. The reference SBOM carries no source hash (M-srchash UNMET by default).
+osf = a.osf_conformance({"components": [
+    {"type": "firmware", "bom-ref": "9622E42C-8E38-4a08-9E8F-54F784652F6B", "name": "AcpiTableDxe"},
+    {"type": "firmware", "bom-ref": "not-a-guid", "name": "Weird",
+     "properties": [{"name": "edk2:sourceHash", "value": "sha256:deadbeef"}]},
+    {"type": "library", "bom-ref": "11111111-2222-3333-4444-555555555555", "name": "LibExcluded"}]})
+check("osf: GUID-form bom-ref counts as a tag-id; non-GUID does not; libraries excluded",
+      osf["modules_total"] == 2 and osf["guid_tag_id"] == 1)
+check("osf: edk2:sourceHash carrier counts toward source_hash_present (M-srchash)",
+      osf["source_hash_present"] == 1 and osf["evaluated"] is True)
+check("osf: empty SBOM -> evaluated but zero modules (not vacuous)",
+      a.osf_conformance({}) == {"evaluated": True, "modules_total": 0, "guid_tag_id": 0, "source_hash_present": 0})
+
 # build_tools: 'latest'/unversioned+unhashed -> unpinned; signature flag threaded
 bt = a.build_tools_derive([
     {"name": "pinned", "version": "1.2.3"},

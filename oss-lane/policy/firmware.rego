@@ -349,12 +349,51 @@ _platform_msg := sprintf(
 	],
 )
 
+# OSF Firmware Embedded SBOM Spec — STRUCTURAL identity conformance, evaluated against the
+# CycloneDX manifest the gate already holds (a manifest-level proxy for the embedded coSWID
+# shape, NOT a parse of the coSWID extracted from the shipped PE — that deeper check stays
+# roadmapped; see CONFORMANCE.md). The GUID-identity MUST (tag-id == FILE_GUID) is MET here:
+# every firmware module's bom-ref carries the FILE_GUID, so guid_tag_id must equal modules_total.
+default _osf_identity_shape := false
+_osf_identity_shape if {
+	input.sbom.osf.evaluated
+	input.sbom.osf.modules_total > 0
+	input.sbom.osf.guid_tag_id == input.sbom.osf.modules_total
+}
+
+# Absent-input guard: with no sbom.osf section, say the evidence is absent — do not print a
+# "0 == 0" verdict that reads like a clean pass.
+default _osf_identity_msg := "OSF conformance evidence absent (no sbom.osf section supplied) — cannot confirm the embedded-SBOM identity shape"
+
+_osf_identity_msg := sprintf(
+	"OSF identity shape not met: %d of %d module(s) carry a GUID-form tag-id (FILE_GUID) — a module without a GUID tag-id violates the OSF Firmware Embedded SBOM identity MUST",
+	[object.get(input, ["sbom", "osf", "guid_tag_id"], 0), object.get(input, ["sbom", "osf", "modules_total"], 0)],
+) if input.sbom.osf
+
+# OSF M-srchash (MUST) — a real source-file hash rides in coSWID colloquial-version for EVERY
+# module. This is a CONDITIONAL + advisory report on the §4.3.1 pattern: it is emitted ONLY when
+# source hashes were actually supplied (source_hash_present > 0). By default the source tree is
+# not vendored, source_hash_present == 0, the report is ABSENT, and the mapped control is honestly
+# MISSING_EVIDENCE (advisory) WITHOUT flipping `allow` — the gate must not claim a source-hash
+# MUST it cannot evidence. CEILING: this counts a declared edk2:sourceHash carrier, not an
+# independent recomputation of the source hash from a vendored tree.
+default _osf_source_hash_ok := false
+_osf_source_hash_ok if {
+	input.sbom.osf.modules_total > 0
+	input.sbom.osf.source_hash_present == input.sbom.osf.modules_total
+}
+
+_osf_source_evaluated if object.get(input, ["sbom", "osf", "source_hash_present"], 0) > 0
+
+_osf_source_msg := sprintf(
+	"OSF source-file hash (M-srchash) incomplete: %d of %d module(s) carry a source-file hash in colloquial-version",
+	[object.get(input, ["sbom", "osf", "source_hash_present"], 0), object.get(input, ["sbom", "osf", "modules_total"], 0)],
+)
+
 # ---------------------------------------------------------------------------
 # Normalized verifier reports — one per fact, tagged with the controls it
 # satisfies. The gate ANDs isSuccess across all of them.
 # ---------------------------------------------------------------------------
-verifier_reports := array.concat(_core_reports, _detection_reports)
-
 _core_reports := [
 	_report(
 		"sbom-present", _sbom_present,
@@ -485,6 +524,14 @@ _core_reports := [
 		"platform protections verified (CHIPSEC bios_wp flash write-protection + smm SMM isolation PASSED; bios_ts/smrr N/A on QEMU) — SAMPLE/ILLUSTRATIVE chipsec.json, config-level posture not physical silicon",
 		_platform_msg,
 	),
+	# OSF Firmware Embedded SBOM — STRUCTURAL identity conformance (GUID tag-id == FILE_GUID per
+	# module), evaluated against the CycloneDX manifest the gate holds (proxy for the embedded
+	# coSWID shape, not a parse of the shipped-PE coSWID). The MET half of OSF conformance.
+	_report(
+		"osf-identity-shape", _osf_identity_shape,
+		"OSF embedded-SBOM identity shape verified: every firmware module carries a GUID-form tag-id (== FILE_GUID) — manifest-level structural conformance, not a parse of the coSWID extracted from the shipped PE",
+		_osf_identity_msg,
+	),
 ]
 
 # SP 800-193 §4.3.1 Detection (admission-time, off-device) — CONDITIONAL report.
@@ -496,6 +543,8 @@ _core_reports := [
 # firmware-freshly-measured is non-gating precisely so it cannot. CEILING: when present it
 # attests a fresh admission-time/off-device measurement was taken — NOT the on-device,
 # boot-time Root of Trust for Detection (measured boot + golden RIM) that §4.3.1 envisions.
+verifier_reports := array.concat(array.concat(_core_reports, _detection_reports), _osf_source_reports)
+
 _detection_reports := [_report(
 	"firmware-freshly-measured", _fw_freshly_measured,
 	"a genuine flash-time firmware image was freshly measured (real FW_IMAGE hashed at leg-3, not a DEV_ASSUME build self-claim) — admission-time/off-device, not an on-device Root of Trust for Detection",
@@ -503,6 +552,17 @@ _detection_reports := [_report(
 )] if _fw_freshly_measured
 
 _detection_reports := [] if not _fw_freshly_measured
+
+# OSF M-srchash — CONDITIONAL + advisory, emitted ONLY when source hashes were supplied. Absent
+# by default (source tree not vendored) so the mapped control is honestly MISSING WITHOUT flipping
+# `allow`. Same non-gating construction as firmware-freshly-measured (§4.3.1).
+_osf_source_reports := [_report(
+	"osf-source-provenance", _osf_source_hash_ok,
+	"OSF source-file hash (M-srchash) verified: every module carries a source-file hash in coSWID colloquial-version",
+	_osf_source_msg,
+)] if _osf_source_evaluated
+
+_osf_source_reports := [] if not _osf_source_evaluated
 
 # Framework+control tags for a report, DERIVED from the manifest (data.initiatives) so the
 # rego reports and frameworks.yaml can never drift — one source of truth. Each tag is
@@ -552,6 +612,7 @@ _remediation := {
 	"uefi-secure-boot-posture": "Provision + enforce UEFI Secure Boot (PK/KEK/db/dbx, SecureBoot=1, SetupMode=0) so CHIPSEC secureboot.variables PASSES; do not admit an image whose target does not enforce Secure Boot.",
 	"platform-protection-posture": "Fix the platform-protection gap so CHIPSEC bios_wp (flash write-protection, 800-147) and smm (SMM isolation, 800-193 §4.2.3) both PASS; a FAILED pillar is a real protection gap (bios_ts/smrr N/A on QEMU is expected).",
 	"reconcile-membership": "Reconcile the SBOM against the observed image so every declared module is present and no undeclared artifact appears; investigate any missing or suspicious module before shipping.",
+	"osf-identity-shape": "Regenerate the embedded SBOM so every firmware module carries its FILE_GUID as a GUID-form tag-id (the OSF Firmware Embedded SBOM identity MUST); a module without a GUID tag-id cannot be identity-anchored and must not ship.",
 }
 
 _remediation_for(name) := object.get(_remediation, name, "")
@@ -689,6 +750,9 @@ deny contains msg if {
 deny contains _uefi_sb_msg if not _uefi_secure_boot
 
 deny contains _platform_msg if not _platform_protection
+
+# OSF Firmware Embedded SBOM — a module without a GUID-form tag-id fails the identity MUST.
+deny contains _osf_identity_msg if not _osf_identity_shape
 
 # ---------------------------------------------------------------------------
 # SLSA Verification Summary Attestation (VSA) predicate.

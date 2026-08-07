@@ -22,6 +22,7 @@ import base64
 import hashlib
 import json
 import os
+import re
 import subprocess
 import sys
 
@@ -157,6 +158,39 @@ def generation(sbom):
     lifecycles = md.get("lifecycles") or []
     context_present = any(lc.get("phase") for lc in lifecycles if isinstance(lc, dict))
     return {"tool_present": tool_present, "context_present": context_present}
+
+
+_GUID_RE = re.compile(
+    r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
+
+def _source_hash_present(c):
+    """OSF M-srchash: a real source-file hash rides in coSWID colloquial-version.
+    In the CycloneDX manifest that carrier is an explicit edk2:sourceHash property
+    (what --source-hashes would populate). Absent by default — the source tree is
+    not vendored here — so this MUST is honestly UNMET on the reference SBOM."""
+    for p in (c.get("properties") or []):
+        if p.get("name") == "edk2:sourceHash" and p.get("value"):
+            return True
+    return False
+
+
+def osf_conformance(sbom):
+    """OSF Firmware Embedded SBOM structural conformance, surfaced from the CycloneDX
+    manifest the gate already holds — a manifest-level proxy for the embedded coSWID
+    shape, NOT a parse of the coSWID extracted from the shipped PE (that deeper check
+    stays roadmapped; see CONFORMANCE.md). Two MUSTs are separable here:
+      - GUID identity (MET): every firmware module's tag-id is its FILE_GUID. In the
+        CDX manifest the module's bom-ref carries the FILE_GUID, so guid_tag_id counts
+        modules whose bom-ref is GUID-form.
+      - Source-file hash / M-srchash (UNMET by default): source_hash_present counts
+        modules carrying an edk2:sourceHash. 0 unless --source-hashes was supplied."""
+    mods = [c for c in sbom.get("components", []) if c.get("type") != "library"]
+    guid_tag_id = sum(1 for c in mods if _GUID_RE.match(str(c.get("bom-ref", ""))))
+    return {"evaluated": True,
+            "modules_total": len(mods),
+            "guid_tag_id": guid_tag_id,
+            "source_hash_present": sum(1 for c in mods if _source_hash_present(c))}
 
 
 def thirdparty(sbom):
@@ -382,7 +416,7 @@ def main():
     gate_input = {
         "sbom": {"present": len(sbom.get("components", [])) > 0, "hash": "sha256:" + sbom_hash,
                  "integrity": integrity(sbom), "thirdparty": thirdparty(sbom),
-                 "generation": generation(sbom)},
+                 "generation": generation(sbom), "osf": osf_conformance(sbom)},
         "attestation": {"file_subject": ("" if att_file == "" else "sha256:" + att_file),
                         "firmware_subject": ("" if att_firmware == "" else "sha256:" + att_firmware)},
         "signature": {"verified": sig == "true", "identity": effective_builder},

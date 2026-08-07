@@ -148,7 +148,7 @@ Byte-integrity is the headline, but the release gate ANDs **19** signed checks. 
 
 Plus signature + build-provenance (was it built by the expected identity, verifiably?) and a vulnerability
 scan (no un-triaged known CVE ships). All of it becomes **signed evidence**; the gate blocks the release unless
-every check passes, and emits **one signed verdict** carrying the per-control results across seven frameworks.
+every check passes, and emits **one signed verdict** carrying the per-control results across eight frameworks.
 
 ## Glossary
 

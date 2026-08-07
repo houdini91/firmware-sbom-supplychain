@@ -17,6 +17,12 @@
     "generation": {
       "tool_present": true,
       "context_present": false
+    },
+    "osf": {
+      "evaluated": true,
+      "modules_total": 123,
+      "guid_tag_id": 123,
+      "source_hash_present": 0
     }
   },
   "attestation": {

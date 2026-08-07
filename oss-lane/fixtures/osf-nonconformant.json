@@ -21,7 +21,7 @@
     "osf": {
       "evaluated": true,
       "modules_total": 123,
-      "guid_tag_id": 123,
+      "guid_tag_id": 122,
       "source_hash_present": 0
     }
   },
@@ -71,7 +71,8 @@
   "firmware": {
     "sbom_digest": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37",
     "reconcile_digest": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37",
-    "deployed_digest": "sha256:deadbeef0000000000000000000000000000000000000000000000000000dead"
+    "deployed_digest": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37",
+    "freshly_measured": false
   },
   "byte_integrity": {
     "ran": true,

@@ -158,11 +158,17 @@ def main():
     result = vsa.get("predicate", {}).get("verificationResult", "") if vsa else ""
     frameworks = []
     for key, ini in initiatives.items():
-        controls = [dict(id=c["id"], name=c["name"],
+        controls = [dict(id=c["id"], name=c["name"], advisory=bool(c.get("advisory", False)),
                          status=evaluate(c, present)[0], detail=evaluate(c, present)[1])
                     for c in ini.get("controls", [])]
+        # A framework passes when every NON-advisory control passes. An advisory control
+        # (e.g. SP 800-193 §4.3.1 Detection, OSF source-hash) that is MISSING/FAIL is reported
+        # honestly but does NOT fail the framework — matching the deploy gate's `allow` (advisory
+        # reports are non-gating) and verify-initiative.py. Without this, the consumer CLI would
+        # REJECT a clean release the gate ALLOWed.
         frameworks.append(dict(id=key, name=ini["name"], required=key in required,
-                               ok=all(c["status"] == PASS for c in controls), controls=controls))
+                               ok=all(c["status"] == PASS for c in controls if not c["advisory"]),
+                               controls=controls))
 
     required_ok = all(f["ok"] for f in frameworks if f["required"])
     accept = binding == "BOUND" and required_ok
@@ -213,9 +219,11 @@ def _render(args, actual, claimed, binding, result, frameworks, accept):
         n = len(fw["controls"])
         passed = sum(1 for c in fw["controls"] if c["status"] == PASS)
         missing = sum(1 for c in fw["controls"] if c["status"] == MISSING)
+        adv_pending = sum(1 for c in fw["controls"] if c["advisory"] and c["status"] != PASS)
         state = MARK[PASS] if fw["ok"] else (MARK[MISSING] if missing == n else MARK[FAIL])
         tag = "  [required]" if fw["required"] else ""
-        print("  %s %-42s %d/%d%s" % (state, fw["name"], passed, n, tag))
+        note = "  · %d advisory pending" % adv_pending if adv_pending else ""
+        print("  %s %-42s %d/%d%s%s" % (state, fw["name"], passed, n, tag, note))
         if args.show_controls:
             for c in fw["controls"]:
                 note = ("  ← missing: %s" % ", ".join(c["detail"])) if c["status"] == MISSING else \

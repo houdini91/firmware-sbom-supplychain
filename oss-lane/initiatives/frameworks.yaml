@@ -271,3 +271,21 @@ initiatives:
         citation: "UEFI Specification 2.10 §32 (Secure Boot) + NIST SP 800-147B (server BIOS protection)"
         canonical: uefi-secure-boot
         satisfied_by: [uefi-secure-boot-posture]
+
+  osf-embedded-sbom:
+    name: "OSF Firmware Embedded SBOM Specification (structural conformance)"
+    help: https://github.com/opensecurityfoundation/firmware-embedded-sbom
+    controls:
+      - id: osf-guid-identity
+        name: "Embedded-SBOM module identity is the FILE_GUID (GUID-form tag-id)"
+        description: "The OSF Firmware Embedded SBOM identity MUST: every firmware module's coSWID tag-id is its UEFI FILE_GUID. Evaluated here against the CycloneDX manifest the gate holds — each module's bom-ref carries the FILE_GUID, so this asserts every module carries a GUID-form tag-id. CEILING: this is a MANIFEST-LEVEL structural proxy for the embedded coSWID shape, NOT a parse of the coSWID extracted from the shipped PE / .sbom COFF section — that deeper check remains roadmapped (see CONFORMANCE.md)."
+        citation: "OSF Firmware Embedded SBOM Spec — metadata.rst (GUID identity) + RFC 9393 §2.3 (tag-id)"
+        canonical: osf-embedded-sbom-identity
+        satisfied_by: [osf-identity-shape]
+      - id: osf-source-hash
+        name: "Source-file hash rides in colloquial-version (M-srchash)"
+        description: "The OSF M-srchash MUST: a real source-file hash for every module rides in the coSWID colloquial-version. HONESTLY UNMET BY DEFAULT — the source tree is not vendored here, so no source hash is supplied and this control is MISSING_EVIDENCE unless --source-hashes populates an edk2:sourceHash carrier. Advisory: a MISSING source-hash MUST is reported truthfully but does NOT block the gate (the gate must not claim a source-hash it cannot evidence)."
+        citation: "OSF Firmware Embedded SBOM Spec — metadata.rst:56,62 (source-file hash in colloquial-version)"
+        canonical: osf-embedded-sbom-source-hash
+        advisory: true
+        satisfied_by: [osf-source-provenance]

@@ -129,7 +129,7 @@
     engine ANDs it into one verdict. The release is <strong>blocked unless the executable code of every module
     matches the signed bill of materials</strong> — catching a same-GUID trojan that signatures and inventories miss.</div>
   <div class="stats reveal">
-    <div class="stat"><div class="n acc">24</div><div class="l">signed checks, one gate</div></div>
+    <div class="stat"><div class="n acc">25</div><div class="l">signed checks, one gate</div></div>
     <div class="stat"><div class="n ok">122 / 123</div><div class="l">modules' code byte-verified</div></div>
     <div class="stat"><div class="n ok">1 bit</div><div class="l">is enough to block a swap</div></div>
     <div class="stat"><div class="n acc">6</div><div class="l">frameworks, per-control</div></div>
@@ -180,7 +180,7 @@
     <div class="ar">→</div>
     <div class="gatebox">
       <div class="t">OPA gate</div>
-      <div class="s">24 verifier reports<br/>AND → allow / deny</div>
+      <div class="s">25 verifier reports<br/>AND → allow / deny</div>
     </div>
     <div class="ar">→</div>
     <div class="vsa">
@@ -267,7 +267,7 @@
 <section><div class="wrap">
   <div class="kicker">Compliance, honestly</div>
   <h2>Mapped to real controls — not "we comply with everything"</h2>
-  <p class="lede">The signed verdict is scored per-control across seven frameworks. Each check is tagged with the
+  <p class="lede">The signed verdict is scored per-control across eight frameworks. Each check is tagged with the
     exact control it earns; nothing claims whole-framework compliance.</p>
   <div class="fw">
     <span class="chip"><span class="c">✓</span>SLSA v1.0 — Build L2</span>
@@ -286,7 +286,7 @@
   <h2>What's enforced, what's evidence, what's next</h2>
   <div class="scope">
     <div class="sc en"><h4>ENFORCED — hard-blocks a release</h4>
-      <ul><li>24 signed checks incl. byte-integrity + CHIPSEC + binary-hardening</li><li>SLSA L2 provenance — GitHub-generated, verified in CI (<code>gh attestation verify</code>); L2 = platform-generated, not third-party-audited</li><li>membership + byte-level integrity, 122/123 code modules</li></ul></div>
+      <ul><li>25 signed checks incl. byte-integrity + CHIPSEC + binary-hardening</li><li>SLSA L2 provenance — GitHub-generated, verified in CI (<code>gh attestation verify</code>); L2 = platform-generated, not third-party-audited</li><li>membership + byte-level integrity, 122/123 code modules</li></ul></div>
     <div class="sc ev"><h4>EVIDENCE — produced, mapped</h4>
       <ul><li>SAST (CodeQL), OpenSSF Scorecard</li><li>CDX↔SPDX / coSWID interop</li><li>controls satisfiable but not yet a gate rule</li></ul></div>
     <div class="sc pl"><h4>OUT OF SCOPE — named, not hidden</h4>
