@@ -34,11 +34,11 @@ flowchart LR
 <div align="center">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/img/framework-coverage-dark.svg">
-  <img alt="One gate mapping to 27 controls across 6 frameworks" src="docs/img/framework-coverage.svg" width="940">
+  <img alt="One gate mapping to 32 controls across 6 frameworks" src="docs/img/framework-coverage.svg" width="940">
 </picture>
 </div>
 
-- **Enforced today** — the deploy pipeline **hard-blocks the release** on **nineteen OPA verifier reports** (SBOM
+- **Enforced today** — the deploy pipeline **hard-blocks the release** on **twenty-one OPA verifier reports** (SBOM
   present · attestation signature · SBOM↔subject binding · provenance identity · **SLSA L2 provenance** ·
   reconcile · CVE/VEX · **CHIPSEC platform posture** · **reconcile membership** (SI-7/CM-8(3)) · **component
   integrity** (SI-7(1)) · **VEX adjudication** (RV.1.1, high+critical) · **third-party identity** (CISA
@@ -67,7 +67,7 @@ framework  →  §control (exact ref)  →  evidence that proves it  →  status
 
 | Status | Meaning |
 |---|---|
-| **`ENFORCED`** | The release is **hard-blocked if this fails** — by one of the nineteen OPA `verifier_reports` in [`firmware.rego`](./oss-lane/policy/firmware.rego) *(gate)*; the `slsa-provenance` report is additionally backed by a CI hard-gate step *(CI)*, `gh attestation verify`. The mechanism is named per row. |
+| **`ENFORCED`** | The release is **hard-blocked if this fails** — by one of the twenty-one always-emitted OPA `verifier_reports` in [`firmware.rego`](./oss-lane/policy/firmware.rego) *(gate)*; the `slsa-provenance` report is additionally backed by a CI hard-gate step *(CI)*, `gh attestation verify`. The mechanism is named per row. |
 | **`EVIDENCE`** | We produce the artifact/field, but no gate rule checks it yet — the control is *satisfiable from what we emit*, just not *enforced*. |
 | **`PARTIAL`** | The evidence meets the control only in part; the named shortfall is in the note. |
 | **`PLANNED`** | A concrete, near-term artifact change (mostly SBOM enrichment + byte-integrity reconcile) would satisfy it. |
@@ -85,7 +85,7 @@ not asserted.
 | **E2** | **SLSA Build L2 provenance** | `slsa.dev/provenance/v1` | build origin is authentic (platform-generated) | GitHub `attest-build-provenance`, **verified green in CI** with `gh attestation verify` | `slsa-provenance` *(gate)* backed by `gh attestation verify` *(CI)*; `provenance-identity` *(gate, identity)* |
 | **E3** | **Reconcile verdict + byte-integrity** | custom in-toto predicates | shipped bytes match the declared components | FMMT-carved FFS vs SBOM by GUID (**123/123 membership**) **plus byte-integrity: 122 of the 123 modules'** shipped PE32 bytes match the declared SHA-256 (R4 — DXE direct, XIP/PEI via un-rebase canonicalization; the 123rd, `ResetVector`, is a raw blob with no PE32, covered by membership); a same-GUID swap is caught | `reconcile` + `component-byte-integrity` *(gate)* |
 | **E4** | **CVE + VEX** | grype JSON + **OpenVEX** (in-toto `openvex.dev/ns`, subjects = firmware `D` + OpenVEX file `H`) | no un-triaged critical vulnerability ships | scan over E1 + OpenVEX triage allowlist; the BSI **CSAF** view is **collapsed into a reference inside the OpenVEX attestation** (not a second VEX attestation) | `cve-triage` *(gate)* |
-| **E6** | **Policy verdict (VSA)** | **`slsa.dev/verification_summary/v1`** (in-toto/DSSE), subject = firmware digest `D` | the gate's verdict, as portable signed evidence | Standard SLSA VSA (`verificationResult`, `verifiedLevels:[L2]`) with the rich detail as **extensions**: `verifierReports[]` (19 observations, each framework-tagged) + **`controlAssessments[]`** (27 per-control findings across 6 frameworks — `satisfied`/`not-satisfied`/`not-applicable`, each carrying `description`/`citation`/`satisfied_by`/`missing_evidence`). in-toto/SLSA predicates are extensible: a SLSA-VSA consumer reads the standard summary, ours reads the detail. A later CDXA/SARIF rendering is an *added format over the same data* | output artifact |
+| **E6** | **Policy verdict (VSA)** | **`slsa.dev/verification_summary/v1`** (in-toto/DSSE), subject = firmware digest `D` | the gate's verdict, as portable signed evidence | Standard SLSA VSA (`verificationResult`, `verifiedLevels:[L2]`) with the rich detail as **extensions**: `verifierReports[]` (21 always-emitted observations, each framework-tagged; a 22nd, `firmware-freshly-measured`, rides only when a genuine flash-time measurement is supplied) + **`controlAssessments[]`** (32 per-control findings across 6 frameworks — `satisfied`/`not-satisfied`/`not-applicable`, each carrying `description`/`citation`/`satisfied_by`/`missing_evidence`). in-toto/SLSA predicates are extensible: a SLSA-VSA consumer reads the standard summary, ours reads the detail. A later CDXA/SARIF rendering is an *added format over the same data* | output artifact |
 | **E7** | **Build-tools SBOM** | CycloneDX + SHA-pins | the *build* toolchain is inventoried + signed | CI actions/tools, SHA-pinned + keyless-signed; **direct only, not transitive** | `build-tools-signed` *(gate)* |
 | **E8** | **SAST report** | CodeQL SARIF (keyless-signed) | static code-analysis findings | `codeql-sast` workflow — `python` (this repo's tooling, **0 findings**) on push + scoped edk2 `c-cpp` (NetworkPkg) on dispatch; **green in CI**, Security-tab uploaded, keyless-signed, and **severity-gated** (fails ≥7.0) | `codeql-sast` severity gate *(CI)* |
 | **E9** | **OpenSSF Scorecard** | Scorecard SARIF (keyless-signed) | repo security-posture score | `scorecard-analysis` workflow — push + weekly; Security-tab uploaded, published to the OpenSSF API (badge), keyless-signed. Posture evidence (R5) | — (soft evidence, deliberately not a hard gate) |
@@ -106,7 +106,7 @@ not asserted.
 > — the tamper-after-signing check), and `signer-identity-pinned` (the Fulcio cert SAN is in the trusted set). The
 > OIDC SAN is extracted from the cert and **checked**, not asserted.
 
-> **The trust anchor:** the nineteen gate reports are `sbom-present` (E1), `attestation-signature` (DSSE envelope),
+> **The trust anchor:** the twenty-one always-emitted gate reports are `sbom-present` (E1), `attestation-signature` (DSSE envelope),
 > `sbom-binding` (E1 file digest `H` ↔ attestation **file** subject `H`), `provenance-identity` (E2), `slsa-provenance` (E2, backed by the
 > `gh attestation verify` CI hard-gate), `reconcile` (E3), `cve-triage` (E4), `chipsec-posture` (E10),
 > `reconcile-membership` (E3, SI-7/CM-8(3)), `component-integrity` (E1, SI-7(1)),
@@ -127,8 +127,14 @@ not asserted.
 > `slsa-level-floor` (E2, SR-4/SR-4(3) — SLSA level ≥ 2),
 > `evidence-chain-bound` (E1/E2 + attestation: the SBOM-file digests agree at `H` across
 > SBOM↔attestation↔provenance **and** the reconcile attestation's firmware subject == the anchor `D`), and
-> `signer-identity-pinned` (DSSE envelope, SI-7(15)/CM-14/SR-4(1) — the cert SAN is in the trusted set) — the gate ANDs all
-> nineteen and emits E6. The
+> `signer-identity-pinned` (DSSE envelope, SI-7(15)/CM-14/SR-4(1) — the cert SAN is in the trusted set),
+> `sbom-generation-tool` and `sbom-generation-context` (E1, CISA 2026 Generation Tool / Context — the SBOM *declares*
+> a generating tool with name+version and a build-time lifecycle phase; declared-not-proven, the same ceiling as
+> `vex-adjudicated`) — the gate ANDs all twenty-one and emits E6. A **conditional** twenty-second report,
+> `firmware-freshly-measured` (SP 800-193 §4.3.1, admission-time/off-device), is emitted **only** when a genuine
+> flash-time `FW_IMAGE` measurement is supplied; in offline/CI `DEV_ASSUME_FWIMAGE` mode it is absent, so §4.3.1
+> is honestly MISSING_EVIDENCE and `allow` is unaffected (an absent report is not ANDed) — the demo never claims
+> on-device detection. The
 > `component-integrity` rule passes only with an explicit reviewed `data.hash_exempt` entry (ResetVector), never a
 > relaxed threshold.
 

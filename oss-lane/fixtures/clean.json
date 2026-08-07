@@ -13,6 +13,10 @@
     "thirdparty": {
       "total": 1,
       "missing": []
+    },
+    "generation": {
+      "tool_present": true,
+      "context_present": true
     }
   },
   "attestation": {
@@ -56,7 +60,8 @@
   "firmware": {
     "sbom_digest": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37",
     "reconcile_digest": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37",
-    "deployed_digest": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37"
+    "deployed_digest": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37",
+    "freshly_measured": false
   },
   "byte_integrity": {
     "ran": true,

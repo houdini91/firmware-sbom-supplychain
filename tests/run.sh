@@ -44,6 +44,9 @@ expect binary-hardening-missing-nx.json deny
 expect binary-hardening-vacuous.json deny
 expect binary-hardening-undercoverage.json deny
 expect binary-hardening-unexpected-skip.json deny
+expect generation-tool-missing.json deny
+expect generation-context-missing.json deny
+expect firmware-freshly-measured.json allow
 
 # byte-integrity exemption ALLOW path: the same un-verifiable module that DENYs above must
 # ALLOW once it is a reviewed entry in data.byte_integrity_exempt — proves the escape hatch works.

@@ -5,6 +5,10 @@
     "thirdparty": {
       "total": 1,
       "missing": []
+    },
+    "generation": {
+      "tool_present": true,
+      "context_present": true
     }
   },
   "attestation": {

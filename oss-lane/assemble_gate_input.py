@@ -137,6 +137,28 @@ def integrity(sbom):
             "dxe_class_total": sum(1 for c in mods if _module_type(c) in DXE_CLASS)}
 
 
+def generation(sbom):
+    """CISA 2026 Minimum Elements — Generation Tool + Generation Context, surfaced
+    from the SBOM the same way integrity()/thirdparty() surface their facts. HONESTY:
+    this reports what the SBOM DECLARES (a tool with name+version; a lifecycle phase),
+    not that the declared tool produced these bytes — the gate rule reflects that ceiling.
+      - tool_present: metadata.tools carries at least one entry with a name AND version.
+        CycloneDX 1.4 tools is a list; 1.5+ is an object {components:[...],services:[...]}.
+      - context_present: metadata.lifecycles[] carries at least one entry with a phase."""
+    md = sbom.get("metadata", {}) or {}
+    tools = md.get("tools")
+    if isinstance(tools, dict):
+        tool_list = (tools.get("components") or []) + (tools.get("services") or [])
+    elif isinstance(tools, list):
+        tool_list = tools
+    else:
+        tool_list = []
+    tool_present = any(t.get("name") and t.get("version") for t in tool_list if isinstance(t, dict))
+    lifecycles = md.get("lifecycles") or []
+    context_present = any(lc.get("phase") for lc in lifecycles if isinstance(lc, dict))
+    return {"tool_present": tool_present, "context_present": context_present}
+
+
 def thirdparty(sbom):
     def vendored(c):
         return any(p.get("name") == "edk2:vendored" and p.get("value") == "true"
@@ -318,19 +340,27 @@ def main():
 
     # firmware-image anchor legs
     fw_reconcile = dflt(pred, "image_digest", "")
+    # freshly_measured distinguishes a GENUINE flash-time measurement (a real FW_IMAGE hashed
+    # here at leg-3) from DEV_ASSUME_FWIMAGE mode (leg-3 copied from the build self-claim). Only
+    # the former discharges SP 800-193 §4.3.1 (admission-time detection); the gate emits the
+    # firmware-freshly-measured report ONLY when this is true, so offline/CI never claims §4.3.1.
     fw_image = env("FW_IMAGE")
     if fw_image and os.path.isfile(fw_image):
         fw_deployed = "sha256:" + sha256_file(fw_image)
+        fw_freshly_measured = True
     elif env("DEV_ASSUME_FWIMAGE") == "1":
         fw_deployed = fw_sbom
+        fw_freshly_measured = False
         warnings.append("DEV_ASSUME_FWIMAGE=1 — deployed .fd digest ASSUMED = SBOM image digest for local "
-                        "demo (CI/flash sets FW_IMAGE to hash the real deployed image)")
+                        "demo (CI/flash sets FW_IMAGE to hash the real deployed image); §4.3.1 NOT claimed")
     else:
         fw_deployed = ""
+        fw_freshly_measured = False
 
     gate_input = {
         "sbom": {"present": len(sbom.get("components", [])) > 0, "hash": "sha256:" + sbom_hash,
-                 "integrity": integrity(sbom), "thirdparty": thirdparty(sbom)},
+                 "integrity": integrity(sbom), "thirdparty": thirdparty(sbom),
+                 "generation": generation(sbom)},
         "attestation": {"file_subject": ("" if att_file == "" else "sha256:" + att_file),
                         "firmware_subject": ("" if att_firmware == "" else "sha256:" + att_firmware)},
         "signature": {"verified": sig == "true", "identity": effective_builder},
@@ -343,7 +373,8 @@ def main():
                       "matched": dflt(summary, "validated", 0),
                       "missing_count": dflt(summary, "missing", 0),
                       "undeclared_observed": dflt(summary, "added_suspicious", 0)},
-        "firmware": {"sbom_digest": fw_sbom, "reconcile_digest": fw_reconcile, "deployed_digest": fw_deployed},
+        "firmware": {"sbom_digest": fw_sbom, "reconcile_digest": fw_reconcile, "deployed_digest": fw_deployed,
+                     "freshly_measured": fw_freshly_measured},
         "cve": {"findings": cve_findings(env("GRYPE_JSON"))},
         "chipsec": {"critical_passed": chipsec_passed},
         "byte_integrity": byte_integrity_fact(env("BYTE_INTEGRITY_JSON")),

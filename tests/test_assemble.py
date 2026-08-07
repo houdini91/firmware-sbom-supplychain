@@ -46,6 +46,22 @@ check("thirdparty: empty purl/licenses -> missing; first-party excluded",
 # cve: missing/empty file -> []
 check("cve: no file -> []", a.cve_findings("") == [])
 
+# generation (CISA 2026): tools as a 1.5+ object with a name+version -> tool_present;
+# lifecycles[].phase -> context_present. name-only (no version) is NOT a declared tool.
+gen = a.generation({"metadata": {
+    "tools": {"components": [{"type": "application", "name": "edk2 BuildReport (-Y SBOM)", "version": "1.0"}]},
+    "lifecycles": [{"phase": "build"}]}})
+check("generation: object-form tools (name+version) + lifecycle phase -> both present",
+      gen["tool_present"] is True and gen["context_present"] is True)
+gen_list = a.generation({"metadata": {"tools": [{"name": "syft", "version": "1.2"}]}})
+check("generation: 1.4 list-form tools recognized; no lifecycles -> context absent",
+      gen_list["tool_present"] is True and gen_list["context_present"] is False)
+gen_bad = a.generation({"metadata": {"tools": {"components": [{"name": "nover"}]}, "lifecycles": [{}]}})
+check("generation: tool without a version, and a phaseless lifecycle -> both absent (not vacuous)",
+      gen_bad["tool_present"] is False and gen_bad["context_present"] is False)
+check("generation: empty metadata -> both absent",
+      a.generation({}) == {"tool_present": False, "context_present": False})
+
 # build_tools: 'latest'/unversioned+unhashed -> unpinned; signature flag threaded
 bt = a.build_tools_derive([
     {"name": "pinned", "version": "1.2.3"},

@@ -66,11 +66,19 @@ def main():
         rows, ok = [], True
         for c in ini.get("controls", []):
             status, detail = evaluate(c, present)
-            if status != PASS:
+            # An `advisory: true` control is a roadmap/aspirational mapping whose evidence is
+            # legitimately expected-absent in offline/CI (e.g. SP 800-193 §4.3.1, which needs a
+            # genuine flash-time measurement). Report its real status honestly, but do NOT let an
+            # expected-absent advisory control turn the coverage run red — it is not a gap in what
+            # we claim. A non-advisory control that is MISSING/FAIL still fails the run.
+            advisory = bool(c.get("advisory"))
+            if status != PASS and not advisory:
                 ok = False
                 all_pass = False
             note = (" ← missing: %s" % ", ".join(detail)) if status == MISSING else \
                    (" ← failed: %s" % ", ".join(detail)) if status == FAIL else ""
+            if advisory and status != PASS:
+                note += " (advisory / roadmap — not counted against coverage)"
             rows.append("    %s %-22s %s%s" % (MARK[status], c["id"], c["name"], note))
         print("  %s %s  [%s]" % ("✅" if ok else "⛔", ini["name"], key))
         print("\n".join(rows) + "\n")

@@ -8,7 +8,7 @@
 [![pr-checks](https://github.com/houdini91/firmware-sbom-supplychain/actions/workflows/pr-checks.yml/badge.svg)](https://github.com/houdini91/firmware-sbom-supplychain/actions/workflows/pr-checks.yml)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/houdini91/firmware-sbom-supplychain/badge)](https://scorecard.dev/viewer/?uri=github.com/houdini91/firmware-sbom-supplychain)
 ![SLSA VSA](https://img.shields.io/badge/SLSA-VSA%20signed-0d9488)
-![frameworks](https://img.shields.io/badge/6%20frameworks-27%20controls-475569)
+![frameworks](https://img.shields.io/badge/6%20frameworks-32%20controls-475569)
 ![license](https://img.shields.io/badge/license-MIT-475569)
 
 **[Primer](PRIMER.md)** · **[Design](DESIGN.md)** · **[Frameworks](FRAMEWORKS.md)** · **[Live demo output](docs/DEMO.md)** · **[Quickstart](#quickstart)**
@@ -93,7 +93,7 @@ The three that matter most, each verified against the code in this repo:
   bytes**, not a JSON file. A consumer re-hashes their own image and re-checks the verdict against `D` — the
   evidence is provably about *those* bytes.
 - **Framework-aware, drift-proof output.** Every verdict line carries its framework + control number +
-  description + citation + `satisfied_by` / `missing_evidence` — **27 controls across 6 frameworks**. The control
+  description + citation + `satisfied_by` / `missing_evidence` — **32 controls across 6 frameworks**. The control
   tags are *derived from one manifest*, so the Rego reports and the framework map can never disagree, and
   reusable checks share a **canonical crosswalk id** across frameworks.
 
@@ -125,20 +125,20 @@ the verdict travels with the bytes and anyone downstream can re-verify it.
   "predicate": {
     "verificationResult": "PASSED",
     "verifiedLevels": ["SLSA_BUILD_LEVEL_2"],
-    "verifierReports":     [ /* 19 per-rule observations, each framework-tagged */ ],   // extension
-    "controlAssessments":  [ /* 27 per-control findings across 6 frameworks, each cited */ ] // extension
+    "verifierReports":     [ /* 21 per-rule observations (always-emitted), each framework-tagged */ ],   // extension
+    "controlAssessments":  [ /* 32 per-control findings across 6 frameworks, each cited */ ] // extension
   }
 }
 ```
 
 ## Framework &amp; control coverage
 
-19 verifier reports resolve to **27 controls across 6 frameworks**.
+21 always-emitted verifier reports resolve to **32 controls across 6 frameworks**.
 
 <div align="center">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/img/framework-coverage-dark.svg">
-  <img alt="One gate mapping to 27 controls across 6 frameworks" src="docs/img/framework-coverage.svg" width="940">
+  <img alt="One gate mapping to 32 controls across 6 frameworks" src="docs/img/framework-coverage.svg" width="940">
 </picture>
 </div>
 
@@ -172,7 +172,7 @@ make demo      # the full OSS lane end to end (needs cosign + grype)
 the byte-integrity un-rebase test). The **coSWID round-trip and the PEI/XIP BUG-1 regression need
 python-uswid** and only *run* under `make test-full` — under plain `make test` they are honestly skipped, not
 silently passed. The gate itself is
-[`oss-lane/policy/firmware.rego`](oss-lane/policy/firmware.rego) — **19 verifier reports** ANDed into a signed
+[`oss-lane/policy/firmware.rego`](oss-lane/policy/firmware.rego) — **21 verifier reports** (plus a conditional 22nd, `firmware-freshly-measured`) ANDed into a signed
 SLSA VSA, each with an isolating negative fixture under [`oss-lane/fixtures/`](oss-lane/fixtures).
 
 A clean release ALLOWs; a same-GUID swap DENYs — the byte check catches what membership misses. **Real captured

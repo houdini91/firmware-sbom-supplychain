@@ -273,11 +273,36 @@ _signer_pinned if {
 	input.signature.identity in data.trusted_signer_identities
 }
 
+# CISA 2026 Minimum Elements — Generation Tool: the SBOM DECLARES a generation tool
+# (metadata.tools[] with a name+version). HONESTY CEILING: this proves the SBOM declares
+# a tool, NOT that the tool actually produced these bytes — same class of claim as
+# vex-adjudicated (a justification is declared, not independently proven). The assembler
+# surfaces the declared-tool fact from the SBOM into input.sbom.generation.tool_present.
+default _sbom_gen_tool := false
+_sbom_gen_tool if input.sbom.generation.tool_present
+
+# CISA 2026 Minimum Elements — Generation Context: the SBOM DECLARES the lifecycle phase
+# it was generated in (metadata.lifecycles[].phase). Same honesty ceiling as above — this
+# proves the phase is DECLARED, not that generation in fact occurred in that phase.
+default _sbom_gen_context := false
+_sbom_gen_context if input.sbom.generation.context_present
+
+# SP 800-193 §4.3.1 (Detection) input: a GENUINE flash-time image measurement was supplied
+# (a real FW_IMAGE hashed at leg-3), as opposed to DEV_ASSUME_FWIMAGE mode where leg-3 is
+# copied from the build's own SBOM self-claim. The assembler sets input.firmware.freshly_measured
+# true ONLY when a real FW_IMAGE file was hashed. This fact is what distinguishes an
+# admission-time off-device detection from a build-time self-attestation; see the conditional
+# firmware-freshly-measured report below.
+default _fw_freshly_measured := false
+_fw_freshly_measured if input.firmware.freshly_measured
+
 # ---------------------------------------------------------------------------
 # Normalized verifier reports — one per fact, tagged with the controls it
 # satisfies. The gate ANDs isSuccess across all of them.
 # ---------------------------------------------------------------------------
-verifier_reports := [
+verifier_reports := array.concat(_core_reports, _detection_reports)
+
+_core_reports := [
 	_report(
 		"sbom-present", _sbom_present,
 		"SBOM attached to the artifact", "no SBOM present",
@@ -310,7 +335,7 @@ verifier_reports := [
 	# which this lane does not assess. SP800-193-4.2 is the platform-resiliency mapping.
 	_report(
 		"chipsec-posture", _chipsec_posture,
-		"platform protections verified (CHIPSEC: applicable critical modules passed)",
+		"platform protections verified (CHIPSEC: applicable critical modules passed) — SAMPLE/ILLUSTRATIVE chipsec.json on the OVMF/QEMU target, not a live CHIPSEC run and no hardware root of trust",
 		"platform protections not verified (CHIPSEC: a critical module failed, or none ran)",
 	),
 	_report(
@@ -372,7 +397,38 @@ verifier_reports := [
 		"cve-triage", _no_critical,
 		"no un-triaged critical CVEs", _cve_msg,
 	),
+	# CISA 2026 Generation Tool / Context. HONESTY: these assert the SBOM DECLARES a tool /
+	# context (name+version in metadata.tools[]; a phase in metadata.lifecycles[]) — not that
+	# the declared tool produced these bytes, nor that generation occurred in that phase (the
+	# same declared-not-proven ceiling as vex-adjudicated).
+	_report(
+		"sbom-generation-tool", _sbom_gen_tool,
+		"SBOM declares its generation tool (metadata.tools[] carries a name+version) — declared, not independently proven to have produced these bytes",
+		"SBOM declares no generation tool (metadata.tools[] missing, or lacks a name+version)",
+	),
+	_report(
+		"sbom-generation-context", _sbom_gen_context,
+		"SBOM declares its generation context (metadata.lifecycles[].phase present) — declared, not independently proven",
+		"SBOM declares no generation context (metadata.lifecycles[].phase missing)",
+	),
 ]
+
+# SP 800-193 §4.3.1 Detection (admission-time, off-device) — CONDITIONAL report.
+# It is emitted ONLY when a genuine flash-time FW_IMAGE measurement was supplied. In
+# DEV_ASSUME_FWIMAGE (offline/CI) mode no fresh measurement exists, so the report is
+# ABSENT from verifier_reports — which leaves §4.3.1 as MISSING_EVIDENCE (not-satisfied)
+# in the initiative layer WITHOUT flipping `allow` (an absent report is not ANDed). This
+# is deliberate: the clean/DEV_ASSUME gate must NOT newly claim §4.3.1 on demo data, and
+# firmware-freshly-measured is non-gating precisely so it cannot. CEILING: when present it
+# attests a fresh admission-time/off-device measurement was taken — NOT the on-device,
+# boot-time Root of Trust for Detection (measured boot + golden RIM) that §4.3.1 envisions.
+_detection_reports := [_report(
+	"firmware-freshly-measured", _fw_freshly_measured,
+	"a genuine flash-time firmware image was freshly measured (real FW_IMAGE hashed at leg-3, not a DEV_ASSUME build self-claim) — admission-time/off-device, not an on-device Root of Trust for Detection",
+	"no fresh flash-time firmware measurement supplied (DEV_ASSUME_FWIMAGE: leg-3 copied from the build self-claim)",
+)] if _fw_freshly_measured
+
+_detection_reports := [] if not _fw_freshly_measured
 
 # Framework+control tags for a report, DERIVED from the manifest (data.initiatives) so the
 # rego reports and frameworks.yaml can never drift — one source of truth. Each tag is
@@ -582,6 +638,12 @@ vsa_predicate := {
 	"policy": {"uri": "https://github.com/houdini91/firmware-sbom-supplychain/blob/main/oss-lane/policy/firmware.rego"},
 	"verificationResult": _result,
 	"verifiedLevels": _levels,
+	# HONESTY (scope of verifiedLevels): SLSA_BUILD_LEVEL_2 attests the build provenance of
+	# the SBOM ARTIFACT (E2 — platform-generated attest-build-provenance over the SBOM file,
+	# hard-gated by `gh attestation verify` in CI). It is NOT a SLSA level of the firmware
+	# image itself — the firmware is not built on the SLSA-L2 hosted builder. A consumer must
+	# read this level as "the SBOM's build provenance is L2", never "the firmware is L2".
+	"verifiedLevelsNote": "SLSA_BUILD_LEVEL_2 applies to the SBOM artifact's build provenance (platform-generated), NOT to the firmware image; the firmware is bound to that evidence via the digest anchor D, but does not itself carry a SLSA build level.",
 	# The evidence graph rooted at D: {uri,digest} for each signed evidence attestation
 	# (SBOM/provenance/reconcile/VEX/CHIPSEC/build-tools). Empty offline — the CI signing
 	# step injects the real bundle digests (they are only known after each blob is signed).

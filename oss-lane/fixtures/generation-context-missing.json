@@ -16,7 +16,7 @@
     },
     "generation": {
       "tool_present": true,
-      "context_present": true
+      "context_present": false
     }
   },
   "attestation": {
@@ -46,13 +46,7 @@
     "undeclared_observed": 0
   },
   "cve": {
-    "findings": [
-      {
-        "id": "CVE-2021-38578",
-        "component": "edk2",
-        "severity": "CRITICAL"
-      }
-    ]
+    "findings": []
   },
   "chipsec": {
     "critical_passed": true
@@ -66,7 +60,8 @@
   "firmware": {
     "sbom_digest": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37",
     "reconcile_digest": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37",
-    "deployed_digest": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37"
+    "deployed_digest": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37",
+    "freshly_measured": false
   },
   "byte_integrity": {
     "ran": true,

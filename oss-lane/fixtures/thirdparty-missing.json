@@ -15,6 +15,10 @@
       "missing": [
         "openssl"
       ]
+    },
+    "generation": {
+      "tool_present": true,
+      "context_present": true
     }
   },
   "attestation": {

@@ -184,6 +184,18 @@
           ]
         },
         {
+          "id": "CM-8",
+          "name": "System component inventory",
+          "description": "Develop and maintain an accurate, up-to-date inventory of system components (here: the SBOM, reconciled against the shipped image, with every hashable module carrying an integrity hash).",
+          "citation": "NIST SP 800-53 Rev 5 \u2014 CM-8",
+          "canonical": "component-inventory",
+          "satisfied_by": [
+            "sbom-present",
+            "reconcile-membership",
+            "component-integrity"
+          ]
+        },
+        {
           "id": "SR-4",
           "name": "Provenance",
           "description": "Document, monitor, and maintain valid provenance for systems, components, and associated data.",
@@ -226,11 +238,24 @@
         {
           "id": "4.2",
           "name": "Protection posture (config-level, via CHIPSEC on OVMF target)",
-          "description": "Platform firmware and its critical data are protected from unauthorized modification (write-protection posture, checked via CHIPSEC).",
+          "description": "Platform firmware and its critical data are protected from unauthorized modification (write-protection posture, checked via CHIPSEC). CAVEAT: this is the OVMF/QEMU target with NO hardware root of trust; the demo's chipsec.json is sample/illustrative data, not a live CHIPSEC run, and not all critical modules are applicable (HW-root SPI descriptor/lock checks honestly report N/A on QEMU) \u2014 evidence-shaped config-level posture, not enforced platform resiliency.",
           "citation": "NIST SP 800-193 \u2014 \u00a74.2 (Protection)",
           "canonical": "platform-firmware-protection",
           "satisfied_by": [
             "chipsec-posture"
+          ]
+        },
+        {
+          "id": "4.3.1",
+          "name": "Detection of corrupted firmware code \u2014 admission-time, off-device",
+          "description": "Detect corruption of firmware code against an authorized reference. CEILING (verbatim): this is ADMISSION-TIME / OFF-DEVICE detection \u2014 the anchored evidence chain plus a fresh flash-time image measurement compared to the build reference off the device \u2014 it is NOT the on-device, boot-time Root of Trust for Detection (measured boot + golden RIM) that \u00a74.3.1 ultimately envisions. Requires a genuine flash-time FW_IMAGE measurement: in DEV_ASSUME_FWIMAGE (offline/CI) mode leg-3 is copied from the build self-claim, so this control is honestly NOT satisfied there.",
+          "citation": "NIST SP 800-193 \u2014 \u00a74.3.1 (Detection of Corrupted Code)",
+          "canonical": "firmware-corruption-detection",
+          "advisory": true,
+          "satisfied_by": [
+            "component-byte-integrity",
+            "firmware-digest-anchor",
+            "firmware-freshly-measured"
           ]
         }
       ]
@@ -269,6 +294,17 @@
           "satisfied_by": [
             "build-tools-signed"
           ]
+        },
+        {
+          "id": "AUD-3",
+          "name": "Validate integrity of ingested artifacts / shipped bytes",
+          "description": "Validate the integrity of ingested artifacts by comparing the shipped bytes against their declared references \u2014 here, byte-integrity of every hashable module plus reconcile membership of the declared SBOM against the observed image.",
+          "citation": "OpenSSF S2C2F v2 \u2014 AUD-3",
+          "canonical": "ingested-artifact-integrity",
+          "satisfied_by": [
+            "component-byte-integrity",
+            "reconcile-membership"
+          ]
         }
       ]
     },
@@ -283,7 +319,8 @@
           "citation": "EU CRA (Reg. 2024/2847) \u2014 Annex I, Part II(1); BSI TR-03183-2",
           "canonical": "sbom-exists",
           "satisfied_by": [
-            "sbom-present"
+            "sbom-present",
+            "reconcile-membership"
           ]
         },
         {
@@ -314,6 +351,26 @@
           "canonical": "component-license-identification",
           "satisfied_by": [
             "thirdparty-identifiers"
+          ]
+        },
+        {
+          "id": "cisa-generation-tool",
+          "name": "CISA 2026: generation tool",
+          "description": "The SBOM declares the tool that generated it (metadata.tools with a name+version \u2014 here the edk2 '-Y SBOM' BuildReport generator). HONESTY: this proves the SBOM DECLARES a generation tool, not that that tool actually produced these bytes (cf. vex-adjudicated, which proves a justification is declared).",
+          "citation": "CISA 2026 Minimum Elements for an SBOM \u2014 Generation Tool",
+          "canonical": "sbom-generation-tool",
+          "satisfied_by": [
+            "sbom-generation-tool"
+          ]
+        },
+        {
+          "id": "cisa-generation-context",
+          "name": "CISA 2026: generation context",
+          "description": "The SBOM declares the lifecycle context in which it was generated (metadata.lifecycles[].phase \u2014 build-time is the gold-standard context). HONESTY: this proves the SBOM DECLARES a generation context, not that it was in fact generated in that phase.",
+          "citation": "CISA 2026 Minimum Elements for an SBOM \u2014 Generation Context",
+          "canonical": "sbom-generation-context",
+          "satisfied_by": [
+            "sbom-generation-context"
           ]
         }
       ]

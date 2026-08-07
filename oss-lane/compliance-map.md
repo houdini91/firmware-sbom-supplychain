@@ -13,7 +13,7 @@ evidence, not a second enforcement point.
 
 ## The gate reports (what the release is blocked on)
 
-The release is hard-blocked on **19 verifier reports**. To keep one source of truth, they are **not
+The release is hard-blocked on **21 verifier reports**. To keep one source of truth, they are **not
 re-tabulated here** — the authoritative list lives in two places that cannot drift from the gate:
 
 - **Mechanism (canonical):** [`policy/firmware.rego`](./policy/firmware.rego) — the `verifier_reports` array
@@ -34,7 +34,7 @@ The OSS lane authenticates the builder's **keyless OIDC identity** (the signer S
 Fulcio cert and *checked*, not asserted), and enforces composition (`reconcile`), the SBOM↔signed-subject
 binding, the CVE/VEX gate, and — since the repo is public — **SLSA Build L2** provenance:
 `actions/attest-build-provenance` generates it platform-side, `gh attestation verify` hard-gates it in CI,
-**and** the `slsa-provenance` verifier report asserts it so the VSA lists it. All 19 reports are tested in
+**and** the `slsa-provenance` verifier report asserts it so the VSA lists it. All 21 reports are tested in
 CI (one isolating negative fixture each) and recorded in the VSA. The offline demo cannot run `attest-build-provenance`, so L2 there is an opt-in
 assumption (`DEV_ASSUME_SLSA`, loudly warned). SBOM-field completeness (licenses/PURLs/submodules) and
 code-analysis (SAST, `codeql-sast`) evidence are mapped and being wired, not all enforced yet — see
