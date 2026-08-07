@@ -44,7 +44,8 @@ allow="$(printf '%s' "$val" | jq -r '.allow')"
 echo "  verifier reports ($(basename "$INPUT")):"
 printf '%s' "$val" | jq -r '
   .verifier_reports[]
-  | "   \(if .isSuccess then "✅" else "⛔" end) \(.name): \(.message)  [\(.controls | join(", "))]"'
+  | "   \(if .isSuccess then "✅" else "⛔" end) \(.name): \(.message)  [\(.controls | join(", "))]"
+    + (if (.isSuccess | not) and (.remediation // "") != "" then "\n      → fix: \(.remediation)" else "" end)'
 
 # --- emit the VSA (in-toto Statement wrapping the standard SLSA VSA predicate) ---
 # subject = the FIRMWARE image digest D (the artifact this gate verifies), named

@@ -6,9 +6,9 @@ built OVMF image. Section 5 (the same-GUID trojan) is self-contained — it runs
 
 ---
 
-## 1. The gate ALLOWs a clean release — 21 signed checks, each tagged with the control it earns
+## 1. The gate ALLOWs a clean release — 24 signed checks, each tagged with the control it earns
 
-A fixture carrying complete, valid evidence: the gate ANDs all 21 verifier reports and signs the VSA.
+A fixture carrying complete, valid evidence: the gate ANDs all 24 verifier reports and signs the VSA.
 
 ```
    ✅ sbom-present: SBOM attached to the artifact  [cra-bsi-cisa:cra-annex-I-II-1, sp-800-53:CM-8, ssdf:PS.3.1]
@@ -177,7 +177,7 @@ RESULT: same-GUID byte swap — reconcile-membership PASSED, component-byte-inte
 ```
 
 The `… (19 other reports, all ✅) …` lines are the only elision — `make attack-demo`
-prints all 21 verifier reports in full both times. **The crux is the contrast:**
+prints all 24 verifier reports in full both times. **The crux is the contrast:**
 `reconcile-membership` PASSES the swap in both runs (the GUID is present); only
 `component-byte-integrity` flips from ✅ to ⛔, and that flip is what turns the gate's
 verdict from ALLOW to DENY.

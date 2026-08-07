@@ -95,6 +95,30 @@ os.unlink(_p)
 check("binary_hardening: missing_nx + errored + DXE-class-only unverifiable (non-DXE PeiSkip excluded)",
       bh["ran"] and bh["dxe_class_checked"] == 106 and bh["missing_nx_count"] == 2
       and bh["errored_count"] == 1 and bh["unverifiable"] == ["DxeErr", "DxeSkip"])
+check("binary_hardening: missing_nx NAMES surfaced (sorted) so the gate can name them",
+      bh["missing_nx"] == ["A", "B"])
+
+# byte_integrity: MODIFIED module NAMES surfaced (sorted) so the gate can name what tampered
+_fd2, _p2 = _tempfile.mkstemp(suffix=".json")
+with os.fdopen(_fd2, "w") as _f:
+    _json.dump({"checked": 3, "byte_verified": 1,
+                "modified": [{"name": "Zeta"}, {"name": "Alpha"}],
+                "skipped": [{"name": "SkipMod"}], "errored": []}, _f)
+bi = a.byte_integrity_fact(_p2)
+os.unlink(_p2)
+check("byte_integrity: modified_count + NAMES (sorted) + unverifiable from skipped",
+      bi["modified_count"] == 2 and bi["modified"] == ["Alpha", "Zeta"] and bi["unverifiable"] == ["SkipMod"])
+
+# chipsec_subresults: the platform-posture facts read from chipsec.json results[]; absent module -> ABSENT
+cs = a.chipsec_subresults({"results": [
+    {"module": "common.secureboot.variables", "result": "PASSED"},
+    {"module": "common.smm", "result": "passed"},
+    {"module": "common.bios_wp", "result": "FAILED"},
+    {"module": "common.bios_ts", "result": "NOTAPPLICABLE"},
+]})
+check("chipsec_subresults: secure_boot/smm/bios_wp/bios_ts surfaced (upper-cased), absent smrr -> ABSENT",
+      cs == {"secure_boot": "PASSED", "smm": "PASSED", "bios_wp": "FAILED",
+             "bios_ts": "NOTAPPLICABLE", "smrr": "ABSENT"})
 
 print("----")
 print("ALL PASS" if ok else "FAILURES")

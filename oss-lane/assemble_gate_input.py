@@ -208,9 +208,11 @@ def byte_integrity_fact(path):
     unverifiable = [x.get("name") for x in (d.get("skipped", []) or [])] \
         + [x.get("name") for x in (d.get("errored", []) or [])]
     unverifiable = sorted(n for n in unverifiable if n)
+    modified_names = sorted(n for n in (m.get("name") for m in (d.get("modified", []) or [])) if n)
     return {"ran": True, "checked": d.get("checked", 0),
             "verified": d.get("byte_verified", 0),
             "modified_count": len(d.get("modified", []) or []),
+            "modified": modified_names,  # NAMES of MODIFIED modules, so the gate can name what tampered
             "unverifiable": unverifiable,
             "skipped_count": len(unverifiable)}
 
@@ -238,12 +240,29 @@ def binary_hardening_fact(path):
         + [x.get("name") for x in (d.get("errored", []) or [])
            if x.get("type") in DXE_CLASS]
     unverifiable = sorted(n for n in unverifiable if n)
+    missing_nx_names = sorted(n for n in (m.get("name") for m in (d.get("dxe_missing_nx", []) or [])) if n)
     return {"ran": True,
             "dxe_class_checked": d.get("dxe_class_checked", 0),
             "dxe_nx_compat": d.get("dxe_nx_compat", 0),
             "missing_nx_count": len(d.get("dxe_missing_nx", []) or []),
+            "missing_nx": missing_nx_names,  # NAMES of missing-NX DXE modules, so the gate can name them
             "errored_count": len(d.get("errored", []) or []),
             "unverifiable": unverifiable}
+
+
+# CHIPSEC sub-result module names the platform-posture reports read directly (mirrors how
+# chipsec-posture already consumes chipsec.json). Surfaced as {fact: PASSED|FAILED|NOTAPPLICABLE},
+# defaulting to "ABSENT" when the module did not appear (so the gate can tell absent from failed).
+CHIPSEC_FACTS = {"secure_boot": "common.secureboot.variables", "smm": "common.smm",
+                 "bios_wp": "common.bios_wp", "bios_ts": "common.bios_ts", "smrr": "common.smrr"}
+
+
+def chipsec_subresults(doc):
+    by = {}
+    for r in (doc.get("results", []) or []):
+        if r.get("module"):
+            by[r["module"]] = (r.get("result") or "").upper()
+    return {fact: by.get(mod, "ABSENT") for fact, mod in CHIPSEC_FACTS.items()}
 
 
 def main():
@@ -263,9 +282,12 @@ def main():
     # CHIPSEC posture
     chipsec_json = env("CHIPSEC_JSON")
     if chipsec_json and os.path.isfile(chipsec_json):
-        chipsec_passed = bool(dflt(load_json(chipsec_json), "critical_passed", False))
+        _chipsec_doc = load_json(chipsec_json)
+        chipsec_passed = bool(dflt(_chipsec_doc, "critical_passed", False))
+        chipsec_subs = chipsec_subresults(_chipsec_doc)
     else:
         chipsec_passed = env("CHIPSEC_PASSED") == "true"
+        chipsec_subs = {fact: "ABSENT" for fact in CHIPSEC_FACTS}
 
     # Build-tools posture
     bt_sig = env("BUILD_TOOLS_SIG", "false")
@@ -376,7 +398,7 @@ def main():
         "firmware": {"sbom_digest": fw_sbom, "reconcile_digest": fw_reconcile, "deployed_digest": fw_deployed,
                      "freshly_measured": fw_freshly_measured},
         "cve": {"findings": cve_findings(env("GRYPE_JSON"))},
-        "chipsec": {"critical_passed": chipsec_passed},
+        "chipsec": {"critical_passed": chipsec_passed, **chipsec_subs},
         "byte_integrity": byte_integrity_fact(env("BYTE_INTEGRITY_JSON")),
         "binary_hardening": binary_hardening_fact(env("BINARY_HARDENING_JSON")),
         "build_tools": {"present": bt["present"], "signature_verified": bt["signature_verified"],

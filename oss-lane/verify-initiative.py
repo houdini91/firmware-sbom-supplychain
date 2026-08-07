@@ -25,13 +25,16 @@ MARK = {PASS: "✅", FAIL: "⛔", MISSING: "❔"}
 
 
 def load_reports(vsa_path):
-    """name -> isSuccess, from the VSA predicate's verifierReports (or a raw gate value)."""
+    """(name -> isSuccess, name -> remediation), from the VSA predicate's verifierReports
+    (or a raw gate value). Remediation rides only on failing reports."""
     with open(vsa_path) as f:
         doc = json.load(f)
     reports = (doc.get("predicate", {}).get("verifierReports")
                or doc.get("verifierReports")
                or doc.get("verifier_reports") or [])
-    return {r["name"]: bool(r.get("isSuccess")) for r in reports if r.get("name")}
+    present = {r["name"]: bool(r.get("isSuccess")) for r in reports if r.get("name")}
+    remediation = {r["name"]: r.get("remediation", "") for r in reports if r.get("name") and r.get("remediation")}
+    return present, remediation
 
 
 def evaluate(control, present):
@@ -51,7 +54,7 @@ def main():
     ap.add_argument("--manifest", default=os.path.join(here, "initiatives", "frameworks.yaml"))
     args = ap.parse_args()
 
-    present = load_reports(args.vsa)
+    present, remediation = load_reports(args.vsa)
     with open(args.manifest) as f:
         manifest = yaml.safe_load(f)
     initiatives = manifest.get("initiatives", {})
@@ -77,6 +80,10 @@ def main():
                 all_pass = False
             note = (" ← missing: %s" % ", ".join(detail)) if status == MISSING else \
                    (" ← failed: %s" % ", ".join(detail)) if status == FAIL else ""
+            if status == FAIL:
+                fixes = [remediation[r] for r in detail if remediation.get(r)]
+                if fixes:
+                    note += "\n        → fix: " + " | ".join(fixes)
             if advisory and status != PASS:
                 note += " (advisory / roadmap — not counted against coverage)"
             rows.append("    %s %-22s %s%s" % (MARK[status], c["id"], c["name"], note))

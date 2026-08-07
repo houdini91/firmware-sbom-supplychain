@@ -96,7 +96,7 @@ _byte_integrity_unexpected contains m if {
 # e.g. swapped to a TE/compressed section) must fail the gate, not pass silently: it is
 # an un-verified module, not a clean one.
 default _byte_integrity_msg := "byte-integrity not run (no image + edk2 supplied to the producer)"
-_byte_integrity_msg := sprintf("byte-integrity: %d module(s) MODIFIED — shipped bytes differ from the SBOM's declared hash (possible same-GUID swap)", [input.byte_integrity.modified_count]) if input.byte_integrity.modified_count > 0
+_byte_integrity_msg := sprintf("byte-integrity: %d module(s) MODIFIED: %v — shipped bytes differ from the SBOM's declared hash (possible same-GUID swap)", [input.byte_integrity.modified_count, sort(object.get(input, ["byte_integrity", "modified"], []))]) if input.byte_integrity.modified_count > 0
 _byte_integrity_msg := sprintf("byte-integrity: %d module(s) could NOT be byte-verified and are not a reviewed exemption: %v — investigate, or add to data.byte_integrity_exempt with a documented reason", [count(_byte_integrity_unexpected), sort([m | some m in _byte_integrity_unexpected])]) if {
 	input.byte_integrity.ran
 	input.byte_integrity.modified_count == 0
@@ -134,7 +134,7 @@ _binary_hardening_unexpected contains m if {
 }
 
 default _binary_hardening_msg := "binary-hardening not run (no image + edk2 supplied to the producer)"
-_binary_hardening_msg := sprintf("binary-hardening: %d DXE-class module(s) NOT NX-compatible — W^X cannot be enforced on them", [input.binary_hardening.missing_nx_count]) if input.binary_hardening.missing_nx_count > 0
+_binary_hardening_msg := sprintf("binary-hardening: %d DXE-class module(s) NOT NX-compatible: %v — W^X cannot be enforced on them", [input.binary_hardening.missing_nx_count, sort(object.get(input, ["binary_hardening", "missing_nx"], []))]) if input.binary_hardening.missing_nx_count > 0
 _binary_hardening_msg := sprintf("binary-hardening: %d DXE-class module(s) could NOT be scanned and are not a reviewed exemption: %v — investigate, or add to data.binary_hardening_exempt with a documented reason", [count(_binary_hardening_unexpected), sort([m | some m in _binary_hardening_unexpected])]) if {
 	input.binary_hardening.ran
 	input.binary_hardening.missing_nx_count == 0
@@ -296,6 +296,59 @@ _sbom_gen_context if input.sbom.generation.context_present
 default _fw_freshly_measured := false
 _fw_freshly_measured if input.firmware.freshly_measured
 
+# CISA BOD 22-01 (KEV): no SBOM component ships a CVE that is on the CISA Known Exploited
+# Vulnerabilities catalog (data.cisa_kev), UNLESS that CVE carries an explicit exec-risk VEX
+# waiver (data.kev_waivers). A plain not_affected in the ordinary VEX allowlist does NOT silence
+# a KEV finding — a known-exploited bug is a different risk class from a triaged-away CVE, so it
+# needs its own, explicit, exec-risk justification. HONESTY CEILING: KEV membership is matched on
+# the component's DECLARED version (the SBOM/grype evidence), not proven runtime exploitability.
+_kev_ids := {entry.cve | some entry in data.cisa_kev}
+
+_kev_hits contains c if {
+	some c in input.cve.findings
+	c.id in _kev_ids
+	object.get(data.kev_waivers, c.id, "") == "" # not waived by an explicit exec-risk justification
+}
+
+default _no_kev := false
+_no_kev if count(_kev_hits) == 0
+
+_kev_msg := sprintf(
+	"CISA KEV: %d shipped component(s) carry a Known-Exploited CVE with no exec-risk VEX waiver: %v — KEV membership is by DECLARED component version, not proven runtime exploitability",
+	[count(_kev_hits), sort([s | some c in _kev_hits; s := sprintf("%s in %q", [c.id, c.component])])],
+)
+
+# NIST SP 800-147B + UEFI Spec §32: UEFI Secure Boot is provisioned and enforcing. Reads the
+# EXISTING CHIPSEC secureboot.variables sub-result surfaced by the assembler. HONESTY CEILING:
+# SAMPLE/ILLUSTRATIVE chipsec.json on the OVMF/QEMU target — config-level posture, not a live
+# hardware-rooted CHIPSEC run.
+default _uefi_secure_boot := false
+_uefi_secure_boot if input.chipsec.secure_boot == "PASSED"
+
+_uefi_sb_msg := sprintf(
+	"UEFI Secure Boot not verified: CHIPSEC secureboot.variables = %v (expected PASSED) — SAMPLE/ILLUSTRATIVE chipsec.json on OVMF/QEMU, not a live run",
+	[object.get(input, ["chipsec", "secure_boot"], "absent")],
+)
+
+# NIST SP 800-147 (flash write-protection) + SP 800-193 §4.2.3 (SMM): the two platform-protection
+# pillars that actually run on the QEMU target — CHIPSEC bios_wp (BIOS flash write-protection) and
+# smm (System Management Mode isolation) — both PASSED. Reads the EXISTING chipsec sub-results.
+# HONEST PARTIAL: bios_ts + smrr report N/A on QEMU (no hardware root of trust), so they are
+# reported (not gated) — a config-level posture assessment, not enforced platform resiliency.
+default _platform_protection := false
+_platform_protection if {
+	input.chipsec.smm == "PASSED"
+	input.chipsec.bios_wp == "PASSED"
+}
+
+_platform_msg := sprintf(
+	"platform protection not verified: CHIPSEC bios_wp(800-147)=%v smm(800-193 §4.2.3)=%v (expected PASSED; bios_ts=%v smrr=%v report N/A on QEMU) — SAMPLE/ILLUSTRATIVE chipsec.json, not physical silicon",
+	[
+		object.get(input, ["chipsec", "bios_wp"], "absent"), object.get(input, ["chipsec", "smm"], "absent"),
+		object.get(input, ["chipsec", "bios_ts"], "n/a"), object.get(input, ["chipsec", "smrr"], "n/a"),
+	],
+)
+
 # ---------------------------------------------------------------------------
 # Normalized verifier reports — one per fact, tagged with the controls it
 # satisfies. The gate ANDs isSuccess across all of them.
@@ -411,6 +464,27 @@ _core_reports := [
 		"SBOM declares its generation context (metadata.lifecycles[].phase present) — declared, not independently proven",
 		"SBOM declares no generation context (metadata.lifecycles[].phase missing)",
 	),
+	# CISA KEV (BOD 22-01): no shipped component carries a Known-Exploited CVE (unless an explicit
+	# exec-risk VEX waiver applies). HONESTY: KEV membership is by the DECLARED component version,
+	# not proven runtime exploitability; data.cisa_kev is a small illustrative seed.
+	_report(
+		"no-kev-component", _no_kev,
+		"no shipped component carries a CISA KEV (Known-Exploited) CVE — or each is waived by an explicit exec-risk VEX justification (declared version, not runtime exploitability)",
+		_kev_msg,
+	),
+	# UEFI Secure Boot posture — reads the EXISTING chipsec secureboot.variables result.
+	_report(
+		"uefi-secure-boot-posture", _uefi_secure_boot,
+		"UEFI Secure Boot provisioned + enforcing (CHIPSEC secureboot.variables PASSED) — SAMPLE/ILLUSTRATIVE chipsec.json on OVMF/QEMU, config-level posture not a live hardware-rooted run",
+		_uefi_sb_msg,
+	),
+	# Platform-protection posture — reads the EXISTING chipsec bios_wp (800-147) + smm (800-193 §4.2.3)
+	# results. Honest partial: bios_ts + smrr report N/A on QEMU (no HW root of trust), reported not gated.
+	_report(
+		"platform-protection-posture", _platform_protection,
+		"platform protections verified (CHIPSEC bios_wp flash write-protection + smm SMM isolation PASSED; bios_ts/smrr N/A on QEMU) — SAMPLE/ILLUSTRATIVE chipsec.json, config-level posture not physical silicon",
+		_platform_msg,
+	),
 ]
 
 # SP 800-193 §4.3.1 Detection (admission-time, off-device) — CONDITIONAL report.
@@ -454,7 +528,33 @@ _report(name, ok, _pass, fail_msg) := {
 	"id": sprintf("firmware-sbom-supplychain/%s@v1", [name]),
 	"isSuccess": false, "message": fail_msg,
 	"controls": _controls_for(name),
+	"remediation": _remediation_for(name), # stable "how to fix" — emitted ONLY on a failing report
 } if not ok
+
+# Stable per-report remediation strings (the audit's "how to fix"). Emitted on the verifier report
+# ONLY when isSuccess=false (see the failing _report branch), surfaced in the VSA verifierReports[]
+# finding, rendered by gate.sh as "→ fix: …" and appended to verify-initiative.py's "← failed:" note.
+_remediation := {
+	"component-byte-integrity": "A MODIFIED module means the shipped bytes differ from the SBOM's declared hash (possible same-GUID swap) — rebuild from trusted source and re-attest; if a module is genuinely un-verifiable, add it to data.byte_integrity_exempt with a reviewed reason. Tampering is NEVER exemptable.",
+	"binary-hardening": "Rebuild the named DXE-class module(s) with NX_COMPAT set so W^X can be enforced; a missing-NX regression is not exemptable. Only a genuinely un-scannable (e.g. TE-only/compressed) DXE module may be added to data.binary_hardening_exempt with a reviewed reason.",
+	"chipsec-posture": "Re-run CHIPSEC against the target and fix any FAILED critical module (bios_wp/secureboot/smm); a config-level FAILED is a real platform-protection gap, not an N/A. Do not ship until the applicable critical modules PASS.",
+	"evidence-chain-bound": "Re-generate the multi-subject reconcile attestation so the SBOM-file digest H agrees across SBOM/attestation/provenance AND the attestation's firmware subject equals the firmware anchor D; a mismatch means the evidence is not about these bytes.",
+	"signer-identity-pinned": "Re-sign with a trusted keyless identity and add its cert SAN to data.trusted_signer_identities; an unpinned or unverified signer must not be admitted.",
+	"vex-adjudicated": "Adjudicate every HIGH/CRITICAL finding with a non-empty VEX justification (data.cve_allowlist) — investigate and fix, or record a reviewed not_affected/rationale; an empty justification does not discharge the finding.",
+	"thirdparty-identifiers": "Add the missing purl + license to each named third-party component in the SBOM (S2C2F SCA-2 / CISA license+identifiers); regenerate the SBOM so every vendored component carries both.",
+	"slsa-level-floor": "Build the artifact on a hosted/platform builder that emits SLSA provenance at level >= 2 (attest-build-provenance) and verify it with `gh attestation verify`; a level below 2 does not meet the floor.",
+	"slsa-provenance": "Enable attest-build-provenance in the build platform and hard-gate `gh attestation verify` before the deploy gate so the SLSA L2 provenance is platform-generated and verified.",
+	"component-integrity": "Ensure every hashable (non-library) module carries a cryptographic hash in the SBOM; for a genuinely unhashable artifact (e.g. a raw reset-vector blob) add a reviewed entry to data.hash_exempt — do not ship an unhashed, non-exempt module.",
+	"firmware-digest-anchor": "Make the three firmware-byte digests agree — the SBOM metadata digest D, the reconcile re-hash, and the deployed .fd — by rebuilding/re-measuring; an empty leg is a supply-chain gap and a mismatch is a possible swap.",
+	"sbom-generation-tool": "Regenerate the SBOM with a generator that records metadata.tools[] carrying a name AND version (e.g. the edk2 '-Y SBOM' BuildReport generator); a tool-less SBOM does not meet the CISA generation-tool element.",
+	"sbom-generation-context": "Regenerate the SBOM so metadata.lifecycles[] declares the generation phase (build-time is the gold standard); a context-less SBOM does not meet the CISA generation-context element.",
+	"no-kev-component": "Upgrade or remove the named component so it no longer carries the CISA KEV (Known-Exploited) CVE; a plain not_affected does NOT waive a KEV — only an explicit, reviewed exec-risk justification in data.kev_waivers may, and only after human review.",
+	"uefi-secure-boot-posture": "Provision + enforce UEFI Secure Boot (PK/KEK/db/dbx, SecureBoot=1, SetupMode=0) so CHIPSEC secureboot.variables PASSES; do not admit an image whose target does not enforce Secure Boot.",
+	"platform-protection-posture": "Fix the platform-protection gap so CHIPSEC bios_wp (flash write-protection, 800-147) and smm (SMM isolation, 800-193 §4.2.3) both PASS; a FAILED pillar is a real protection gap (bios_ts/smrr N/A on QEMU is expected).",
+	"reconcile-membership": "Reconcile the SBOM against the observed image so every declared module is present and no undeclared artifact appears; investigate any missing or suspicious module before shipping.",
+}
+
+_remediation_for(name) := object.get(_remediation, name, "")
 
 _provenance_msg := sprintf(
 	"built outside trusted builder/source: builder=%q source=%q",
@@ -463,13 +563,21 @@ _provenance_msg := sprintf(
 
 _cve_msg := sprintf("%d un-triaged critical CVE(s)", [count(critical_cves)])
 
+# Absent-input guard: with no reconcile section at all, do NOT print "?" placeholders — that reads
+# like a computed verdict. Say plainly that the evidence is absent.
+default _reconcile_membership_msg := "reconcile evidence absent (no reconcile section supplied) — cannot confirm module membership"
+
 _reconcile_membership_msg := sprintf(
 	"reconcile membership incomplete: matched=%v declared=%v missing=%v undeclared=%v",
 	[object.get(input, ["reconcile", "matched"], "?"), object.get(input, ["reconcile", "declared"], "?"),
 		object.get(input, ["reconcile", "missing_count"], "?"), object.get(input, ["reconcile", "undeclared_observed"], "?")],
-)
+) if input.reconcile
 
-_integrity_msg := sprintf("%d module(s) lack a hash and are not in data.hash_exempt: %v", [count(_integrity_unresolved), _integrity_unresolved])
+# Absent-input guard: with no sbom.integrity section, do NOT print "0 module(s)…[]" — that reads
+# like a clean-but-failing verdict. Say plainly that the evidence is absent.
+default _integrity_msg := "SBOM integrity evidence absent (no sbom.integrity section supplied) — cannot confirm component hashes"
+
+_integrity_msg := sprintf("%d module(s) lack a hash and are not in data.hash_exempt: %v", [count(_integrity_unresolved), _integrity_unresolved]) if input.sbom.integrity
 
 _vex_msg := sprintf("%d high/critical CVE(s) lack a non-empty VEX justification: %v", [count(_unadjudicated), {c.id | some c in _unadjudicated}])
 
@@ -566,6 +674,22 @@ deny contains msg if {
 	msg := sprintf("critical CVE %s in component %q (not in VEX allowlist)", [c.id, c.component])
 }
 
+# BUG FIX: sbom-generation-tool / sbom-generation-context flipped `allow` but produced NO human
+# denial bullet. Add the granular deny reasons so an operator sees WHY it was blocked.
+deny contains "SBOM declares no generation tool (metadata.tools[] missing, or lacks a name+version)" if not _sbom_gen_tool
+
+deny contains "SBOM declares no generation context (metadata.lifecycles[].phase missing)" if not _sbom_gen_context
+
+# CISA KEV (BOD 22-01): a shipped component carries a Known-Exploited CVE with no exec-risk waiver.
+deny contains msg if {
+	some c in _kev_hits
+	msg := sprintf("CISA KEV: component %q ships Known-Exploited CVE %s (no exec-risk VEX waiver) — remediate on the BOD 22-01 timeline", [c.component, c.id])
+}
+
+deny contains _uefi_sb_msg if not _uefi_secure_boot
+
+deny contains _platform_msg if not _platform_protection
+
 # ---------------------------------------------------------------------------
 # SLSA Verification Summary Attestation (VSA) predicate.
 # The gate's verdict as portable evidence: gate.sh wraps this in an in-toto
@@ -576,8 +700,11 @@ deny contains msg if {
 # ---------------------------------------------------------------------------
 # --- Per-control assessment (OSCAL Assessment-Results-shaped) -----------------
 # Each verifier report is an OSCAL "observation"; each framework control becomes a
-# "finding" whose status is satisfied / not-satisfied / not-applicable, derived from
-# the reports that satisfy it (data.initiatives, generated from frameworks.yaml).
+# "finding" whose status is satisfied / not-satisfied / missing-evidence, derived from
+# the reports that satisfy it (data.initiatives, generated from frameworks.yaml). A required
+# report ABSENT from the verdict is missing-evidence (a supply-chain gap), matching
+# verify-initiative.py's MISSING_EVIDENCE — NOT "not-applicable" (which would imply the control
+# does not apply, hiding the gap).
 _report_present(name) if {
 	some r in verifier_reports
 	r.name == name
@@ -589,7 +716,7 @@ _report_pass(name) if {
 	r.isSuccess
 }
 
-_control_status(need) := "not-applicable" if {
+_control_status(need) := "missing-evidence" if {
 	some r in need
 	not _report_present(r)
 }

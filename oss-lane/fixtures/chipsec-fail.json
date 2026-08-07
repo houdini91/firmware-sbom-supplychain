@@ -49,7 +49,12 @@
     "findings": []
   },
   "chipsec": {
-    "critical_passed": false
+    "critical_passed": false,
+    "secure_boot": "PASSED",
+    "smm": "PASSED",
+    "bios_wp": "FAILED",
+    "bios_ts": "NOTAPPLICABLE",
+    "smrr": "NOTAPPLICABLE"
   },
   "build_tools": {
     "present": true,

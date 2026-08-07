@@ -17,6 +17,18 @@ embedded-SBOM plan, not compete with it.")
 
 ## MET (the scaffolding is real)
 
+> **Scope of "MET": these describe what the *emitter* (`producers/interop/coswid-emit.py`)
+> produces — NOT what the deploy gate checks.** The enforcing OPA gate consumes the
+> *CycloneDX* SBOM (`inputs/sbom.cdx.json`) and reconciles shipped bytes; it does **not**
+> re-verify any of the OSF embedding MUSTs below (it never parses the embedded coSWID, the
+> `.sbom` COFF section, GUID-form of tag-ids, tag-creator, or a source-file hash). So a
+> firmware whose *embedded* SBOM violated these could still pass the gate today. Machine-
+> checking OSF-embedded conformance is a **roadmap item** — the proposed `osf-sbom-conformance`
+> report (extract the coSWID from the shipped image via uswid → assert it is well-formed +
+> `uswid --validate` clean) in `planning/COMPLIANCE-ROADMAP.md`. Also note: the OSF spec
+> (`embedding.rst:20`) says the SBOM "does not need to be verified against a binary" — so our
+> shipped-byte reconcile is an **extension beyond** OSF, not an OSF requirement.
+
 - **coSWID / CBOR format** — serialized entirely by python-uswid (`uSwidFormatCoswid`
   / `uSwidFormatUswid`); no hand-rolled CBOR. (OSF `embedding.rst:64`)
 - **uSWID magic header** for non-PE embedding — the `.uswid` container carries the

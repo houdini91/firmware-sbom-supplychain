@@ -55,7 +55,12 @@
     ]
   },
   "chipsec": {
-    "critical_passed": true
+    "critical_passed": true,
+    "secure_boot": "PASSED",
+    "smm": "PASSED",
+    "bios_wp": "PASSED",
+    "bios_ts": "NOTAPPLICABLE",
+    "smrr": "NOTAPPLICABLE"
   },
   "build_tools": {
     "present": true,

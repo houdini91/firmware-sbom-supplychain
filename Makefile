@@ -68,6 +68,10 @@ reconcile: ## Carve a real image + reconcile: make reconcile EDK2=<tree> IMG=<im
 attack-demo: ## "Same-GUID trojan caught": byte-tamper a real module under its GUID; real producer -> MODIFIED -> gate DENY. Add FW_IMAGE=<OVMF.fd> EDK2=<tree> for the full real-image run.
 	OPA=$(or $(OPA),$(ROOT)bin/opa) bash scripts/attack-demo.sh
 
+.PHONY: multi-firmware-demo
+multi-firmware-demo: ## Run the SAME gate over three firmware profiles (X clean / Y authentic-but-vulnerable / Z tampered) and print a ✅/⛔ comparison table + per-⛔ remediation (needs opa + python3)
+	OPA=$(or $(OPA),$(ROOT)bin/opa) bash scripts/multi-firmware-demo.sh
+
 .PHONY: coswid-demo
 coswid-demo: ## coSWID emit + FULL-LOOP proof: emit coSWID (source+shipped-byte hash) -> PE .sbom embed/extract -> ingest -> reconcile -> byte-integrity -> gate ALLOW/DENY. Needs python-uswid: COSWID_PY=<venv>/bin/python USWID=<venv>/bin/uswid make coswid-demo
 	OPA=$(or $(OPA),$(ROOT)bin/opa) bash scripts/coswid-demo.sh

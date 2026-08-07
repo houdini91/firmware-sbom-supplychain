@@ -51,7 +51,7 @@
   "chipsec": {
     "critical_passed": true,
     "secure_boot": "PASSED",
-    "smm": "PASSED",
+    "smm": "FAILED",
     "bios_wp": "PASSED",
     "bios_ts": "NOTAPPLICABLE",
     "smrr": "NOTAPPLICABLE"
@@ -65,12 +65,13 @@
   "firmware": {
     "sbom_digest": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37",
     "reconcile_digest": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37",
-    "deployed_digest": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37"
+    "deployed_digest": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37",
+    "freshly_measured": false
   },
   "byte_integrity": {
     "ran": true,
-    "checked": 1,
-    "verified": 1,
+    "checked": 122,
+    "verified": 122,
     "modified_count": 0,
     "skipped_count": 0,
     "unverifiable": []

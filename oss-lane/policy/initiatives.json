@@ -221,12 +221,13 @@
         },
         {
           "id": "RA-5",
-          "name": "Vulnerability scanning",
-          "description": "Scan for vulnerabilities in the system and its components and analyze the results.",
-          "citation": "NIST SP 800-53 Rev 5 \u2014 RA-5",
+          "name": "Vulnerability scanning (+ known-exploited prioritization)",
+          "description": "Scan for vulnerabilities in the system and its components and analyze the results \u2014 including prioritizing any component vulnerability that is on the CISA Known Exploited Vulnerabilities (KEV) catalog.",
+          "citation": "NIST SP 800-53 Rev 5 \u2014 RA-5 (with CISA BOD 22-01 KEV prioritization)",
           "canonical": "vulnerability-management",
           "satisfied_by": [
-            "cve-triage"
+            "cve-triage",
+            "no-kev-component"
           ]
         }
       ]
@@ -235,6 +236,16 @@
       "name": "NIST SP 800-193 \u2014 Platform Firmware Resiliency (Protection)",
       "help": "https://csrc.nist.gov/pubs/sp/800/193/final",
       "controls": [
+        {
+          "id": "4.2.3",
+          "name": "SMM protection (System Management Mode isolation)",
+          "description": "The platform protects the code and data used for critical firmware functions, including System Management Mode (SMM) \u2014 here, CHIPSEC confirms SMM protection is in place (SMRAM locked / SMM guarded). CAVEAT: OVMF/QEMU target with sample/illustrative chipsec.json; SMRR reports N/A with no hardware root of trust.",
+          "citation": "NIST SP 800-193 \u2014 \u00a74.2.3 (Protection of critical firmware functions \u2014 SMM)",
+          "canonical": "platform-smm-protection",
+          "satisfied_by": [
+            "platform-protection-posture"
+          ]
+        },
         {
           "id": "4.2",
           "name": "Protection posture (config-level, via CHIPSEC on OVMF target)",
@@ -371,6 +382,42 @@
           "canonical": "sbom-generation-context",
           "satisfied_by": [
             "sbom-generation-context"
+          ]
+        },
+        {
+          "id": "cisa-kev",
+          "name": "CISA KEV: no shipped component on the Known Exploited Vulnerabilities catalog",
+          "description": "No SBOM component declares a CVE that is on the CISA Known Exploited Vulnerabilities (KEV) catalog, unless that CVE carries an explicit exec-risk VEX waiver. BOD 22-01 requires federal agencies to remediate KEV entries on an accelerated timeline; a plain not_affected VEX does NOT silence a KEV finding. HONESTY: KEV membership is matched against the component's DECLARED version (SBOM/grype evidence), not proven runtime exploitability, and data.cisa_kev is a small illustrative seed \u2014 refresh it from the live CISA KEV feed.",
+          "citation": "CISA BOD 22-01 \u2014 Known Exploited Vulnerabilities Catalog",
+          "canonical": "known-exploited-vulnerabilities",
+          "satisfied_by": [
+            "no-kev-component"
+          ]
+        }
+      ]
+    },
+    "nist-800-147": {
+      "name": "NIST SP 800-147 / 147B + UEFI Secure Boot \u2014 BIOS protection & authenticated boot",
+      "help": "https://csrc.nist.gov/pubs/sp/800/147/final",
+      "controls": [
+        {
+          "id": "800-147-flash-wp",
+          "name": "BIOS flash write-protection",
+          "description": "The system firmware (BIOS/UEFI) resides in protected, write-protected flash so it cannot be modified except through an authenticated update mechanism \u2014 here, CHIPSEC confirms the BIOS write-protection posture (bios_wp). CAVEAT: OVMF/QEMU target, sample/illustrative chipsec.json, not physical silicon and not the authenticated-update pillar.",
+          "citation": "NIST SP 800-147 \u2014 BIOS Protection Guidelines (flash write-protection)",
+          "canonical": "platform-firmware-protection",
+          "satisfied_by": [
+            "platform-protection-posture"
+          ]
+        },
+        {
+          "id": "800-147B-secure-boot",
+          "name": "UEFI Secure Boot enabled + enforcing",
+          "description": "The platform enforces UEFI Secure Boot: the Secure Boot variables (PK/KEK/db/dbx, SecureBoot=1, SetupMode=0) are provisioned and enforced so only signed boot components execute \u2014 here, CHIPSEC confirms secureboot.variables. CAVEAT: OVMF/QEMU target, sample/illustrative chipsec.json, config-level posture not a live hardware-rooted measurement.",
+          "citation": "UEFI Specification 2.10 \u00a732 (Secure Boot) + NIST SP 800-147B (server BIOS protection)",
+          "canonical": "uefi-secure-boot",
+          "satisfied_by": [
+            "uefi-secure-boot-posture"
           ]
         }
       ]

@@ -46,6 +46,9 @@ expect binary-hardening-undercoverage.json deny
 expect binary-hardening-unexpected-skip.json deny
 expect generation-tool-missing.json deny
 expect generation-context-missing.json deny
+expect kev-component.json deny
+expect secureboot-fail.json deny
+expect platform-protection-fail.json deny
 expect firmware-freshly-measured.json allow
 
 # byte-integrity exemption ALLOW path: the same un-verifiable module that DENYs above must

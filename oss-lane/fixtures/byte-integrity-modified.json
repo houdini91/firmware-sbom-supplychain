@@ -49,7 +49,12 @@
     "findings": []
   },
   "chipsec": {
-    "critical_passed": true
+    "critical_passed": true,
+    "secure_boot": "PASSED",
+    "smm": "PASSED",
+    "bios_wp": "PASSED",
+    "bios_ts": "NOTAPPLICABLE",
+    "smrr": "NOTAPPLICABLE"
   },
   "build_tools": {
     "present": true,
@@ -68,7 +73,10 @@
     "verified": 121,
     "modified_count": 1,
     "skipped_count": 0,
-    "unverifiable": []
+    "unverifiable": [],
+    "modified": [
+      "DxeCore"
+    ]
   },
   "binary_hardening": {
     "ran": true,

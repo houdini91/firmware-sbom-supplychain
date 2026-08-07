@@ -30,9 +30,9 @@ flowchart LR
 > **The signed verdict is a standard SLSA VSA, extended.** The output is a standard SLSA **Verification Summary
 > Attestation** (`predicateType` `https://slsa.dev/verification_summary/v1`), subject = the firmware digest `D`,
 > carrying the standard summary fields (`verificationResult`, `verifiedLevels`). Because this gate verifies many
-> frameworks (not just SLSA), the rich detail rides as predicate **extensions** — `verifierReports[]` (21 per-rule
+> frameworks (not just SLSA), the rich detail rides as predicate **extensions** — `verifierReports[]` (24 per-rule
 > observations, each framework-tagged) plus **OSCAL-shaped `controlAssessments[]`** — 32 per-control findings
-> (`satisfied` / `not-satisfied` / `not-applicable`) across six frameworks. in-toto/SLSA predicates are
+> (`satisfied` / `not-satisfied` / `missing-evidence`) across seven frameworks. in-toto/SLSA predicates are
 > explicitly extensible, so a stock SLSA-VSA consumer reads the summary and ignores the rest, while our CLI +
 > initiative layer read the detail. The RATS framing still holds (the gate is the *Verifier*, the deploy step is
 > the *Relying Party*). See E6 in [`FRAMEWORKS.md`](FRAMEWORKS.md).

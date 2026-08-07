@@ -46,7 +46,13 @@
     "undeclared_observed": 0
   },
   "cve": {
-    "findings": []
+    "findings": [
+      {
+        "id": "CVE-2023-4863",
+        "component": "libwebp",
+        "severity": "HIGH"
+      }
+    ]
   },
   "chipsec": {
     "critical_passed": true,
@@ -65,12 +71,13 @@
   "firmware": {
     "sbom_digest": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37",
     "reconcile_digest": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37",
-    "deployed_digest": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37"
+    "deployed_digest": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37",
+    "freshly_measured": false
   },
   "byte_integrity": {
     "ran": true,
-    "checked": 1,
-    "verified": 1,
+    "checked": 122,
+    "verified": 122,
     "modified_count": 0,
     "skipped_count": 0,
     "unverifiable": []
@@ -78,9 +85,12 @@
   "binary_hardening": {
     "ran": true,
     "dxe_class_checked": 122,
-    "dxe_nx_compat": 122,
-    "missing_nx_count": 0,
+    "dxe_nx_compat": 121,
+    "missing_nx_count": 1,
     "errored_count": 0,
-    "unverifiable": []
+    "unverifiable": [],
+    "missing_nx": [
+      "ImageLoaderDxe"
+    ]
   }
 }

@@ -1,4 +1,4 @@
-# Compliance Roadmap — next cycle (all 6 frameworks)
+# Compliance Roadmap — next cycle (all 7 frameworks)
 
 Consolidated from a critical per-framework gap+cost review (2026-08-07). Scope held throughout:
 this is an **operator-side admission verifier** — reconcile shipped firmware bytes vs the SBOM's
@@ -66,3 +66,31 @@ as the CISA-2026 label fix. Recommend doing these before the additive work.
 **Boundary line:** everything S/M reuses evidence the tool already produces (next cycle). Supplier/submodule
 pedigree and the on-device RTD stack need new evidence or generator work — the former belongs to the
 producer side, the latter (especially Recovery) is permanently out of a verification gate's remit.
+
+---
+
+## Firmware-framework + OSF-conformance additions (deep review 2026-08-07)
+
+Three reviewers (OSF-spec conformance, firmware-security frameworks, VSA clarity) produced these.
+The **cheap high-value items** (KEV escalation, UEFI-secure-boot / platform-protection promotion, the
+VSA `remediation` field + the silent-deny bug fix, the multi-firmware demo) are being **implemented now**.
+The heavier items below are roadmapped:
+
+### OSF-embedded conformance (the gate does NOT check it today — confirmed)
+| # | Item | What it checks | Cost | Note |
+|---|------|----------------|:--:|------|
+| O1 | **`osf-sbom-conformance` (Tier-2)** | Extract the coSWID from the *shipped image* via python-uswid → assert it's embedded (`.sbom` COFF / uSWID magic), `uswid --validate` clean, tag-creator entity present, GUID-form tag-ids | **M** | The ONLY machine-check anywhere (repo/uswid/coreboot/LVFS all "parse-and-record") that the artifact is in genuine OSF embedded shape. Promotes the `make coswid-demo` path into gated evidence. |
+| O1b | Tier-1 GUID-form lint (from the CDX in hand) | bom-refs are GUID-shaped; names/versions present | S | Cheap add-on to O1; alone it's mostly box-ticking (lints the CDX, not the embedded coSWID). |
+| — | **Hard-code UNMET:** OSF M9 (source-file `colloquial-version` hash) + M30 (defragmented completeness) | — | — | Our SBOM carries the *shipped-byte* hash, not the source hash — M9 is provably absent; the report must emit these `not-satisfied`, never quietly pass. |
+
+### Firmware-specific controls with real security value (roadmap)
+| # | Control | Value | Evidence needed | Cost |
+|---|---------|-------|-----------------|:--:|
+| F1 | **`no-dbx-revoked-module`** — SBOM × UEFI **dbx** Authenticode revocation | High — "does this image ship a UEFI-revoked module?" | per-module **Authenticode** PE hash (tool already carves PE32) + a `dbx` dump | **M** |
+| — | **SBAT correction** | — | SBAT (generation-revocation) is **N/A to OVMF's DXE layer** (no `.sbat`; SBAT lives in shim/grub/kernel). The firmware-layer analog is **dbx-by-hash** (F1). SBAT becomes real only if the SBOM covers the boot-loader chain. | — |
+| F2 | **`hsi-posture`** — fwupd Host-Security-ID analog composite (SB + SMM + BIOS-WP + TPM-present + IOMMU-present + NX) | High, firmware-distinctive | composes CHIPSEC + binary-hardening + SBOM module-presence (all already emitted) | **M** — must be labeled an *attestable image-at-rest subset*, not the runtime fwupd HSI |
+| F3 | **`measured-boot-capable` + `golden-rim-emitted`** — TCG/800-155 reference-value half | Med-High | Tcg2 module presence (have) + sign a RIM analog from the SBOM hashes | **M** (produce) / appraising a TPM quote is FUTURISTIC/OOS |
+| F4 | **`cfg-cet-posture`** (GUARD_CF/HIGH_ENTROPY_VA) | Med | binary-hardening already reads `guard_cf` (= 0 across edk2) | **S — REPORTED, NOT GATED** (edk2 emits no CFG; gating would false-fail every image, like ASLR) |
+
+### Out of scope on the OVMF/QEMU target (name them so the gap is visible)
+Intel **Boot Guard** / AMD **PSB** (no ACM fuses on QEMU) · live **TPM quote** appraisal · **SPDM** runtime responder (OVMF links openssl, not libspdm) · **Arm SystemReady/PSA** (x64 target). These need real silicon or a live device; roadmap only if the gate runs against physical platforms.

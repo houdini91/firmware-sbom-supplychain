@@ -72,5 +72,12 @@
     "missing_nx_count": 0,
     "errored_count": 0,
     "unverifiable": []
+  },
+  "chipsec": {
+    "secure_boot": "PASSED",
+    "smm": "PASSED",
+    "bios_wp": "PASSED",
+    "bios_ts": "NOTAPPLICABLE",
+    "smrr": "NOTAPPLICABLE"
   }
 }
