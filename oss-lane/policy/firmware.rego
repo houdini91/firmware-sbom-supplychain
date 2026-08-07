@@ -383,7 +383,6 @@ _osf_source_hash_ok if {
 	input.sbom.osf.source_hash_present == input.sbom.osf.modules_total
 }
 
-_osf_source_evaluated if object.get(input, ["sbom", "osf", "source_hash_present"], 0) > 0
 
 _osf_source_msg := sprintf(
 	"OSF source-file hash (M-srchash) incomplete: %d of %d module(s) carry a source-file hash in colloquial-version",
@@ -553,16 +552,20 @@ _detection_reports := [_report(
 
 _detection_reports := [] if not _fw_freshly_measured
 
-# OSF M-srchash — CONDITIONAL + advisory, emitted ONLY when source hashes were supplied. Absent
-# by default (source tree not vendored) so the mapped control is honestly MISSING WITHOUT flipping
-# `allow`. Same non-gating construction as firmware-freshly-measured (§4.3.1).
+# OSF M-srchash — CONDITIONAL + advisory. Emitted ONLY when the MUST is FULLY met (every module
+# carries a source-file hash). The emit-condition is IDENTICAL to the pass-condition, so — exactly
+# like firmware-freshly-measured (§4.3.1) — the report can NEVER be emitted failing and therefore
+# can never flip `allow`. A partial (0 < present < total) or zero state leaves the report ABSENT,
+# which makes the mapped advisory control honestly MISSING_EVIDENCE without blocking the gate.
+# (An earlier version emitted on present>0 but passed only on present==total, so a PARTIAL source
+# hash DENYed at the gate while the advisory-aware consumers ACCEPTed — a three-way divergence.)
 _osf_source_reports := [_report(
-	"osf-source-provenance", _osf_source_hash_ok,
+	"osf-source-provenance", true,
 	"OSF source-file hash (M-srchash) verified: every module carries a source-file hash in coSWID colloquial-version",
 	_osf_source_msg,
-)] if _osf_source_evaluated
+)] if _osf_source_hash_ok
 
-_osf_source_reports := [] if not _osf_source_evaluated
+_osf_source_reports := [] if not _osf_source_hash_ok
 
 # Framework+control tags for a report, DERIVED from the manifest (data.initiatives) so the
 # rego reports and frameworks.yaml can never drift — one source of truth. Each tag is

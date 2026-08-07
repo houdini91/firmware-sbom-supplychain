@@ -165,10 +165,11 @@ def main():
         # (e.g. SP 800-193 §4.3.1 Detection, OSF source-hash) that is MISSING/FAIL is reported
         # honestly but does NOT fail the framework — matching the deploy gate's `allow` (advisory
         # reports are non-gating) and verify-initiative.py. Without this, the consumer CLI would
-        # REJECT a clean release the gate ALLOWed.
-        frameworks.append(dict(id=key, name=ini["name"], required=key in required,
-                               ok=all(c["status"] == PASS for c in controls if not c["advisory"]),
-                               controls=controls))
+        # REJECT a clean release the gate ALLOWed. Anti-vacuous guard: a hypothetical all-advisory
+        # framework must not pass on an empty set — it then requires its advisory controls to pass.
+        enforced = [c for c in controls if not c["advisory"]]
+        ok = all(c["status"] == PASS for c in (enforced if enforced else controls))
+        frameworks.append(dict(id=key, name=ini["name"], required=key in required, ok=ok, controls=controls))
 
     required_ok = all(f["ok"] for f in frameworks if f["required"])
     accept = binding == "BOUND" and required_ok

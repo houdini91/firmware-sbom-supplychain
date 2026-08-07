@@ -72,5 +72,18 @@ with tempfile.TemporaryDirectory() as td:
     check("every framework ok on a clean bound release",
           all(f["ok"] for f in out["frameworks"]))
 
+    # REGRESSION: an ADVISORY report must NEVER be able to block `allow`. A PARTIAL source-hash
+    # (0 < present < total) must NOT flip the gate to DENY — the advisory osf-source-provenance
+    # report is emitted only when the MUST is fully met, so a partial state leaves it ABSENT.
+    # (Earlier it emitted-failing on partial, so the gate DENYed while consumers ACCEPTed.)
+    for present, label in [(1, "partial 1/N"), (gi["sbom"]["osf"]["modules_total"] // 2, "partial half")]:
+        gp = json.load(open(CLEAN))
+        gp["sbom"]["osf"]["source_hash_present"] = present
+        gpin = os.path.join(td, "partial.json")
+        json.dump(gp, open(gpin, "w"))
+        rp = subprocess.run(["bash", GATE, gpin], env=dict(os.environ, OPA=OPA),
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+        check("gate ALLOWs a %s source-hash (advisory never blocks allow)" % label, rp.returncode == 0)
+
 print("ALL PASS" if not fail else "SOME FAILED")
 sys.exit(fail)
