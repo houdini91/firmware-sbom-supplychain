@@ -14,6 +14,37 @@ import subprocess
 import sys
 
 
+# EFI_FV_FILETYPE (PI spec, EFI_FFS_FILE_HEADER.Type at offset 0x12) -> the
+# module-type label byte-integrity branches on. This is read from the FFS the image
+# was CARVED INTO — i.e. from the shipped image itself, not from any declaration in
+# the SBOM/coSWID. The SEC/PEI_CORE/PEIM types are XIP (execute-in-place): stored
+# rebased to their flash load address, so they must be un-rebased before hashing;
+# everything else is compared directly. Deriving the type here (from the image) is
+# what makes a declaration-carried type unnecessary — and prevents the class of bug
+# where a typeless coSWID makes every module look like a DXE driver.
+FFS_FILETYPE = {
+    0x03: "SEC",
+    0x04: "PEI_CORE",
+    0x05: "DXE_CORE",
+    0x06: "PEIM",
+    0x07: "DXE_DRIVER",
+    0x08: "COMBINED_PEIM_DRIVER",
+    0x09: "APPLICATION",
+    0x0A: "SMM",
+    0x0D: "SMM_CORE",
+}
+
+
+def ffs_module_type(ffs):
+    """The module type read from the FFS file header's EFI_FV_FILETYPE byte (offset
+    0x12) of the carved image blob — NOT from any SBOM/coSWID declaration. Returns a
+    module-type string ('PEIM', 'DXE_DRIVER', ...) or '' if the blob is too short or
+    the type byte is unrecognized (treated conservatively as non-XIP -> direct)."""
+    if len(ffs) <= 0x12:
+        return ""
+    return FFS_FILETYPE.get(ffs[0x12], "")
+
+
 def pe32_from_ffs(ffs):
     """Return the PE32 (section type 0x10) payload bytes from an FFS blob, or None.
     FFS header is 24 bytes (EFI_FFS_FILE_HEADER), or 32 bytes when the

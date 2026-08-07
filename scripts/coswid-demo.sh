@@ -1,19 +1,25 @@
 #!/usr/bin/env bash
 # coswid-demo — the coSWID emit + FULL-LOOP verification proof (WS-A + WS-B).
 #
-# Proves, on the fixture-staged path (no OVMF build required), that a
-# spec-conformant embedded coSWID carrying BOTH the OSF source hash AND our
-# normalized shipped-byte (evidence) hash closes the verification loop:
+# Proves, on the fixture-staged path (no OVMF build required), that an embedded
+# coSWID emitted via python-uswid's NATIVE CycloneDX loader — carrying the module
+# GUID + the normalized shipped-byte SHA-256 as its native payload hash — closes the
+# verification loop end to end (see CONFORMANCE.md for what this does/doesn't claim):
 #
-#   emit coSWID (src + efi hash)  [python-uswid, real CBOR]
+#   emit coSWID (native uswid loader)  [python-uswid, real CBOR]
 #     -> embed in a PE .sbom + dump + extract   [uswid + objcopy, real round-trip]
-#       -> ingest -> per-module evidence hash    [python-uswid]
+#       -> ingest -> per-module declared hash    [python-uswid]
 #         -> reconcile MEMBERSHIP                 [real sbom-reconcile.py]
-#           -> byte-integrity vs shipped bytes    [real byte-integrity.py, evidence hash]
+#           -> byte-integrity vs shipped bytes    [real byte-integrity.py, declared hash]
 #             -> gate ALLOW + signed VSA          [real gate.sh + firmware.rego]
 #
 # Then the tamper case (same-GUID, 1 code byte flipped):
 #   membership still PASS, byte-integrity FAIL -> gate DENY.
+#
+# The shipped-byte hash rides natively (no private payload-suffix format); a REAL
+# source hash, when supplied, rides in colloquial-version. A device-measured
+# "evidence" hash remains a verification-profile PROPOSAL (CONFORMANCE.md), not a
+# shipped format.
 #
 # REAL: the coSWID CBOR/PE round-trip, both producers, the OPA gate, the tamper.
 # STUBBED: the source-file hash (edk2 source not vendored) and the FMMT view /
@@ -57,7 +63,7 @@ step "0. Stage the module + a same-GUID byte-tampered copy (committed fixture)"
 "$PY" "$BUILD" stage "$WORK"
 IN_SBOM="$WORK/input-sbom.cdx.json"; SRC="$WORK/source-hashes.json"; FMMT="$WORK/fmmt-view.txt"
 
-step "1. WS-A: emit a spec-conformant coSWID carrying BOTH hashes (src + efi)"
+step "1. WS-A: emit a coSWID via uswid's native loader (GUID + shipped-byte hash; source hash -> colloquial-version)"
 COSWID="$WORK/DemoNetworkDxe.coswid"
 "$PY" "$EMIT" --sbom "$IN_SBOM" --source-hashes "$SRC" --out "$COSWID"
 

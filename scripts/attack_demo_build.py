@@ -44,26 +44,28 @@ def guid_nodash(guid):
     return guid.replace("-", "").lower()
 
 
-def build_ffs(guid, pe_bytes):
+def build_ffs(guid, pe_bytes, ftype=0x07):
     """A minimal-but-real EFI_FFS_FILE (24-byte header + one EFI_SECTION_PE32) —
-    exactly the shape `FMMT -e` emits and that ffs.pe32_from_ffs walks."""
+    exactly the shape `FMMT -e` emits and that ffs.pe32_from_ffs walks. `ftype` is
+    the EFI_FV_FILETYPE byte (0x07=DRIVER default; 0x06=PEIM etc.), which the
+    verification side reads back (ffs.ffs_module_type) to pick direct vs un-rebase."""
     name16 = uuid.UUID(guid).bytes_le          # EFI mixed-endian GUID
     sec_size = 4 + len(pe_bytes)               # common section header (3B size + 1B type) + payload
     section = bytes([sec_size & 0xFF, (sec_size >> 8) & 0xFF, (sec_size >> 16) & 0xFF, 0x10]) + pe_bytes
     ffs_size = 24 + len(section)
     header = (name16                            # Name (GUID)           [0x00..0x0F]
               + b"\xAA\xAA"                      # IntegrityCheck        [0x10..0x11]
-              + bytes([0x07, 0x00])             # Type=DRIVER, Attributes=0 (bit0 LARGE_FILE clear) [0x12,0x13]
+              + bytes([ftype & 0xFF, 0x00])     # Type, Attributes=0 (bit0 LARGE_FILE clear) [0x12,0x13]
               + bytes([ffs_size & 0xFF, (ffs_size >> 8) & 0xFF, (ffs_size >> 16) & 0xFF])  # Size [0x14..0x16]
               + bytes([0x00]))                  # State                 [0x17]
     return header + section
 
 
-def write_ffs_dir(path, guid, pe_bytes):
+def write_ffs_dir(path, guid, pe_bytes, ftype=0x07):
     os.makedirs(path, exist_ok=True)
     dst = os.path.join(path, guid_nodash(guid) + ".ffs")
     with open(dst, "wb") as f:
-        f.write(build_ffs(guid, pe_bytes))
+        f.write(build_ffs(guid, pe_bytes, ftype))
     return dst
 
 

@@ -37,7 +37,7 @@ import sys
 import tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from ffs import pe32_from_ffs, fmmt_extract  # noqa: E402 — shared FFS/PE carving (see ffs.py)
+from ffs import pe32_from_ffs, ffs_module_type, fmmt_extract  # noqa: E402 — shared FFS/PE carving (see ffs.py)
 
 try:
     import pefile  # only needed for XIP/PEI un-rebase canonicalization (phase 3)
@@ -47,14 +47,18 @@ except ImportError:
 
 # XIP / execute-in-place module types: stored rebased to their flash address in
 # the FV, so the in-image PE32 differs from the declared (un-rebased) .efi. Naive
-# byte comparison does NOT apply — deferred to R4 phase 3 (rebase canonicalization),
-# NOT reported as tampered. (Same set sbom-reconcile marks modified_skipped.)
+# byte comparison does NOT apply — the image bytes are un-rebased first (R4 phase 3),
+# never reported as tampered. The module's type is read from the CARVED FFS
+# (ffs.ffs_module_type), i.e. from the shipped image — NOT from the SBOM/coSWID,
+# which carries only the declared HASH. (Same set sbom-reconcile marks skipped.)
 XIP_TYPES = {"SEC", "PEI_CORE", "PEIM"}
 
 
 def load_sbom_hashes(sbom_path):
-    """{guid(lower,no-dashes): (name, declared_sha256, module_type)} for components
-    with a GUID bom-ref and a declared SHA-256."""
+    """{guid(lower,no-dashes): (name, declared_sha256)} for components with a GUID
+    bom-ref and a declared SHA-256. NOTE: the module TYPE is deliberately NOT read
+    here — it is derived per-module from the carved FFS (the image), so a typeless
+    SBOM/coSWID (which only declares the hash) cannot force the wrong comparison."""
     with open(sbom_path) as f:
         sbom = json.load(f)
     out = {}
@@ -62,10 +66,6 @@ def load_sbom_hashes(sbom_path):
         ref = (c.get("bom-ref") or "").replace("-", "").lower()
         if len(ref) != 32:
             continue
-        mtype = ""
-        for p in c.get("properties", []) or []:
-            if p.get("name") == "edk2:moduleType":
-                mtype = p.get("value", "")
         for h in c.get("hashes", []) or []:
             if h.get("alg") == "SHA-256" and h.get("content"):
                 digest = h["content"].lower()
@@ -75,7 +75,7 @@ def load_sbom_hashes(sbom_path):
                 if ref in out and out[ref][1] != digest:
                     sys.stderr.write("  ⚠ duplicate FILE_GUID %s with differing hashes (%s / %s) — "
                                      "only one instance is byte-checked\n" % (ref, out[ref][1][:12], digest[:12]))
-                out[ref] = (c.get("name"), digest, mtype)
+                out[ref] = (c.get("name"), digest)
     return out
 
 
@@ -174,7 +174,7 @@ def main():
 
     verified, modified, skipped, errored = [], [], [], []
     with tempfile.TemporaryDirectory() as td:
-        for guid, (name, dhash, mtype) in sorted(targets.items(), key=lambda kv: kv[1][0] or ""):
+        for guid, (name, dhash) in sorted(targets.items(), key=lambda kv: kv[1][0] or ""):
             try:  # one bad module must not abort the whole run — fail closed, keep going
                 if a.ffs_dir:
                     dst = os.path.join(a.ffs_dir, guid + ".ffs")
@@ -187,7 +187,13 @@ def main():
                         skipped.append({"name": name, "guid": guid, "reason": "not extractable from image"})
                         continue
                 with open(dst, "rb") as f:
-                    pe = pe32_from_ffs(f.read())
+                    ffs_blob = f.read()
+                # Module type comes from the CARVED FFS (the shipped image), NOT the
+                # SBOM/coSWID — so an XIP/PEI module is un-rebased even when the SBOM
+                # declares only a hash. This is the BUG-1 fix: a typeless coSWID can no
+                # longer make a real PEI module take the DXE "direct" path and false-FAIL.
+                mtype = ffs_module_type(ffs_blob)
+                pe = pe32_from_ffs(ffs_blob)
                 if pe is None:
                     skipped.append({"name": name, "guid": guid, "reason": "no PE32 section (TE / compressed)"})
                     continue
