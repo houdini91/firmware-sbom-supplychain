@@ -273,7 +273,7 @@
       ]
     },
     "cra-bsi-cisa": {
-      "name": "EU CRA / BSI TR-03183-2 / CISA-2026 (SBOM obligations)",
+      "name": "EU CRA / BSI TR-03183-2 / CISA 2025 draft (SBOM obligations)",
       "help": "https://eur-lex.europa.eu/eli/reg/2024/2847/oj",
       "controls": [
         {
@@ -288,7 +288,7 @@
         },
         {
           "id": "cisa-hash",
-          "name": "CISA-2026: component hashes",
+          "name": "CISA 2025: component hashes",
           "description": "Each SBOM component carries a cryptographic hash of the component.",
           "citation": "CISA SBOM Minimum Elements (2025) \u2014 Component Hash",
           "canonical": "component-integrity-check",
@@ -308,7 +308,7 @@
         },
         {
           "id": "cisa-license-id",
-          "name": "CISA-2026: license + software identifiers (third-party)",
+          "name": "CISA 2025: license + software identifiers (third-party)",
           "description": "Each third-party component carries its license and a software identifier (PURL/CPE).",
           "citation": "CISA SBOM Minimum Elements (2025) \u2014 License + Software Identifiers",
           "canonical": "component-license-identification",

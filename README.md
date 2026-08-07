@@ -132,7 +132,7 @@ the verdict travels with the bytes and anyone downstream can re-verify it.
 | **NIST SP 800-53** Rev 5 | 9 | `SI-7`, `SI-7(1)`, `SI-7(15)`, `SI-16`, `CM-8(3)`, `SR-4(3)` | `reconcile-membership`, `component-byte-integrity`, `signer-identity-pinned` |
 | **NIST SP 800-193** (Protection) | 1 | `§4.2` platform protection posture | `chipsec-posture` |
 | **OpenSSF S2C2F** v2 | 3 | `SCA-1`, `SCA-2`, `REB-3` | `cve-triage`, `thirdparty-identifiers`, `build-tools-signed` |
-| **EU CRA / BSI TR-03183-2 / CISA-2026** | 4 | Annex I II(1), component-hash, firmware-binding, license/PURL | `sbom-present`, `component-integrity`, `firmware-digest-anchor` |
+| **EU CRA / BSI TR-03183-2 / CISA 2025 (draft)** | 4 | Annex I II(1), component-hash, firmware-binding, license/PURL | `sbom-present`, `component-integrity`, `firmware-digest-anchor` |
 
 The full evidence → check → control → verdict spine is in [`FRAMEWORKS.md`](FRAMEWORKS.md); the enforced subset is
 in [`oss-lane/compliance-map.md`](oss-lane/compliance-map.md).
