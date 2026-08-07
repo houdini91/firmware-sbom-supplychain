@@ -63,8 +63,24 @@ protections (BIOS-write-protect, SMM) are switched on, which is about the chip's
 | **Byte-integrity** | Do each module's shipped **bytes** match the declared hash? | a **same-GUID trojan** — same ID, swapped code |
 | **CHIPSEC** (platform posture) | Are the platform's own firmware **protections** on? | BIOS-write-protect / SMM misconfiguration |
 
-The full pipeline: `generate → verify(sig + provenance) → reconcile(bytes == SBOM) → CVE map → attest →
-OPA gate → signed VSA`. Each stage is described in [`DESIGN.md`](DESIGN.md).
+The full pipeline: `generate (upstream/builder) → verify(sig + provenance) → reconcile(bytes == SBOM) →
+CVE map → attest → OPA gate → signed VSA`. **This repo is the verify side** — `generate` (the `-Y SBOM`
+CycloneDX generator) is a separate *upstream* edk2 effort (a fork PR tracked in edk2 issue #10507), not part
+of this repo. Each stage is described in [`DESIGN.md`](DESIGN.md).
+
+## Where this sits: the firmware SBOM supply chain
+
+![The firmware SBOM supply chain and where a born-in-build SBOM blocks a mid-chain, re-signed module swap](docs/img/supply-chain-players.svg)
+
+An SBOM only helps if it is **born at the build** and can be **checked at the other end**. Each player owns one job; this repo plugs into the last one without reinventing the others:
+
+- **edk2 / TianoCore — the build.** Where the SBOM should be born, from the real module inputs. The *upstream* `-Y SBOM` generator (a separate edk2 fork PR, **not this repo**) emits a CycloneDX SBOM in which each module carries its **normalized shipped-byte hash** — an addition alongside, not a replacement for, the source-file hash an embedded coSWID carries.
+- **python-uswid (Richard Hughes) — coSWID + embed.** Converts the CycloneDX SBOM to a coSWID tag and embeds it in the image. We *feed* it, we don't replace it (importer fix #98 merged; PRs #99/#100 open upstream).
+- **IBV / ODM / OEM — integration.** Where an image is repacked and **re-signed** — and where an attacker can swap a module under the **same `FILE_GUID`**. The signature verifies again, and SBOM *membership* still lists the GUID.
+- **fwupd / LVFS — distribution + readback.** Delivers firmware and, rarely, its SBOM. Today **&lt;1% of LVFS firmware ships an SBOM**, and none carries a shipped-byte reconcile.
+- **Operator — verify (this repo).** Reconciles each shipped module's bytes against the born-in-build hash. Signature ✓ and membership ✓ — but **bytes ≠ declared hash → DENY.** That shipped-byte reconcile is the one check no player does today.
+
+The through-line: **generate CDX at the build → uswid embeds coSWID → operator reconciles shipped bytes + signs a VSA.** Contribute to every stage, compete with none; the only genuinely new piece is the operator-side reconcile that catches a re-signed, same-GUID swap.
 
 ## Why it's different
 
@@ -85,8 +101,9 @@ The three that matter most, each verified against the code in this repo:
 extensions, not a bespoke format · the gate is **non-vacuous** — byte-integrity and binary-hardening bind their
 coverage to the SBOM's declared module count, so an under-scoped verdict is denied, and every doc states
 *enforced* vs *evidence-only* vs *not-yet* · a **two-lane design** runs the same intent under a second,
-independent policy tool (report mode) · the `-Y SBOM` generator adds **no new build dependency** (it consumes
-edk2's existing `-Y COMPILE_INFO` data) · and a **consumer-side CLI** scorecards *your* image.
+independent policy tool (report mode) · the *upstream* `-Y SBOM` generator (a separate edk2 fork PR, **not this
+repo**) adds **no new build dependency** (it consumes edk2's existing `-Y COMPILE_INFO` data) · and a
+**consumer-side CLI** scorecards *your* image.
 
 ## The signed verdict
 
@@ -139,15 +156,22 @@ in [`oss-lane/compliance-map.md`](oss-lane/compliance-map.md).
 
 ## Quickstart
 
+Prerequisites: a system **`jq`**; Python **PyYAML + pefile** (`pip install -r requirements.txt`).
+
 ```bash
-make deps      # Python deps (PyYAML + pefile); see requirements.txt for the CLI tools (opa, jq, cosign, grype)
-make test      # gate-honesty tests: ALLOW a clean release, DENY each failure mode (a negative fixture per report)
+make deps      # fetch + SHA-verify opa
+make bin       # fetch + SHA-verify cosign + grype (needed by `make demo`)
+make test      # gate-honesty + byte-integrity tests: ALLOW a clean release, DENY each failure mode
+make test-full # ALSO runs the coSWID round-trip + PEI/XIP (BUG-1) regression — needs python-uswid + pefile:
+               #   COSWID_PY=<venv>/bin/python make test-full   (these SKIP loudly under plain `make test`)
 make coverage  # per-framework, per-control coverage from a fresh signed VSA
 make demo      # the full OSS lane end to end (needs cosign + grype)
 ```
 
-`make test` and `make coverage` are self-contained (`opa` + `jq` + `python3`/PyYAML; `pefile` unlocks the
-byte-integrity un-rebase test — it is honestly skipped, not silently passed, when absent). The gate itself is
+`make test` and `make coverage` are self-contained (`opa` + system `jq` + `python3`/PyYAML; `pefile` unlocks
+the byte-integrity un-rebase test). The **coSWID round-trip and the PEI/XIP BUG-1 regression need
+python-uswid** and only *run* under `make test-full` — under plain `make test` they are honestly skipped, not
+silently passed. The gate itself is
 [`oss-lane/policy/firmware.rego`](oss-lane/policy/firmware.rego) — **19 verifier reports** ANDed into a signed
 SLSA VSA, each with an isolating negative fixture under [`oss-lane/fixtures/`](oss-lane/fixtures).
 

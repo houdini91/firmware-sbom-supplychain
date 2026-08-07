@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 560" font-family="-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif" role="img" aria-label="The firmware SBOM supply chain and its players. Left to right: the Build stage (edk2 -Y SBOM emits CycloneDX; python-uswid embeds it as coSWID) is where the SBOM is born, carrying a per-module shipped-byte hash. It flows through IBV/ODM/OEM integration, where an attacker can swap a module under the same FILE_GUID, repack, and RE-SIGN — so the signature still verifies and SBOM membership still lists the GUID. It flows through fwupd/LVFS distribution to the operator. At the operator, install-time verify shows signature OK and SBOM membership OK, but the shipped-byte reconcile against the born-in-build hash MISMATCHES, so the gate DENIES the swapped module. Author contributions are badged on the Build stage (the -Y SBOM fork PR and uswid PRs 98, 99, 100) and on the operator verify stage (the shipped-byte reconcile plus signed VSA, which nobody does today).">
+  <rect x="0" y="0" width="940" height="560" rx="14" fill="#f7f9fb"/>
+  <text x="24" y="34" font-size="18" font-weight="700" fill="#1f2933">The firmware SBOM supply chain &#8212; and where a born-in-build SBOM blocks a mid-chain swap</text>
+
+  <!-- flow arrows (teal) -->
+  <defs>
+    <marker id="ar" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#0f766e"/></marker>
+  </defs>
+  <line x1="214" y1="150" x2="252" y2="150" stroke="#0f766e" stroke-width="2.5" marker-end="url(#ar)"/>
+  <line x1="450" y1="150" x2="488" y2="150" stroke="#0f766e" stroke-width="2.5" marker-end="url(#ar)"/>
+  <line x1="686" y1="150" x2="724" y2="150" stroke="#0f766e" stroke-width="2.5" marker-end="url(#ar)"/>
+
+  <!-- Stage 1: Build (SBOM born) -->
+  <rect x="24" y="96" width="190" height="108" rx="9" fill="#ffffff" stroke="#0f766e" stroke-width="2"/>
+  <text x="119" y="120" text-anchor="middle" font-size="13" font-weight="700" fill="#0f766e">BUILD &#183; the SBOM is born</text>
+  <text x="119" y="142" text-anchor="middle" font-size="12" fill="#1f2933">edk2 / TianoCore</text>
+  <text x="119" y="160" text-anchor="middle" font-size="10.5" fill="#64748b">-Y SBOM &#8594; CycloneDX</text>
+  <text x="119" y="177" text-anchor="middle" font-size="12" fill="#1f2933">python-uswid (Hughes)</text>
+  <text x="119" y="193" text-anchor="middle" font-size="10.5" fill="#64748b">&#8594; embedded coSWID</text>
+
+  <!-- Stage 2: Integrate (attack point) -->
+  <rect x="260" y="96" width="190" height="108" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="355" y="120" text-anchor="middle" font-size="13" font-weight="700" fill="#334155">INTEGRATE</text>
+  <text x="355" y="142" text-anchor="middle" font-size="12" fill="#1f2933">IBV &#183; ODM &#183; OEM</text>
+  <text x="355" y="164" text-anchor="middle" font-size="10.5" fill="#64748b">integrate &#183; repack &#183; re-sign</text>
+
+  <!-- Stage 3: Distribute -->
+  <rect x="496" y="96" width="190" height="108" rx="9" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="591" y="120" text-anchor="middle" font-size="13" font-weight="700" fill="#334155">DISTRIBUTE</text>
+  <text x="591" y="142" text-anchor="middle" font-size="12" fill="#1f2933">fwupd / LVFS</text>
+  <text x="591" y="164" text-anchor="middle" font-size="10.5" fill="#64748b">deliver + on-device readback</text>
+
+  <!-- Stage 4: Operator verify -->
+  <rect x="732" y="96" width="184" height="108" rx="9" fill="#ffffff" stroke="#1d4ed8" stroke-width="2"/>
+  <text x="824" y="120" text-anchor="middle" font-size="13" font-weight="700" fill="#1d4ed8">OPERATOR &#183; verify</text>
+  <text x="824" y="142" text-anchor="middle" font-size="12" fill="#1f2933">install-time gate</text>
+  <text x="824" y="164" text-anchor="middle" font-size="10.5" fill="#64748b">reconcile shipped bytes</text>
+  <text x="824" y="181" text-anchor="middle" font-size="10.5" fill="#64748b">vs the born-in-build SBOM</text>
+
+  <!-- SBOM ribbon travelling the whole chain -->
+  <rect x="24" y="228" width="892" height="34" rx="8" fill="#0f766e" opacity="0.10"/>
+  <text x="34" y="250" font-size="12" font-weight="600" fill="#0f766e">SBOM travels with the image &#8594;</text>
+  <text x="240" y="250" font-size="11.5" fill="#334155">each module carries its normalized <tspan font-weight="700">shipped-byte hash</tspan>, recorded at the build (alongside, not replacing, the source-file hash)</text>
+
+  <!-- Attack callout under Integrate -->
+  <path d="M355 204 L355 296" stroke="#c0392b" stroke-width="2" stroke-dasharray="4 3"/>
+  <rect x="214" y="298" width="282" height="86" rx="9" fill="#fdecea" stroke="#c0392b" stroke-width="1.5"/>
+  <text x="228" y="320" font-size="12" font-weight="700" fill="#c0392b">Attacker, mid-chain</text>
+  <text x="228" y="340" font-size="11" fill="#7b241c">swap a module under the <tspan font-weight="700">same FILE_GUID</tspan></text>
+  <text x="228" y="357" font-size="11" fill="#7b241c">&#8594; repack the image &#8594; <tspan font-weight="700">re-sign</tspan> it</text>
+  <text x="228" y="374" font-size="11" fill="#7b241c">now the signature verifies again</text>
+
+  <!-- Operator verdict chips -->
+  <text x="824" y="300" text-anchor="middle" font-size="12" font-weight="700" fill="#334155">what each check says</text>
+  <rect x="734" y="312" width="180" height="26" rx="6" fill="#eafaf0" stroke="#2e7d32"/>
+  <text x="744" y="329" font-size="11.5" fill="#2e7d32">&#10003; signature valid (re-signed)</text>
+  <rect x="734" y="344" width="180" height="26" rx="6" fill="#eafaf0" stroke="#2e7d32"/>
+  <text x="744" y="361" font-size="11.5" fill="#2e7d32">&#10003; SBOM membership (GUID listed)</text>
+  <rect x="734" y="376" width="180" height="26" rx="6" fill="#fdecea" stroke="#c0392b"/>
+  <text x="744" y="393" font-size="11.5" fill="#c0392b">&#10007; shipped bytes &#8800; declared hash</text>
+
+  <!-- the catch arrow + DENY -->
+  <path d="M496 341 C 610 341, 640 389, 730 389" stroke="#c0392b" stroke-width="2" fill="none" marker-end="url(#ar2)"/>
+  <defs><marker id="ar2" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#c0392b"/></marker></defs>
+  <rect x="734" y="410" width="180" height="30" rx="7" fill="#c0392b"/>
+  <text x="824" y="430" text-anchor="middle" font-size="13" font-weight="700" fill="#ffffff">&#9210; GATE DENIES the module</text>
+
+  <!-- author contribution badges -->
+  <rect x="24" y="410" width="190" height="66" rx="8" fill="#eef2ff" stroke="#1d4ed8" stroke-dasharray="4 3"/>
+  <text x="34" y="430" font-size="11" font-weight="700" fill="#1d4ed8">what I contribute here</text>
+  <text x="34" y="447" font-size="10.5" fill="#334155">&#183; -Y SBOM generator (edk2 fork)</text>
+  <text x="34" y="463" font-size="10.5" fill="#334155">&#183; uswid PRs #98 &#183; #99 &#183; #100</text>
+
+  <rect x="620" y="446" width="296" height="46" rx="8" fill="#eef2ff" stroke="#1d4ed8" stroke-dasharray="4 3"/>
+  <text x="632" y="465" font-size="11" font-weight="700" fill="#1d4ed8">what I contribute here (nobody does this today)</text>
+  <text x="632" y="482" font-size="10.5" fill="#334155">&#183; shipped-byte reconcile + signed SLSA VSA (operator-side)</text>
+
+  <text x="24" y="520" font-size="10.5" fill="#94a3b8">Feed each existing player (edk2, uswid, fwupd/LVFS); reinvent none. The only new piece is the operator-side shipped-byte reconcile &#8212; the check that catches a re-signed, same-GUID swap.</text>
+</svg>

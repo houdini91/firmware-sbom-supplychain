@@ -40,6 +40,14 @@ jobs:
           python3 tests/test_interop.py
           python3 tests/test_initiatives_sync.py
 
+      - name: coSWID round-trip + PEI/XIP BUG-1 regression (needs python-uswid)
+        run: |
+          # test-only dependency; pin once a stable uswid release is chosen. pefile is
+          # already installed via requirements.txt and the PE fixtures are committed, so
+          # --require-deps forces both groups to run rather than skip.
+          pip install --quiet uswid
+          python3 tests/test_coswid.py --require-deps
+
       - name: In-pipeline negative test (post-sign tamper must be blocked)
         run: |
           # Runs for real on PRs: with no signed bundle present (gitignored / built in the heavy
