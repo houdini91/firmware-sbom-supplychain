@@ -75,6 +75,9 @@ The actionable next steps, in execution order. Detail lives in [`DESIGN-REVIEW.m
   vacuous pass, crash-safe, unit-tested; **no-reloc-table canonicalization added 2026-08-04** — a true
   122/122 on a fresh self-consistent build). Write-up: [`R4-BYTE-INTEGRITY.md`](R4-BYTE-INTEGRITY.md). Merged to
   `main` in `a5c73be` (the `r4-byte-integrity-phase1` branch is fully merged).
+  - [x] **`make attack-demo` — MERGED to `main` 2026-08-06 (PR #4, merge commit `cdc4261`).** Real
+    same-GUID-trojan detection driver (`scripts/`, `producers/reconcile/byte-integrity.py`) with a test wired
+    into `make test` + `pr-checks.yml`; docs in `docs/DEMO.md`. Green on `main`.
 - [ ] **D2 · Firmware-native evidence** — fwupd `.cab`+Jcat, UEFIExtract corroborating carve, swtpm→CoRIM appraisal.
 - [ ] **D3 · Beyond-CI flash/provision gate; Ratify referrer store; SCITT receipts.** Project-scale.
 
@@ -112,6 +115,8 @@ Track A core is complete; these are the genuine open items (mostly small or exte
   10** — cut **v0.1.1** (GPG-signed tag) via `.github/workflows/release.yml`: keyless cosign-signed source tarball
   + `.sig`/`.crt`/`.sigstore.json`/`.sha256`, self-verified in-workflow and re-verified after publish (Verified OK).
   Remaining zeros (Code-Review, Contributors, CII-Best-Practices) are structural/optional — deliberately not faked.
+  - [x] **SLSA build provenance — MERGED to `main` 2026-08-06 (PR #3, merge commit `1715cf4`).** Adds SLSA
+    build provenance generation to `.github/workflows/release.yml`. Green on `main`.
 - [ ] **B3 · CHIPSEC** — held (above), pending the edk2 RFC.
 - **Off-repo:** the embargoed edk2 vuln-disclosure track (see the `edk2-candidate-findings` / disclosure notes).
 
