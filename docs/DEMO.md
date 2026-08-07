@@ -6,31 +6,33 @@ built OVMF image. Section 5 (the same-GUID trojan) is self-contained — it runs
 
 ---
 
-## 1. The gate ALLOWs a clean release — 19 signed checks, each tagged with the control it earns
+## 1. The gate ALLOWs a clean release — 21 signed checks, each tagged with the control it earns
 
-A fixture carrying complete, valid evidence: the gate ANDs all 19 verifier reports and signs the VSA.
+A fixture carrying complete, valid evidence: the gate ANDs all 21 verifier reports and signs the VSA.
 
 ```
-   ✅ sbom-present: SBOM attached to the artifact  [cra-bsi-cisa:cra-annex-I-II-1, ssdf:PS.3.1]
+   ✅ sbom-present: SBOM attached to the artifact  [cra-bsi-cisa:cra-annex-I-II-1, sp-800-53:CM-8, ssdf:PS.3.1]
    ✅ attestation-signature: attestation signature verified (keyless)  [ssdf:PS.2.1]
    ✅ sbom-binding: SBOM digest bound to the signed attestation subject  [slsa.l2:subject-binding]
-   ✅ firmware-digest-anchor: firmware-image digest consistent: build-time SBOM digest == reconcile's independent re-hash (== deployed image when a flash-time verifier supplies FW_IMAGE; assumed equal otherwise)  [cra-bsi-cisa:cisa-fw-binding, sp-800-53:SR-4(3)]
+   ✅ firmware-digest-anchor: firmware-image digest consistent: build-time SBOM digest == reconcile's independent re-hash (== deployed image when a flash-time verifier supplies FW_IMAGE; assumed equal otherwise)  [cra-bsi-cisa:cisa-fw-binding, sp-800-193:4.3.1, sp-800-53:SR-4(3)]
    ✅ provenance-identity: built by the expected builder and source  [slsa.l2:provenance-exists, ssdf:PS.3.1]
    ✅ slsa-provenance: SLSA L2 provenance verified (platform-generated: attest-build-provenance + gh attestation verify)  [slsa.l2:provenance-authentic, ssdf:PO.3.3]
-   ✅ chipsec-posture: platform protections verified (CHIPSEC: applicable critical modules passed)  [sp-800-193:4.2]
-   ✅ reconcile-membership: every declared module observed in the image; no undeclared artifact  [sp-800-53:CM-8(3), sp-800-53:SI-7, sp-800-53:SR-4(3)]
-   ✅ component-integrity: every hashable module carries a hash (or a reviewed exemption)  [cra-bsi-cisa:cisa-hash, sp-800-53:SI-7, sp-800-53:SI-7(1)]
-   ✅ component-byte-integrity: shipped module bytes match the SBOM's declared hash (byte-integrity — detects a same-GUID swap)  [sp-800-53:SI-7(1), sp-800-53:SR-4(3)]
+   ✅ chipsec-posture: platform protections verified (CHIPSEC: applicable critical modules passed) — SAMPLE/ILLUSTRATIVE chipsec.json on the OVMF/QEMU target, not a live CHIPSEC run and no hardware root of trust  [sp-800-193:4.2]
+   ✅ reconcile-membership: every declared module observed in the image; no undeclared artifact  [cra-bsi-cisa:cra-annex-I-II-1, s2c2f:AUD-3, sp-800-53:CM-8, sp-800-53:CM-8(3), sp-800-53:SI-7, sp-800-53:SR-4(3)]
+   ✅ component-integrity: every hashable module carries a hash (or a reviewed exemption)  [cra-bsi-cisa:cisa-hash, sp-800-53:CM-8, sp-800-53:SI-7, sp-800-53:SI-7(1)]
+   ✅ component-byte-integrity: shipped module bytes match the SBOM's declared hash (byte-integrity — detects a same-GUID swap)  [s2c2f:AUD-3, sp-800-193:4.3.1, sp-800-53:SI-7(1), sp-800-53:SR-4(3)]
    ✅ binary-hardening: every DXE-class module declares NX_COMPAT (W^X-ready; declared-posture evidence, not runtime enforcement)  [sp-800-53:SI-16, ssdf:PW.6.2]
    ✅ vex-adjudicated: every high/critical CVE carries a non-empty VEX justification  [s2c2f:SCA-1, ssdf:RV.1.1]
    ✅ thirdparty-identifiers: every third-party component carries a purl + license  [cra-bsi-cisa:cisa-license-id, s2c2f:SCA-2, ssdf:PW.4.4]
    ✅ build-tools-signed: build-tools SBOM present, signature verified, and every component SHA/version-pinned  [s2c2f:REB-3, ssdf:PO.3.2]
    ✅ slsa-level-floor: SLSA build level >= 2 (platform-generated provenance; not L3)  [slsa.l2:provenance-authentic, sp-800-53:SR-4, sp-800-53:SR-4(3)]
-   ✅ evidence-chain-bound: SBOM, attestation, and SLSA provenance all bound to one subject digest  [slsa.l2:subject-binding, sp-800-53:SR-4(3)]
+   ✅ evidence-chain-bound: evidence chain bound: SBOM-file digests agree (H) across SBOM/attestation/provenance AND the attestation's firmware subject == the firmware anchor D  [slsa.l2:subject-binding, sp-800-53:SR-4(3)]
    ✅ signer-identity-pinned: signed by a trusted keyless identity (cert SAN in the allowlist)  [sp-800-53:CM-14, sp-800-53:SI-7(15)]
    ✅ reconcile: declared SBOM matches observed firmware bytes  []
    ✅ cve-triage: no un-triaged critical CVEs  [s2c2f:SCA-1, sp-800-53:RA-5, ssdf:PW.4.4, ssdf:RV.1.1]
-✅ ALLOW — clean.json  (VSA: PASSED, verifiedLevels=[SLSA_BUILD_LEVEL_2])
+   ✅ sbom-generation-tool: SBOM declares its generation tool (metadata.tools[] carries a name+version) — declared, not independently proven to have produced these bytes  [cra-bsi-cisa:cisa-generation-tool]
+   ✅ sbom-generation-context: SBOM declares its generation context (metadata.lifecycles[].phase present) — declared, not independently proven  [cra-bsi-cisa:cisa-generation-context]
+✅ ALLOW — clean.json  (VSA: PASSED, verifiedLevels=[SLSA_BUILD_LEVEL_0] for the firmware subject; evidenceBuildLevel=SLSA_BUILD_LEVEL_2 — the SBOM artifact's build provenance)
 ```
 
 ## 2. The gate BLOCKs a same-GUID trojan — byte-integrity catches what membership misses
@@ -160,22 +162,22 @@ byte-integrity: verified=0 modified=1 skipped=0 errored=0 -> .../tampered-verdic
   verifier reports (clean-gate-input.json):
    ✅ reconcile-membership: every declared module observed in the image; no undeclared artifact  [sp-800-53:CM-8(3), sp-800-53:SI-7, sp-800-53:SR-4(3)]
    ✅ component-byte-integrity: shipped module bytes match the SBOM's declared hash (byte-integrity — detects a same-GUID swap)  [sp-800-53:SI-7(1), sp-800-53:SR-4(3)]
-   … (17 other reports, all ✅) …
-✅ ALLOW — clean-gate-input.json  (VSA: PASSED, verifiedLevels=[SLSA_BUILD_LEVEL_2])
+   … (19 other reports, all ✅) …
+✅ ALLOW — clean-gate-input.json  (VSA: PASSED, verifiedLevels=[SLSA_BUILD_LEVEL_0] for the firmware; evidenceBuildLevel=SLSA_BUILD_LEVEL_2)
 
 ▶ 4. The deploy gate DENYs the trojaned image (membership passes, bytes fail)
   verifier reports (tampered-gate-input.json):
    ✅ reconcile-membership: every declared module observed in the image; no undeclared artifact  [sp-800-53:CM-8(3), sp-800-53:SI-7, sp-800-53:SR-4(3)]
    ⛔ component-byte-integrity: byte-integrity: 1 module(s) MODIFIED — shipped bytes differ from the SBOM's declared hash (possible same-GUID swap)  [sp-800-53:SI-7(1), sp-800-53:SR-4(3)]
-   … (17 other reports, all ✅) …
+   … (19 other reports, all ✅) …
 ⛔ DENY — tampered-gate-input.json  (VSA: FAILED)
    • byte-integrity: 1 module(s) MODIFIED — shipped bytes differ from the SBOM's declared hash (possible same-GUID swap)
 ────────────────────────────────────────────────────────────────────
 RESULT: same-GUID byte swap — reconcile-membership PASSED, component-byte-integrity DENIED. ✔ caught.
 ```
 
-The `… (17 other reports, all ✅) …` lines are the only elision — `make attack-demo`
-prints all 19 verifier reports in full both times. **The crux is the contrast:**
+The `… (19 other reports, all ✅) …` lines are the only elision — `make attack-demo`
+prints all 21 verifier reports in full both times. **The crux is the contrast:**
 `reconcile-membership` PASSES the swap in both runs (the GUID is present); only
 `component-byte-integrity` flips from ✅ to ⛔, and that flip is what turns the gate's
 verdict from ALLOW to DENY.
