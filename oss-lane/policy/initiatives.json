@@ -298,9 +298,9 @@
         },
         {
           "id": "cisa-fw-binding",
-          "name": "SBOM bound to the firmware image digest (evidence is about these bytes)",
-          "description": "The SBOM and its evidence are cryptographically bound to the digest of the actual firmware image they describe.",
-          "citation": "CISA SBOM (2025) \u2014 firmware/artifact binding",
+          "name": "SBOM bound to the firmware image digest \u2014 our extension, beyond CISA/NTIA minimum elements",
+          "description": "The SBOM and its evidence are cryptographically bound to the digest of the actual firmware image they describe. This exceeds the CISA/NTIA SBOM minimum elements (image-digest binding is not one of them); we include it as our own admission-gate requirement.",
+          "citation": "Beyond CISA/NTIA SBOM minimum elements (2025) \u2014 our extension, not a CISA-mandated element",
           "canonical": "firmware-image-binding",
           "satisfied_by": [
             "firmware-digest-anchor"
