@@ -51,6 +51,10 @@
         {
           "name": "firmware:fd-image",
           "value": "MEMFD.fd sha256:57dd1576ebc8570eddc3e78d2a39c1576b60d742019f8fe786079c594646fde9 size:16252928"
+        },
+        {
+          "name": "edk2:thirdPartyEnumeration",
+          "value": "git-submodules"
         }
       ],
       "hashes": [
@@ -91,6 +95,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -131,6 +139,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -201,6 +213,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -241,6 +257,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -281,6 +301,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -1311,6 +1335,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -1381,6 +1409,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -1481,6 +1513,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -1551,6 +1587,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -1591,6 +1631,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -1661,6 +1705,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -1701,6 +1749,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -1741,6 +1793,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -1781,6 +1837,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -1821,6 +1881,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -1861,6 +1925,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -1901,6 +1969,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -2001,6 +2073,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -2131,6 +2207,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -2171,6 +2251,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -2211,6 +2295,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -2251,6 +2339,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -2291,6 +2383,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -2331,6 +2427,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -2491,6 +2591,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -2861,6 +2965,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -3531,6 +3639,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -3571,6 +3683,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -3611,6 +3727,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -3681,6 +3801,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -3721,6 +3845,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -3761,6 +3889,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -3801,6 +3933,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -3931,6 +4067,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -4001,6 +4141,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -4041,6 +4185,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -4141,6 +4289,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -4181,6 +4333,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -4251,6 +4407,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -4291,6 +4451,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -4331,6 +4495,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -4371,6 +4539,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -4441,6 +4613,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -4541,6 +4717,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -4671,6 +4851,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -4741,6 +4925,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -4781,6 +4969,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -4881,6 +5073,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -5011,6 +5207,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -5111,6 +5311,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -5181,6 +5385,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -5221,6 +5429,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -5261,6 +5473,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -5301,6 +5517,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -5341,6 +5561,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -5441,6 +5665,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -5481,6 +5709,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -5551,6 +5783,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -6281,6 +6517,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -6381,6 +6621,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -6451,6 +6695,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -6551,6 +6799,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -6681,6 +6933,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -6721,6 +6977,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -6761,6 +7021,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -6801,6 +7065,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -6841,6 +7109,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -6881,6 +7153,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -6921,6 +7197,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -6991,6 +7271,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -7031,6 +7315,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -7101,6 +7389,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -7141,6 +7433,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -7181,6 +7477,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -7221,6 +7521,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -7261,6 +7565,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -7301,6 +7609,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -7341,6 +7653,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -7441,6 +7757,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -7631,6 +7951,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -7671,6 +7995,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -7711,6 +8039,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -7751,6 +8083,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -7791,6 +8127,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -7831,6 +8171,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -7871,6 +8215,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -7941,6 +8289,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -8011,6 +8363,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -8051,6 +8407,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -8091,6 +8451,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -8131,6 +8495,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -8171,6 +8539,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -8211,6 +8583,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -8251,6 +8627,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -8351,6 +8731,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -8391,6 +8775,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -8491,6 +8879,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -8531,6 +8923,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -8991,6 +9387,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -9481,6 +9881,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -9521,6 +9925,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -9561,6 +9969,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -9601,6 +10013,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -9641,6 +10057,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -9741,6 +10161,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -9841,6 +10265,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -9881,6 +10309,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -9921,6 +10353,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -9961,6 +10397,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -10001,6 +10441,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -10041,6 +10485,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -10081,6 +10529,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -10151,6 +10603,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -10191,6 +10647,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -10231,6 +10691,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -10271,6 +10735,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -10311,6 +10779,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -10351,6 +10823,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -10391,6 +10867,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -10431,6 +10911,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -10531,6 +11015,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [
@@ -10571,6 +11059,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:hashCanonicalForm",
+          "value": "genfw-rebase-0"
         }
       ],
       "externalReferences": [

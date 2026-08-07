@@ -35,3 +35,14 @@ over these bundles, not a standalone artifact.
 
 > Not to be confused with `oss-lane/fixtures/` — those are hand-authored **test vectors** (one per gate
 > failure mode), not real evidence.
+
+## Note on `sbom.cdx.json` hardening annotations (2026-08-07)
+
+The `edk2:hashCanonicalForm` (per hashed module) and `edk2:thirdPartyEnumeration`
+(metadata.component) properties were **annotated** onto this captured sample to reflect
+the hardened `-Y SBOM` generator (edk2 fork commit `3053c6e`), whose code — but not the
+hash *values* — post-dates this capture. The values are the generator's deterministic
+output for a clean build (GenFw present → every module's canonical form is
+`genfw-rebase-0`; a git checkout with submodules → `git-submodules`). The **authoritative**
+sample is a fresh `build -Y SBOM` on the edk2 fork's `feat/build-y-sbom-generator` branch;
+regenerate and re-copy here when convenient.
