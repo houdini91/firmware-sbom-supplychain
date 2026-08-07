@@ -73,6 +73,10 @@ attack-demo: ## "Same-GUID trojan caught": byte-tamper a real module under its G
 multi-firmware-demo: ## Run the SAME gate over three firmware profiles (X clean / Y authentic-but-vulnerable / Z tampered) and print a ✅/⛔ comparison table + per-⛔ remediation (needs opa + python3)
 	OPA=$(or $(OPA),$(ROOT)bin/opa) bash scripts/multi-firmware-demo.sh
 
+.PHONY: provider-comparison
+provider-comparison: ## Rate real firmware providers (Dell/Lenovo coSWID, our OVMF, prebuilt/coreboot/Intel) on SBOM-transparency dimensions from LIVE probes; a missing artifact -> UNKNOWN, never a fabricated pass
+	python3 scripts/provider-comparison.py
+
 .PHONY: coswid-demo
 coswid-demo: ## coSWID emit + FULL-LOOP proof: emit coSWID (source+shipped-byte hash) -> PE .sbom embed/extract -> ingest -> reconcile -> byte-integrity -> gate ALLOW/DENY. Needs python-uswid: COSWID_PY=<venv>/bin/python USWID=<venv>/bin/uswid make coswid-demo
 	OPA=$(or $(OPA),$(ROOT)bin/opa) bash scripts/coswid-demo.sh

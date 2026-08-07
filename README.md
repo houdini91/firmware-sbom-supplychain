@@ -157,7 +157,9 @@ the verdict travels with the bytes and anyone downstream can re-verify it.
 The full evidence → check → control → verdict spine is in [`FRAMEWORKS.md`](FRAMEWORKS.md); the enforced subset is
 in [`oss-lane/compliance-map.md`](oss-lane/compliance-map.md). For the honest per-framework audit — what each
 control gates, and what each framework requires that we **don't** gate — see
-[`COMPLIANCE-MATRIX.md`](COMPLIANCE-MATRIX.md).
+[`COMPLIANCE-MATRIX.md`](COMPLIANCE-MATRIX.md). For how **real firmware providers** (Dell, Lenovo, coreboot,
+prebuilt OVMF) score on SBOM-transparency dimensions — from live probes — see [`PROVIDERS.md`](PROVIDERS.md)
+(`make provider-comparison`).
 
 ## Quickstart
 
