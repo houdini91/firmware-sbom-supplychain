@@ -289,7 +289,7 @@ edk2 firmware build. L3 is the honest remaining gap.
 | in-toto **Statement `_type` v1** | standard statement envelope | E2, E6 | **EVIDENCE** | Both use the v1 Statement wrapper. |
 | **subject→digest binding** | attestation bound to a specific artifact digest | E1, E5, E6 | **ENFORCED** *(gate)* | `sbom-binding`: SBOM digest == signed subject. |
 | **DSSE signing** | attestation wrapped in a signed DSSE envelope | E5 | **ENFORCED** *(gate)* | Cosign keyless DSSE; OIDC identity. |
-| VSA **`verifiedLevels`** | machine-readable level asserted | E6 | **EVIDENCE** | Reads `SLSA_BUILD_LEVEL_2` on allow; note it is *asserted on the pass verdict*, and gate-verified for real only in CI where `gh attestation verify` runs. |
+| VSA **`verifiedLevels`** / **`evidenceBuildLevel`** | machine-readable level(s) | E6 | **EVIDENCE** | The firmware SUBJECT's `verifiedLevels` is the honest floor `SLSA_BUILD_LEVEL_0` — its own build level is not verified. The SBOM/attestation artifact's platform-generated L2 provenance rides in the scoped `evidenceBuildLevel` field (gate-verified for real only in CI where `gh attestation verify` runs), so a standard SLSA-VSA consumer can never read "firmware is L2". |
 | VSA **`dependencyLevels`** | SLSA levels of transitive deps | — | **PLANNED** | Empty today — ties to the E1/E3 transitive-coverage gap. |
 
 ## B. SBOM-content regulation (CRA / BSI / CISA / NTIA)

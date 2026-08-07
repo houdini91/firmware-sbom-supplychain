@@ -124,7 +124,8 @@ the verdict travels with the bytes and anyone downstream can re-verify it.
                "digest": { "sha256": "7965c317…62fb8f37" } }],   // ← D: the immutable OVMF_CODE.fd bytes
   "predicate": {
     "verificationResult": "PASSED",
-    "verifiedLevels": ["SLSA_BUILD_LEVEL_2"],
+    "verifiedLevels": ["SLSA_BUILD_LEVEL_0"],   // ← the firmware SUBJECT's own build level is not verified
+    "evidenceBuildLevel": "SLSA_BUILD_LEVEL_2", // ← the SBOM/attestation artifact's provenance IS L2 (scoped, not on the firmware)
     "verifierReports":     [ /* 21 per-rule observations (always-emitted), each framework-tagged */ ],   // extension
     "controlAssessments":  [ /* 32 per-control findings across 6 frameworks, each cited */ ] // extension
   }
@@ -182,7 +183,7 @@ output** (`make gate`, abbreviated):
 $ make gate FIXTURE=oss-lane/fixtures/clean.json                        # captured
    ✅ component-byte-integrity: shipped module bytes match the SBOM's declared hash (detects a same-GUID swap)  [sp-800-53:SI-7(1), sp-800-53:SR-4(3)]
    ✅ reconcile-membership: every declared module observed in the image; no undeclared artifact  [sp-800-53:CM-8(3), sp-800-53:SI-7, sp-800-53:SR-4(3)]
-✅ ALLOW — clean.json  (VSA: PASSED, verifiedLevels=[SLSA_BUILD_LEVEL_2])
+✅ ALLOW — clean.json  (VSA: PASSED, verifiedLevels=[SLSA_BUILD_LEVEL_0] for the firmware; evidenceBuildLevel=SLSA_BUILD_LEVEL_2)
 
 $ make gate FIXTURE=oss-lane/fixtures/byte-integrity-modified.json      # same-GUID swap, captured
 ⛔ DENY — byte-integrity-modified.json  (VSA: FAILED)

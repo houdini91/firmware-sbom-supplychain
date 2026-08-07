@@ -637,13 +637,15 @@ vsa_predicate := {
 	"resourceUri": object.get(input, ["artifact", "uri"], "firmware-sbom-attestation"),
 	"policy": {"uri": "https://github.com/houdini91/firmware-sbom-supplychain/blob/main/oss-lane/policy/firmware.rego"},
 	"verificationResult": _result,
+	# verifiedLevels applies to THIS VSA's subject — the firmware image D. The firmware's own
+	# build level is NOT verified (it is not built on a SLSA hosted builder), so the honest
+	# machine-readable value is SLSA_BUILD_LEVEL_0. The real L2 fact — the SBOM/attestation
+	# ARTIFACT's platform-generated build provenance (E2, hard-gated by `gh attestation verify`
+	# in CI) — rides in the separate `evidenceBuildLevel` field, so a standard SLSA-VSA consumer
+	# can never machine-read this as "the firmware is L2".
 	"verifiedLevels": _levels,
-	# HONESTY (scope of verifiedLevels): SLSA_BUILD_LEVEL_2 attests the build provenance of
-	# the SBOM ARTIFACT (E2 — platform-generated attest-build-provenance over the SBOM file,
-	# hard-gated by `gh attestation verify` in CI). It is NOT a SLSA level of the firmware
-	# image itself — the firmware is not built on the SLSA-L2 hosted builder. A consumer must
-	# read this level as "the SBOM's build provenance is L2", never "the firmware is L2".
-	"verifiedLevelsNote": "SLSA_BUILD_LEVEL_2 applies to the SBOM artifact's build provenance (platform-generated), NOT to the firmware image; the firmware is bound to that evidence via the digest anchor D, but does not itself carry a SLSA build level.",
+	"evidenceBuildLevel": _evidence_build_level,
+	"verifiedLevelsNote": "verifiedLevels is SLSA_BUILD_LEVEL_0: this VSA's subject is the firmware image, whose own SLSA build level is not verified. The SBOM/attestation evidence backing this verdict was itself built at SLSA_BUILD_LEVEL_2 (platform-generated provenance) — see evidenceBuildLevel; the firmware is bound to that evidence via the digest anchor D.",
 	# The evidence graph rooted at D: {uri,digest} for each signed evidence attestation
 	# (SBOM/provenance/reconcile/VEX/CHIPSEC/build-tools). Empty offline — the CI signing
 	# step injects the real bundle digests (they are only known after each blob is signed).
@@ -657,10 +659,12 @@ vsa_predicate := {
 _result := "PASSED" if allow
 _result := "FAILED" if not allow
 
-# The gate now includes a `slsa-provenance` verifier report, so `allow` implies
-# input.provenance.slsa_verified — i.e. SLSA L2 provenance was verified
-# (platform-generated via attest-build-provenance + `gh attestation verify`,
-# which the shared assembler surfaces as that fact). verifiedLevels is therefore
-# gate-backed, not merely asserted on the pass verdict.
-_levels := ["SLSA_BUILD_LEVEL_2"] if allow
+# The gate includes a `slsa-provenance` verifier report, so `allow` implies
+# input.provenance.slsa_verified — the SBOM ARTIFACT's provenance was verified at SLSA L2
+# (platform-generated via attest-build-provenance + `gh attestation verify`). That fact is
+# recorded on `evidenceBuildLevel`. The firmware SUBJECT carries no verified build level, so
+# its standard `verifiedLevels` is the honest floor (L0) — never L2.
+_levels := ["SLSA_BUILD_LEVEL_0"] if allow
 _levels := [] if not allow
+_evidence_build_level := "SLSA_BUILD_LEVEL_2" if allow
+_evidence_build_level := "SLSA_BUILD_LEVEL_0" if not allow

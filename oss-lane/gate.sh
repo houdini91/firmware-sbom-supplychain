@@ -67,7 +67,7 @@ if [ -n "$VSA_OUT" ]; then
 fi
 
 if [ "$allow" = "true" ]; then
-  echo "✅ ALLOW — $(basename "$INPUT")  (VSA: PASSED, verifiedLevels=[SLSA_BUILD_LEVEL_2] — the SBOM artifact's build provenance, not the firmware)"
+  echo "✅ ALLOW — $(basename "$INPUT")  (VSA: PASSED, verifiedLevels=[SLSA_BUILD_LEVEL_0] for the firmware subject; evidenceBuildLevel=SLSA_BUILD_LEVEL_2 — the SBOM artifact's build provenance)"
   exit 0
 fi
 
