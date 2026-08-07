@@ -70,10 +70,12 @@ embedded-SBOM plan, not compete with it.")
 
 - **CRA Annex I Part II(1) / BSI TR-03183-2** — machine-readable SBOM obligation:
   **met** (we produce CycloneDX + SPDX).
-- **CISA/NTIA 2025 minimum elements** — component **hash** + **license/IDs** are the
-  2025 additions we cover; the **firmware image-digest binding is our extension**, not
-  a CISA minimum element (already labeled as such in `oss-lane/`). The 2025 document
-  is a draft; our claims about its text rest on secondary sources.
+- **CISA 2026 minimum elements** (finalized July 2026, superseding the NTIA 2021 baseline) —
+  component **hash** + **license/IDs** are additions we cover; the **firmware image-digest
+  binding is our extension**, not a CISA minimum element (already labeled as such in
+  `oss-lane/`). The 2026 document also adds **tool name** and **generation context**, which are
+  provenance-side — our SBOM records the generating tool in `metadata.tools` — and are not
+  separately gated here; confirm the exact element text against the primary CISA source before citing.
 - **EO 14028 / publishing an SPDX/CycloneDX export** — a SHOULD we satisfy; note we
   bind on the firmware digest `H` rather than the SBOM's own SHA-256 as the collection
   ID — a deliberate, documented choice.

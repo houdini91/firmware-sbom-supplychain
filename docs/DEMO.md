@@ -88,7 +88,7 @@ Evidence (VSA) : vsa.json   verificationResult=PASSED
   ✅ NIST SP 800-53 Rev 5 (SR/SI/CM/RA)         9/9  [required]
   ✅ NIST SP 800-193 — Platform Firmware Resiliency (Protection) 1/1  [required]
   ✅ OpenSSF S2C2F v2                           3/3  [required]
-  ✅ EU CRA / BSI TR-03183-2 / CISA 2025 draft (SBOM obligations) 4/4  [required]
+  ✅ EU CRA / BSI TR-03183-2 / CISA 2026 Minimum Elements (SBOM obligations) 4/4  [required]
 ──────────────────────────────────────────────────────────────────
 VERDICT: ✅ ACCEPT — firmware bound + all required frameworks pass.
 ```

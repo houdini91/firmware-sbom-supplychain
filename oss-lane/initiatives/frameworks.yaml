@@ -183,7 +183,7 @@ initiatives:
         satisfied_by: [build-tools-signed]
 
   cra-bsi-cisa:
-    name: "EU CRA / BSI TR-03183-2 / CISA 2025 draft (SBOM obligations)"
+    name: "EU CRA / BSI TR-03183-2 / CISA 2026 Minimum Elements (SBOM obligations)"
     help: https://eur-lex.europa.eu/eli/reg/2024/2847/oj
     controls:
       - id: cra-annex-I-II-1
@@ -193,20 +193,20 @@ initiatives:
         canonical: sbom-exists
         satisfied_by: [sbom-present]
       - id: cisa-hash
-        name: "CISA 2025: component hashes"
+        name: "CISA 2026: component hash"
         description: "Each SBOM component carries a cryptographic hash of the component."
-        citation: "CISA SBOM Minimum Elements (2025) — Component Hash"
+        citation: "CISA 2026 Minimum Elements for an SBOM — Component Hash"
         canonical: component-integrity-check
         satisfied_by: [component-integrity]
       - id: cisa-fw-binding
         name: "SBOM bound to the firmware image digest — our extension, beyond CISA/NTIA minimum elements"
         description: "The SBOM and its evidence are cryptographically bound to the digest of the actual firmware image they describe. This exceeds the CISA/NTIA SBOM minimum elements (image-digest binding is not one of them); we include it as our own admission-gate requirement."
-        citation: "Beyond CISA/NTIA SBOM minimum elements (2025) — our extension, not a CISA-mandated element"
+        citation: "Beyond CISA/NTIA SBOM minimum elements (2026) — our extension, not a CISA-mandated element"
         canonical: firmware-image-binding
         satisfied_by: [firmware-digest-anchor]
       - id: cisa-license-id
-        name: "CISA 2025: license + software identifiers (third-party)"
+        name: "CISA 2026: license + software identifiers (third-party)"
         description: "Each third-party component carries its license and a software identifier (PURL/CPE)."
-        citation: "CISA SBOM Minimum Elements (2025) — License + Software Identifiers"
+        citation: "CISA 2026 Minimum Elements for an SBOM — License + Software Identifiers"
         canonical: component-license-identification
         satisfied_by: [thirdparty-identifiers]
