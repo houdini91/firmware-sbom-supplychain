@@ -10,7 +10,8 @@
 set -euo pipefail
 
 EDK2_DIR="${EDK2_DIR:?set EDK2_DIR to your edk2 checkout (fork master, with the -Y SBOM generator)}"
-ARCH="${ARCH:-X64}"; TARGET="${TARGET:-DEBUG}"; TOOLCHAIN="${TOOLCHAIN:-GCC5}"
+# edk2-stable202411+ uses the generic GCC tag (GCC5 was removed). Override TOOLCHAIN if yours differs.
+ARCH="${ARCH:-X64}"; TARGET="${TARGET:-DEBUG}"; TOOLCHAIN="${TOOLCHAIN:-GCC}"
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DEST="$REPO_DIR/inputs/sbom.cdx.json"
 

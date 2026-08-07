@@ -41,8 +41,15 @@ over these bundles, not a standalone artifact.
 The `edk2:hashCanonicalForm` (per hashed module) and `edk2:thirdPartyEnumeration`
 (metadata.component) properties were **annotated** onto this captured sample to reflect
 the hardened `-Y SBOM` generator (edk2 fork commit `3053c6e`), whose code — but not the
-hash *values* — post-dates this capture. The values are the generator's deterministic
-output for a clean build (GenFw present → every module's canonical form is
-`genfw-rebase-0`; a git checkout with submodules → `git-submodules`). The **authoritative**
-sample is a fresh `build -Y SBOM` on the edk2 fork's `feat/build-y-sbom-generator` branch;
-regenerate and re-copy here when convenient.
+hash *values* — post-dates this capture.
+
+**Rebuild-confirmed (2026-08-07):** a genuine `build -a X64 -t GCC -p OvmfPkg/OvmfPkgX64.dsc
+-b DEBUG -Y SBOM` on the fork's `feat/build-y-sbom-generator` branch (edk2-stable202411) was
+run and its output inspected: **311 components, all 122 hashed modules `genfw-rebase-0` (zero
+`raw-pe32`), `thirdPartyEnumeration=git-submodules`** — i.e. the annotations above match a real
+build exactly. The genuine build's *hash values* differ (different compiler bytes), so its SBOM
+is NOT swapped in here: the checked-in snapshot's per-module hashes must stay consistent with
+`byte-integrity.json`, `reconcile-verdict.json`, and the firmware digest `D` referenced across
+26 hand-crafted gate fixtures. To adopt a fresh capture end-to-end, regenerate the *whole*
+evidence set (SBOM + reconcile + byte-integrity + `D`) from one build — see
+`scripts/regen-reference-sbom.sh` for the SBOM step.
