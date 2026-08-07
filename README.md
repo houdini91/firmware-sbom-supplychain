@@ -147,13 +147,16 @@ the verdict travels with the bytes and anyone downstream can re-verify it.
 |---|:--:|---|---|
 | **SLSA v1.0** — Build L2 | 3 | `provenance-exists`, `provenance-authentic`, `subject-binding` | `slsa-provenance`, `slsa-level-floor` |
 | **NIST SSDF** (SP 800-218) | 7 | `PS.2.1`, `PO.3.2`, `PW.4.4`, `PW.6.2`, `RV.1.1` | `attestation-signature`, `build-tools-signed`, `cve-triage` |
-| **NIST SP 800-53** Rev 5 | 9 | `SI-7`, `SI-7(1)`, `SI-7(15)`, `SI-16`, `CM-8(3)`, `SR-4(3)` | `reconcile-membership`, `component-byte-integrity`, `signer-identity-pinned` |
-| **NIST SP 800-193** (Protection) | 1 | `§4.2` platform protection posture | `chipsec-posture` |
-| **OpenSSF S2C2F** v2 | 3 | `SCA-1`, `SCA-2`, `REB-3` | `cve-triage`, `thirdparty-identifiers`, `build-tools-signed` |
-| **EU CRA / BSI TR-03183-2 / CISA 2026 Minimum Elements** | 4 | Annex I II(1), component-hash, firmware-binding, license/PURL | `sbom-present`, `component-integrity`, `firmware-digest-anchor` |
+| **NIST SP 800-53** Rev 5 | 10 | `SI-7`, `SI-7(1)`, `SI-7(15)`, `SI-16`, `CM-8`, `CM-8(3)`, `SR-4(3)`, `RA-5` | `reconcile-membership`, `component-byte-integrity`, `signer-identity-pinned`, `no-kev-component` |
+| **NIST SP 800-193** (Protection) | 3 | `§4.2` protection, `§4.2.3` SMM, `§4.3.1` detection *(advisory)* | `chipsec-posture`, `platform-protection-posture` |
+| **OpenSSF S2C2F** v2 | 4 | `SCA-1`, `SCA-2`, `REB-3`, `AUD-3` | `cve-triage`, `thirdparty-identifiers`, `build-tools-signed` |
+| **EU CRA / BSI TR-03183-2 / CISA 2026 Minimum Elements** | 7 | Annex I II(1), component-hash, firmware-binding, license/PURL, gen-tool, gen-context, KEV | `sbom-present`, `component-integrity`, `firmware-digest-anchor`, `no-kev-component` |
+| **NIST SP 800-147 / 147B** + UEFI Secure Boot | 2 | `800-147` flash write-protect, `800-147B` Secure Boot | `platform-protection-posture`, `uefi-secure-boot-posture` |
 
 The full evidence → check → control → verdict spine is in [`FRAMEWORKS.md`](FRAMEWORKS.md); the enforced subset is
-in [`oss-lane/compliance-map.md`](oss-lane/compliance-map.md).
+in [`oss-lane/compliance-map.md`](oss-lane/compliance-map.md). For the honest per-framework audit — what each
+control gates, and what each framework requires that we **don't** gate — see
+[`COMPLIANCE-MATRIX.md`](COMPLIANCE-MATRIX.md).
 
 ## Quickstart
 
