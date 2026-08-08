@@ -10,7 +10,7 @@ result and is recorded here deliberately, not hidden.
 
 ## How to read this
 
-- **Gated** means the report is one of the 28 always-emitted `verifier_reports` that are
+- **Gated** means the report is one of the 30 always-emitted `verifier_reports` that are
   ANDed into `allow` (`allow if { every r in verifier_reports { r.isSuccess } }`,
   `firmware.rego:601`). If any gated report is `isSuccess:false`, the gate DENYs.
 - **Three-state per control** (`verify-initiative.py`): a control is **PASS** only when
@@ -148,9 +148,9 @@ controls upstream of the artifact this gate inspects.
 | Control | Gated report(s) | Evidence read | Clean |
 |---|---|---|---|
 | cra-annex-I-II-1 | `sbom-present`, `reconcile-membership` | CRA Annex I Part II(1): a machine-readable SBOM exists + matches the image | ✅ |
-| cisa-author | `sbom-baseline-metadata` | CISA 2026 **required**: SBOM Author (`metadata.authors[].name`) | ✅ |
-| cisa-timestamp | `sbom-baseline-metadata` | CISA 2026 **required**: Timestamp (`metadata.timestamp`, ISO-8601) | ✅ |
-| cisa-supplier | `sbom-baseline-metadata` | CISA 2026 **required**: Software Producer / Supplier (`metadata.supplier.name`) | ✅ |
+| cisa-author | `sbom-author` | CISA 2026 **required**: SBOM Author (`metadata.authors[].name`) | ✅ |
+| cisa-timestamp | `sbom-timestamp` | CISA 2026 **required**: Timestamp (`metadata.timestamp`, ISO-8601) | ✅ |
+| cisa-supplier | `sbom-supplier` | CISA 2026 **required**: Software Producer / Supplier (`metadata.supplier.name`) | ✅ |
 | cisa-dependencies | `dependency-relationships` | CISA 2026 **required**: Dependency Relationship — `dependencies[]` present + referentially sound (integrity, not completeness) | ✅ |
 | cisa-data-quality | `sbom-data-quality` | NTIA data quality: declared purls parse + licenses well-formed (validity, not just presence; not full SPDX-list membership) | ✅ |
 | cisa-hash | `component-integrity` | CISA 2026 minimum field: component hash | ✅ |

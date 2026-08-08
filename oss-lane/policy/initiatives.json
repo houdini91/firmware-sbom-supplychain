@@ -391,7 +391,7 @@
           "citation": "CISA 2026 Minimum Elements for an SBOM \u2014 SBOM Author (Required) / NTIA 2021 baseline",
           "canonical": "sbom-author",
           "satisfied_by": [
-            "sbom-baseline-metadata"
+            "sbom-author"
           ]
         },
         {
@@ -401,7 +401,7 @@
           "citation": "CISA 2026 Minimum Elements for an SBOM \u2014 Timestamp (Required) / NTIA 2021 baseline",
           "canonical": "sbom-timestamp",
           "satisfied_by": [
-            "sbom-baseline-metadata"
+            "sbom-timestamp"
           ]
         },
         {
@@ -411,7 +411,7 @@
           "citation": "CISA 2026 Minimum Elements for an SBOM \u2014 Software Producer (Required) / BSI TR-03183-2",
           "canonical": "sbom-supplier",
           "satisfied_by": [
-            "sbom-baseline-metadata"
+            "sbom-supplier"
           ]
         },
         {
@@ -478,8 +478,8 @@
       "controls": [
         {
           "id": "osf-guid-identity",
-          "name": "Embedded-SBOM module identity is the FILE_GUID (GUID-form tag-id)",
-          "description": "The OSF Firmware Embedded SBOM identity MUST: every firmware module's coSWID tag-id is its UEFI FILE_GUID. Evaluated here against the CycloneDX manifest the gate holds \u2014 each module's bom-ref carries the FILE_GUID, so this asserts every module carries a GUID-form tag-id. CEILING: this is a MANIFEST-LEVEL structural proxy for the embedded coSWID shape, NOT a parse of the coSWID extracted from the shipped PE / .sbom COFF section \u2014 that deeper check remains roadmapped (see CONFORMANCE.md).",
+          "name": "Embedded-SBOM module identity is GUID-shaped (tag-id shape check)",
+          "description": "Toward the OSF Firmware Embedded SBOM identity MUST (every module's coSWID tag-id is its UEFI FILE_GUID): this control asserts every component's bom-ref is GUID-SHAPED. HONESTY CEILING \u2014 this is a SHAPE check only: a UUID emitted by any tool (e.g. a uSWID UUIDv5 bom-ref on a coreboot component, which has no FILE_GUIDs at all) passes it. It does NOT prove the value is a live UEFI FILE_GUID, and it does NOT parse the coSWID from the shipped PE / .sbom COFF section \u2014 that deeper check remains roadmapped (see CONFORMANCE.md). Read a green here as 'manifest tag-ids are GUID-shaped', not 'this is a conformant OSF embedded SBOM'.",
           "citation": "OSF Firmware Embedded SBOM Spec \u2014 metadata.rst (GUID identity) + RFC 9393 \u00a72.3 (tag-id)",
           "canonical": "osf-embedded-sbom-identity",
           "satisfied_by": [

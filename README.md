@@ -134,7 +134,7 @@ the verdict travels with the bytes and anyone downstream can re-verify it.
 
 ## Framework &amp; control coverage
 
-28 always-emitted verifier reports resolve to **43 controls across 8 frameworks**.
+30 always-emitted verifier reports resolve to **43 controls across 8 frameworks**.
 
 <div align="center">
 <picture>
@@ -150,7 +150,7 @@ the verdict travels with the bytes and anyone downstream can re-verify it.
 | **NIST SP 800-53** Rev 5 | 10 | `SI-7`, `SI-7(1)`, `SI-7(15)`, `SI-16`, `CM-8`, `CM-8(3)`, `SR-4(3)`, `RA-5` | `reconcile-membership`, `component-byte-integrity`, `signer-identity-pinned`, `no-kev-component` |
 | **NIST SP 800-193** (Protection) | 3 | `§4.2` protection, `§4.2.3` SMM, `§4.3.1` detection *(advisory)* | `chipsec-posture`, `platform-protection-posture` |
 | **OpenSSF S2C2F** v2 | 4 | `SCA-1`, `SCA-2`, `REB-3`, `AUD-3` | `cve-triage`, `thirdparty-identifiers`, `build-tools-signed` |
-| **EU CRA / BSI TR-03183-2 / CISA 2026 Minimum Elements** | 12 | Annex I II(1), **author**, **timestamp**, **supplier**, component-hash, firmware-binding, license/PURL, gen-tool, gen-context, **dependencies**, **data-quality**, KEV | `sbom-present`, `sbom-baseline-metadata`, `dependency-relationships`, `sbom-data-quality`, `no-kev-component` |
+| **EU CRA / BSI TR-03183-2 / CISA 2026 Minimum Elements** | 12 | Annex I II(1), **author**, **timestamp**, **supplier**, component-hash, firmware-binding, license/PURL, gen-tool, gen-context, **dependencies**, **data-quality**, KEV | `sbom-present`, `sbom-author`/`-timestamp`/`-supplier`, `dependency-relationships`, `sbom-data-quality` |
 | **NIST SP 800-147 / 147B** + UEFI Secure Boot | 2 | `800-147` flash write-protect, `800-147B` Secure Boot | `platform-protection-posture`, `uefi-secure-boot-posture` |
 | **OSF Firmware Embedded SBOM** (structural) | 2 | `osf-guid-identity`, `osf-source-hash` *(advisory)* | `osf-identity-shape`, `osf-source-provenance` |
 
@@ -179,7 +179,7 @@ make demo      # the full OSS lane end to end (needs cosign + grype)
 the byte-integrity un-rebase test). The **coSWID round-trip and the PEI/XIP BUG-1 regression need
 python-uswid** and only *run* under `make test-full` — under plain `make test` they are honestly skipped, not
 silently passed. The gate itself is
-[`oss-lane/policy/firmware.rego`](oss-lane/policy/firmware.rego) — **28 verifier reports** (plus a conditional 25th, `firmware-freshly-measured`) ANDed into a signed
+[`oss-lane/policy/firmware.rego`](oss-lane/policy/firmware.rego) — **30 verifier reports** (plus a conditional 25th, `firmware-freshly-measured`) ANDed into a signed
 SLSA VSA, each with an isolating negative fixture under [`oss-lane/fixtures/`](oss-lane/fixtures).
 
 A clean release ALLOWs; a same-GUID swap DENYs — the byte check catches what membership misses. **Real captured

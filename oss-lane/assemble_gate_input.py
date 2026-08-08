@@ -128,7 +128,7 @@ def _module_type(c):
 
 
 def integrity(sbom):
-    mods = [c for c in sbom.get("components", []) if c.get("type") != "library"]
+    mods = [c for c in (sbom.get("components") or []) if isinstance(c, dict) and c.get("type") != "library"]
     def hashed(c):
         h = c.get("hashes")
         return isinstance(h, list) and len(h) > 0
@@ -198,7 +198,7 @@ def osf_conformance(sbom):
         modules whose bom-ref is GUID-form.
       - Source-file hash / M-srchash (UNMET by default): source_hash_present counts
         modules carrying an edk2:sourceHash. 0 unless --source-hashes was supplied."""
-    mods = [c for c in sbom.get("components", []) if c.get("type") != "library"]
+    mods = [c for c in (sbom.get("components") or []) if isinstance(c, dict) and c.get("type") != "library"]
     guid_tag_id = sum(1 for c in mods if _GUID_RE.match(str(c.get("bom-ref", ""))))
     return {"evaluated": True,
             "modules_total": len(mods),
@@ -207,25 +207,31 @@ def osf_conformance(sbom):
 
 
 _PURL_RE = re.compile(r"^pkg:[a-zA-Z][a-zA-Z0-9.+-]*/[^@?#]+")
-# SPDX short-form license id shape (letters/digits/.+-); NOT a full SPDX-list membership check —
-# that would need the ~600-entry SPDX license list. A shape check catches "NOT-A-LICENSE"/garbage
-# and empty ids; full-list membership is a documented refinement.
+# SPDX short-form license-id CHARSET/shape (letters/digits/.+-). HONESTY: this is a well-formedness
+# check, NOT SPDX-license-list membership — a syntactically-valid-but-fictitious id like
+# "NOT-A-LICENSE" or "totally-made-up" PASSES the shape (it is charset-legal). What it DOES catch:
+# empty ids, and ids containing spaces/underscores/parens/slashes/other illegal chars. Full
+# SPDX-list membership (which would reject a fake-but-shaped id) is a documented refinement.
 _SPDX_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9.+-]*$")
 
 
 def data_quality(sbom):
-    """NTIA 'SBOM data quality' — the identifiers that ARE present must be VALID, not merely
-    non-empty. thirdparty()/cisa-license-id check presence; this checks correctness:
+    """NTIA 'SBOM data quality' — the identifiers that ARE present must be well-formed, not merely
+    non-empty. thirdparty()/cisa-license-id check presence; this checks well-formedness:
       - purl_invalid:    declared component.purl strings that don't parse as a package URL
-      - license_invalid: declared component.licenses[] entries that are neither a well-formed
-        SPDX-id-shaped `license.id`/`expression` nor a non-empty `name` (so 'NOT-A-LICENSE',
-        'garbage', or an empty license object is flagged).
-    A component with no purl/license is not counted here (presence is a separate control)."""
-    comps = sbom.get("components", [])
+      - license_invalid: declared component.licenses[] entries that are neither a charset-legal
+        SPDX-shaped `license.id`/`expression` nor a non-empty `name` (so an EMPTY license object,
+        or an id with illegal characters, is flagged).
+    HONESTY: a fictitious-but-charset-legal id (e.g. "NOT-A-LICENSE") is NOT flagged — that needs
+    full SPDX-license-list membership (a documented refinement). A component with no purl/license
+    is not counted here (presence is a separate control)."""
+    comps = sbom.get("components") or []
     purl_checked = purl_invalid = 0
     bad_purls, bad_lics = [], []
     lic_checked = lic_invalid = 0
     for c in comps:
+        if not isinstance(c, dict):
+            continue
         purl = c.get("purl")
         if purl:
             purl_checked += 1
@@ -257,7 +263,7 @@ def dependency_facts(sbom):
     referential integrity of the declared graph — NOT a claim of dependency COMPLETENESS (that needs
     a compositions[].aggregate declaration from the generator; tracked separately)."""
     deps = sbom.get("dependencies") or []
-    refs = {c.get("bom-ref") for c in sbom.get("components", []) if c.get("bom-ref")}
+    refs = {c.get("bom-ref") for c in (sbom.get("components") or []) if isinstance(c, dict) and c.get("bom-ref")}
     md_ref = ((sbom.get("metadata", {}) or {}).get("component", {}) or {}).get("bom-ref")
     if md_ref:
         refs.add(md_ref)
@@ -290,7 +296,7 @@ def baseline_metadata(sbom):
     ts = md.get("timestamp") or ""
     supplier = md.get("supplier") or {}
     author_present = any(a.get("name") for a in authors if isinstance(a, dict))
-    timestamp_present = bool(re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}", str(ts)))
+    timestamp_present = bool(re.match(r"^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}", str(ts)))
     supplier_present = bool(isinstance(supplier, dict) and supplier.get("name"))
     return {"author_present": author_present,
             "timestamp_present": timestamp_present,
@@ -301,7 +307,7 @@ def thirdparty(sbom):
     def vendored(c):
         return any(p.get("name") == "edk2:vendored" and p.get("value") == "true"
                    for p in (c.get("properties") or []))
-    tp = [c for c in sbom.get("components", []) if vendored(c)]
+    tp = [c for c in (sbom.get("components") or []) if isinstance(c, dict) and vendored(c)]
     def missing(c):
         return (not c.get("purl")) or c.get("purl") == "" \
             or (not c.get("licenses")) or len(c.get("licenses")) == 0

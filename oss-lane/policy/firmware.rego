@@ -171,6 +171,9 @@ _integrity_unresolved := [m | some m in object.get(input, ["sbom", "integrity", 
 default _integrity_coverage := false
 _integrity_coverage if {
 	input.sbom.integrity
+	input.sbom.integrity.hashable_total > 0 # NON-VACUITY: "every hashable module is hashed" is a
+	# real claim only if there IS a hashable module. An all-library SBOM (hashable_total==0) has an
+	# empty unhashed list and would pass 0-unresolved vacuously — require at least one to assess.
 	count(_integrity_unresolved) == 0
 }
 
@@ -300,14 +303,17 @@ default _sbom_gen_context := false
 _sbom_gen_context if input.sbom.generation.context_present
 
 # CISA 2026 / NTIA baseline REQUIRED elements: SBOM Author, Timestamp, Software Producer/Supplier.
-# These live in metadata (authors/timestamp/supplier) and were previously ungated even though the
-# gate read the sibling tools/lifecycles for the generation controls. All three must be present.
-default _sbom_baseline_metadata := false
-_sbom_baseline_metadata if {
-	input.sbom.baseline.author_present
-	input.sbom.baseline.timestamp_present
-	input.sbom.baseline.supplier_present
-}
+# Emitted as THREE separate reports (one per cited CISA element) so each control's status reflects
+# its OWN evidence. A single conjunctive report mapped to three controls falsely failed author +
+# timestamp when only supplier was absent (Dell/Lenovo declare author+timestamp but no supplier).
+default _sbom_author := false
+_sbom_author if input.sbom.baseline.author_present
+
+default _sbom_timestamp := false
+_sbom_timestamp if input.sbom.baseline.timestamp_present
+
+default _sbom_supplier := false
+_sbom_supplier if input.sbom.baseline.supplier_present
 
 # CISA 2026 / NTIA REQUIRED 'Dependency Relationship': the SBOM declares a dependency graph and it
 # is referentially sound (every dependsOn points at a real component — no dangling ref). NON-VACUITY:
@@ -359,24 +365,22 @@ _dependency_msg := "SBOM declares no dependency relationships (dependencies[] em
 	not input.sbom.dependencies.present
 }
 
+# present, but only node entries and zero dependsOn edges — the graph exists but declares no
+# relationships, so it does not evidence the required element (distinct from "section absent").
+_dependency_msg := "SBOM dependencies[] present but declares 0 dependsOn edges — a node list without relationships does not meet the CISA/NTIA Dependency Relationship element" if {
+	input.sbom.dependencies.present
+	input.sbom.dependencies.edges == 0
+	input.sbom.dependencies.dangling_count == 0
+}
+
 _dependency_msg := sprintf("SBOM dependency graph has %d dangling dependsOn ref(s) pointing at non-existent components: %v", [object.get(input, ["sbom", "dependencies", "dangling_count"], 0), object.get(input, ["sbom", "dependencies", "dangling"], [])]) if {
 	input.sbom.dependencies.present
 	input.sbom.dependencies.dangling_count > 0
 }
 
-default _sbom_baseline_msg := "SBOM baseline metadata evidence absent (no sbom.baseline section) — cannot confirm author/timestamp/supplier"
-
-_sbom_baseline_msg := sprintf(
-	"SBOM missing CISA/NTIA baseline required element(s): %v",
-	[[e |
-		some e, present in {
-			"author (metadata.authors[].name)": object.get(input, ["sbom", "baseline", "author_present"], false),
-			"timestamp (metadata.timestamp)": object.get(input, ["sbom", "baseline", "timestamp_present"], false),
-			"supplier (metadata.supplier.name)": object.get(input, ["sbom", "baseline", "supplier_present"], false),
-		}
-		present == false
-	]],
-) if input.sbom.baseline
+_sbom_author_msg := "SBOM declares no Author (metadata.authors[].name) — the CISA 2026 / NTIA required SBOM Author element is unmet"
+_sbom_timestamp_msg := "SBOM declares no Timestamp (metadata.timestamp, ISO-8601) — the CISA 2026 / NTIA required Timestamp element is unmet"
+_sbom_supplier_msg := "SBOM declares no Software Producer / Supplier (metadata.supplier.name) — the CISA 2026 / NTIA required Supplier element is unmet"
 
 # SP 800-193 §4.3.1 (Detection) input: a GENUINE flash-time image measurement was supplied
 # (a real FW_IMAGE hashed at leg-3), as opposed to DEV_ASSUME_FWIMAGE mode where leg-3 is
@@ -598,12 +602,10 @@ _core_reports := [
 		"SBOM declares its generation context (metadata.lifecycles[].phase present) — declared, not independently proven",
 		"SBOM declares no generation context (metadata.lifecycles[].phase missing)",
 	),
-	# CISA 2026 / NTIA baseline required elements: SBOM Author + Timestamp + Supplier.
-	_report(
-		"sbom-baseline-metadata", _sbom_baseline_metadata,
-		"SBOM carries the CISA/NTIA baseline required elements: author (metadata.authors), timestamp (metadata.timestamp), and supplier (metadata.supplier)",
-		_sbom_baseline_msg,
-	),
+	# CISA 2026 / NTIA baseline required elements — one report per cited element (honest per-control status).
+	_report("sbom-author", _sbom_author, "SBOM declares its Author (metadata.authors[].name)", _sbom_author_msg),
+	_report("sbom-timestamp", _sbom_timestamp, "SBOM declares its Timestamp (metadata.timestamp, ISO-8601)", _sbom_timestamp_msg),
+	_report("sbom-supplier", _sbom_supplier, "SBOM declares its Software Producer / Supplier (metadata.supplier.name)", _sbom_supplier_msg),
 	# CISA 2026 / NTIA required Dependency Relationship: a present, referentially-sound dependency graph.
 	_report(
 		"dependency-relationships", _dependency_relationships,
@@ -725,7 +727,9 @@ _remediation := {
 	"firmware-digest-anchor": "Make the three firmware-byte digests agree — the SBOM metadata digest D, the reconcile re-hash, and the deployed .fd — by rebuilding/re-measuring; an empty leg is a supply-chain gap and a mismatch is a possible swap.",
 	"sbom-generation-tool": "Regenerate the SBOM with a generator that records metadata.tools[] carrying a name AND version (e.g. the edk2 '-Y SBOM' BuildReport generator); a tool-less SBOM does not meet the CISA generation-tool element.",
 	"sbom-generation-context": "Regenerate the SBOM so metadata.lifecycles[] declares the generation phase (build-time is the gold standard); a context-less SBOM does not meet the CISA generation-context element.",
-	"sbom-baseline-metadata": "Populate the CISA/NTIA baseline required metadata: metadata.authors[].name (SBOM Author), metadata.timestamp (ISO-8601 UTC), and metadata.supplier.name (Software Producer); these are required elements, not optional.",
+	"sbom-author": "Populate metadata.authors[].name (the CISA/NTIA required SBOM Author).",
+	"sbom-timestamp": "Populate metadata.timestamp with an ISO-8601 UTC timestamp (the CISA/NTIA required Timestamp).",
+	"sbom-supplier": "Populate metadata.supplier.name (the CISA/NTIA required Software Producer / Supplier).",
 	"dependency-relationships": "Emit a CycloneDX dependencies[] graph (module -> library dependsOn) with every dependsOn ref resolving to a declared component; a missing graph or a dangling ref fails the CISA/NTIA Dependency Relationship element.",
 	"sbom-data-quality": "Fix the malformed identifier(s): every purl must parse (pkg:type/name@version) and every license must be a valid SPDX-id-shaped id, an expression, or a name — a garbage/empty license or malformed purl fails NTIA data quality.",
 	"no-kev-component": "Upgrade or remove the named component so it no longer carries the CISA KEV (Known-Exploited) CVE; a plain not_affected does NOT waive a KEV — only an explicit, reviewed exec-risk justification in data.kev_waivers may, and only after human review.",
@@ -770,7 +774,15 @@ _reconcile_membership_msg := sprintf(
 # like a clean-but-failing verdict. Say plainly that the evidence is absent.
 default _integrity_msg := "SBOM integrity evidence absent (no sbom.integrity section supplied) — cannot confirm component hashes"
 
-_integrity_msg := sprintf("%d module(s) lack a hash and are not in data.hash_exempt: %v", [count(_integrity_unresolved), _integrity_unresolved]) if input.sbom.integrity
+_integrity_msg := sprintf("%d module(s) lack a hash and are not in data.hash_exempt: %v", [count(_integrity_unresolved), _integrity_unresolved]) if {
+	input.sbom.integrity
+	input.sbom.integrity.hashable_total > 0
+}
+
+_integrity_msg := "SBOM declares 0 hashable (non-library) modules — nothing to integrity-check; a component-hash claim needs at least one hashable module" if {
+	input.sbom.integrity
+	input.sbom.integrity.hashable_total == 0
+}
 
 _vex_msg := "no CVE scan supplied (cve.scanned=false) — nothing to adjudicate; VEX completeness cannot be asserted on an unscanned image" if not input.cve.scanned
 
@@ -875,7 +887,11 @@ deny contains "SBOM declares no generation tool (metadata.tools[] missing, or la
 
 deny contains "SBOM declares no generation context (metadata.lifecycles[].phase missing)" if not _sbom_gen_context
 
-deny contains _sbom_baseline_msg if not _sbom_baseline_metadata
+deny contains _sbom_author_msg if not _sbom_author
+
+deny contains _sbom_timestamp_msg if not _sbom_timestamp
+
+deny contains _sbom_supplier_msg if not _sbom_supplier
 
 deny contains _dependency_msg if not _dependency_relationships
 

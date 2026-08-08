@@ -51,7 +51,9 @@ printf '%s' "$val" | jq -r '
 # subject = the FIRMWARE image digest D (the artifact this gate verifies), named
 # "firmware-image" so a consumer can bind the VSA to the bytes they hold. D is the
 # primary (and only) subject — the evidence is about the firmware, not a JSON file.
-fw_digest="$(jq -r '.firmware.sbom_digest // "sha256:unknown"' "$INPUT")"
+# // only substitutes on null, not "" — an empty digest (e.g. a foreign SBOM with no
+# metadata.component hash) would otherwise emit an invalid subject {"":""}. Coalesce empty too.
+fw_digest="$(jq -r '(.firmware.sbom_digest // "") | if . == "" then "sha256:unknown" else . end' "$INPUT")"
 fw_alg="${fw_digest%%:*}"; fw_hex="${fw_digest#*:}"
 ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 vsa_stmt="$(printf '%s' "$val" | jq -c --arg fwalg "$fw_alg" --arg fwhex "$fw_hex" --arg ts "$ts" '

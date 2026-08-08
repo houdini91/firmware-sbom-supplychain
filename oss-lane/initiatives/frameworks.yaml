@@ -253,19 +253,19 @@ initiatives:
         description: "The SBOM declares its Author — the entity that created the SBOM (CDX metadata.authors[].name). A REQUIRED CISA 2026 / NTIA baseline element; carried in metadata alongside timestamp + supplier."
         citation: "CISA 2026 Minimum Elements for an SBOM — SBOM Author (Required) / NTIA 2021 baseline"
         canonical: sbom-author
-        satisfied_by: [sbom-baseline-metadata]
+        satisfied_by: [sbom-author]
       - id: cisa-timestamp
         name: "CISA 2026: Timestamp (required)"
         description: "The SBOM declares its generation Timestamp (CDX metadata.timestamp, ISO-8601 UTC). A REQUIRED CISA 2026 / NTIA baseline element."
         citation: "CISA 2026 Minimum Elements for an SBOM — Timestamp (Required) / NTIA 2021 baseline"
         canonical: sbom-timestamp
-        satisfied_by: [sbom-baseline-metadata]
+        satisfied_by: [sbom-timestamp]
       - id: cisa-supplier
         name: "CISA 2026: Software Producer / Supplier (required)"
         description: "The SBOM declares the Software Producer / Supplier (CDX metadata.supplier.name). A REQUIRED CISA 2026 / NTIA baseline element; BSI TR-03183-2 likewise requires a supplier."
         citation: "CISA 2026 Minimum Elements for an SBOM — Software Producer (Required) / BSI TR-03183-2"
         canonical: sbom-supplier
-        satisfied_by: [sbom-baseline-metadata]
+        satisfied_by: [sbom-supplier]
       - id: cisa-generation-tool
         name: "CISA 2026: generation tool"
         description: "The SBOM declares the tool that generated it (metadata.tools with a name+version — here the edk2 '-Y SBOM' BuildReport generator). HONESTY: this proves the SBOM DECLARES a generation tool, not that that tool actually produced these bytes (cf. vex-adjudicated, which proves a justification is declared)."
@@ -307,8 +307,8 @@ initiatives:
     help: https://github.com/opensecurityfoundation/firmware-embedded-sbom
     controls:
       - id: osf-guid-identity
-        name: "Embedded-SBOM module identity is the FILE_GUID (GUID-form tag-id)"
-        description: "The OSF Firmware Embedded SBOM identity MUST: every firmware module's coSWID tag-id is its UEFI FILE_GUID. Evaluated here against the CycloneDX manifest the gate holds — each module's bom-ref carries the FILE_GUID, so this asserts every module carries a GUID-form tag-id. CEILING: this is a MANIFEST-LEVEL structural proxy for the embedded coSWID shape, NOT a parse of the coSWID extracted from the shipped PE / .sbom COFF section — that deeper check remains roadmapped (see CONFORMANCE.md)."
+        name: "Embedded-SBOM module identity is GUID-shaped (tag-id shape check)"
+        description: "Toward the OSF Firmware Embedded SBOM identity MUST (every module's coSWID tag-id is its UEFI FILE_GUID): this control asserts every component's bom-ref is GUID-SHAPED. HONESTY CEILING — this is a SHAPE check only: a UUID emitted by any tool (e.g. a uSWID UUIDv5 bom-ref on a coreboot component, which has no FILE_GUIDs at all) passes it. It does NOT prove the value is a live UEFI FILE_GUID, and it does NOT parse the coSWID from the shipped PE / .sbom COFF section — that deeper check remains roadmapped (see CONFORMANCE.md). Read a green here as 'manifest tag-ids are GUID-shaped', not 'this is a conformant OSF embedded SBOM'."
         citation: "OSF Firmware Embedded SBOM Spec — metadata.rst (GUID identity) + RFC 9393 §2.3 (tag-id)"
         canonical: osf-embedded-sbom-identity
         satisfied_by: [osf-identity-shape]

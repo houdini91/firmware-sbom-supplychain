@@ -90,6 +90,35 @@ check("osf: edk2:sourceHash carrier counts toward source_hash_present (M-srchash
 check("osf: empty SBOM -> evaluated but zero modules (not vacuous)",
       a.osf_conformance({}) == {"evaluated": True, "modules_total": 0, "guid_tag_id": 0, "source_hash_present": 0})
 
+# baseline_metadata: author/timestamp/supplier presence; timestamp accepts 'T' or space separator
+bm = a.baseline_metadata({"metadata": {"authors": [{"name": "X"}], "timestamp": "2026-08-08T00:00:00Z",
+                                       "supplier": {"name": "Y"}}})
+check("baseline: author+timestamp+supplier all present", bm == {"author_present": True, "timestamp_present": True, "supplier_present": True})
+check("baseline: space-separated timestamp still accepted (not over-strict)",
+      a.baseline_metadata({"metadata": {"timestamp": "2026-08-08 00:00:00"}})["timestamp_present"] is True)
+check("baseline: empty metadata -> all absent",
+      a.baseline_metadata({}) == {"author_present": False, "timestamp_present": False, "supplier_present": False})
+
+# dependency_facts: edges counted; dangling detected; present-but-edgeless distinguished; null-safe
+df = a.dependency_facts({"components": [{"bom-ref": "A"}, {"bom-ref": "B"}],
+                         "dependencies": [{"ref": "A", "dependsOn": ["B"]}, {"ref": "B", "dependsOn": ["MISSING"]}]})
+check("dep: edges counted, dangling ref detected", df["edges"] == 2 and df["dangling_count"] == 1 and df["dangling"] == ["MISSING"])
+check("dep: node-only graph -> present True but edges 0",
+      a.dependency_facts({"components": [{"bom-ref": "A"}], "dependencies": [{"ref": "A"}]}) == {"present": True, "edges": 0, "dangling_count": 0, "dangling": [], "has_composition": False})
+check("dep: components:null does not crash", a.dependency_facts({"components": None})["present"] is False)
+
+# data_quality: malformed purl + empty license flagged; a charset-legal FAKE license id is NOT (honest ceiling)
+dq = a.data_quality({"components": [
+    {"name": "ok", "purl": "pkg:github/o/o@1", "licenses": [{"license": {"id": "MIT"}}]},
+    {"name": "badpurl", "purl": "not-a-purl"},
+    {"name": "emptylic", "licenses": [{"license": {"id": ""}}]}]})
+check("dq: malformed purl flagged", dq["purl_invalid"] == 1 and "badpurl" in dq["bad_purls"][0])
+check("dq: empty license id flagged", dq["license_invalid"] == 1 and "emptylic" in dq["bad_licenses"])
+fake = a.data_quality({"components": [{"name": "f", "licenses": [{"license": {"id": "NOT-A-LICENSE"}}]}]})
+check("dq: HONEST CEILING — charset-legal fake id 'NOT-A-LICENSE' is NOT flagged (shape check, not SPDX-list membership)",
+      fake["license_invalid"] == 0)
+check("dq: components:null does not crash", a.data_quality({"components": None})["license_checked"] == 0)
+
 # build_tools: 'latest'/unversioned+unhashed -> unpinned; signature flag threaded
 bt = a.build_tools_derive([
     {"name": "pinned", "version": "1.2.3"},
