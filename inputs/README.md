@@ -8,7 +8,7 @@ without a full firmware build:
 | File | What | Produced by |
 |---|---|---|
 | `sbom.cdx.json` | CycloneDX 1.6 SBOM (311 components; firmware digest in `metadata.component`) | edk2 `-Y SBOM` (fork PR #6) |
-| `sbom.spdx.json` | SPDX 2.3 view of the same BOM | `producers/interop/to-spdx.sh` (protobom) |
+| `sbom.spdx.json` | SPDX 2.3 view — **native** `-Y SPDX` output (supplier + BSD-2-Clause-Patent license + primaryPackagePurpose on every package; DEPENDS_ON relationships) | edk2 `-Y SPDX` (fork) |
 | `sbom.uswid` | coSWID view + embed carrier | `producers/interop/to-coswid.sh` (uSWID) |
 | `reconcile-verdict.json` | declared-vs-observed **membership** verdict (+ `image_digest`, anchor leg 2) | `producers/reconcile/carve.sh` |
 | `byte-integrity.json` | **byte-integrity** verdict — each module's shipped PE32 bytes vs the SBOM hash (R4, 122 of 123). Carries a **full per-module manifest** (every module + method); any module that can't be byte-verified must be a reviewed entry in `data.byte_integrity_exempt` (with a documented reason) or the gate **denies and names it**. | `producers/reconcile/byte-integrity.py` |
@@ -79,3 +79,13 @@ property. These are deterministic (license/cpe/compositions) or a valid urn:uuid
 annotated onto the reference from the enhanced generator's real build WITHOUT touching the
 shipped-byte hashes or `D`. New gated controls: cisa-sbom-version, cisa-completeness,
 cisa-component-producer (all GREEN on the reference).
+
+## SPDX — native generator, not protobom (2026-08-08, Increment F)
+
+`sbom.spdx.json` is now the **native** `-Y SPDX` output, replacing a lossy `protobom` round-trip
+that dropped per-package `supplier` (an NTIA-required field: 310->0) and `copyrightText`, and
+downgraded real `DEPENDS_ON` edges to `CONTAINS`. The native output carries **supplier +
+BSD-2-Clause-Patent license + primaryPackagePurpose on 310/310 packages** and true `DEPENDS_ON`
+relationships. It is a **view** (the gate reads the CDX, which stays the canonical byte reference);
+full **SPDX 3.0.1** (which BSI TR-03183-2 now expects, alongside the CDX 1.6 we already meet) is a
+larger format migration tracked as future work.
