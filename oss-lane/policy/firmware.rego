@@ -315,6 +315,25 @@ _sbom_timestamp if input.sbom.baseline.timestamp_present
 default _sbom_supplier := false
 _sbom_supplier if input.sbom.baseline.supplier_present
 
+# CISA 2026 'SBOM Version' unique identifier: a serialNumber in urn:uuid form.
+default _sbom_serial := false
+_sbom_serial if input.sbom.identity.serial_present
+
+# CISA 2026 'Explicitly Identifying Unknown Information': a completeness declaration
+# (compositions[].aggregate) — the SBOM states how complete it is (complete/incomplete/unknown).
+default _sbom_completeness := false
+_sbom_completeness if input.sbom.identity.completeness_declared
+
+# CISA 2026 'Component Producer' (per-component supplier), applied to EVERY enumerated component —
+# distinct from the document-level supplier. NON-VACUITY: require a non-empty component set.
+default _component_supplier := false
+_component_supplier if {
+	input.sbom.component_supplier.total > 0
+	input.sbom.component_supplier.missing_count == 0
+}
+
+_component_supplier_msg := sprintf("%d of %d component(s) lack a supplier.name (CISA Component Producer): %v", [object.get(input, ["sbom", "component_supplier", "missing_count"], 0), object.get(input, ["sbom", "component_supplier", "total"], 0), object.get(input, ["sbom", "component_supplier", "missing"], [])])
+
 # CISA 2026 / NTIA REQUIRED 'Dependency Relationship': the SBOM declares a dependency graph and it
 # is referentially sound (every dependsOn points at a real component — no dangling ref). NON-VACUITY:
 # require a non-empty graph (present + edges>0), so an SBOM with no dependencies[] does NOT pass. This
@@ -606,6 +625,10 @@ _core_reports := [
 	_report("sbom-author", _sbom_author, "SBOM declares its Author (metadata.authors[].name)", _sbom_author_msg),
 	_report("sbom-timestamp", _sbom_timestamp, "SBOM declares its Timestamp (metadata.timestamp, ISO-8601)", _sbom_timestamp_msg),
 	_report("sbom-supplier", _sbom_supplier, "SBOM declares its Software Producer / Supplier (metadata.supplier.name)", _sbom_supplier_msg),
+	# CISA 2026 SBOM-Version unique id + completeness declaration + per-component producer.
+	_report("sbom-serial-number", _sbom_serial, "SBOM carries a unique identifier (serialNumber, urn:uuid) — the CISA 2026 SBOM-Version element", "SBOM has no serialNumber (urn:uuid) — the CISA 2026 SBOM-Version unique-identifier element is unmet"),
+	_report("sbom-completeness", _sbom_completeness, "SBOM declares its completeness (compositions[].aggregate) — the CISA 2026 known-unknowns element", "SBOM declares no completeness (no compositions[].aggregate) — CISA 2026 'explicitly identify unknown information' is unmet"),
+	_report("component-supplier", _component_supplier, "every enumerated component carries a supplier.name (CISA 2026 Component Producer, per-component — distinct from the document supplier)", _component_supplier_msg),
 	# CISA 2026 / NTIA required Dependency Relationship: a present, referentially-sound dependency graph.
 	_report(
 		"dependency-relationships", _dependency_relationships,
@@ -730,6 +753,9 @@ _remediation := {
 	"sbom-author": "Populate metadata.authors[].name (the CISA/NTIA required SBOM Author).",
 	"sbom-timestamp": "Populate metadata.timestamp with an ISO-8601 UTC timestamp (the CISA/NTIA required Timestamp).",
 	"sbom-supplier": "Populate metadata.supplier.name (the CISA/NTIA required Software Producer / Supplier).",
+	"sbom-serial-number": "Emit a serialNumber (urn:uuid) on the SBOM document (the -Y SBOM generator now does) — the CISA 2026 SBOM-Version unique identifier.",
+	"sbom-completeness": "Emit compositions[].aggregate (complete/incomplete/unknown) so the SBOM declares its completeness — CISA 2026 'explicitly identify unknown information'.",
+	"component-supplier": "Give every enumerated component a supplier.name (CISA 2026 Component Producer) — the -Y SBOM generator sets TianoCore on first-party modules + real owners on vendored submodules.",
 	"dependency-relationships": "Emit a CycloneDX dependencies[] graph (module -> library dependsOn) with every dependsOn ref resolving to a declared component; a missing graph or a dangling ref fails the CISA/NTIA Dependency Relationship element.",
 	"sbom-data-quality": "Fix the malformed identifier(s): every purl must parse (pkg:type/name@version) and every license must be a valid SPDX-id-shaped id, an expression, or a name — a garbage/empty license or malformed purl fails NTIA data quality.",
 	"no-kev-component": "Upgrade or remove the named component so it no longer carries the CISA KEV (Known-Exploited) CVE; a plain not_affected does NOT waive a KEV — only an explicit, reviewed exec-risk justification in data.kev_waivers may, and only after human review.",
@@ -892,6 +918,12 @@ deny contains _sbom_author_msg if not _sbom_author
 deny contains _sbom_timestamp_msg if not _sbom_timestamp
 
 deny contains _sbom_supplier_msg if not _sbom_supplier
+
+deny contains "SBOM has no serialNumber (urn:uuid) — CISA 2026 SBOM-Version element unmet" if not _sbom_serial
+
+deny contains "SBOM declares no completeness (compositions[].aggregate) — CISA 2026 known-unknowns element unmet" if not _sbom_completeness
+
+deny contains _component_supplier_msg if not _component_supplier
 
 deny contains _dependency_msg if not _dependency_relationships
 

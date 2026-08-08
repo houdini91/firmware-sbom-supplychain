@@ -19,7 +19,7 @@
     <text x="337" y="140" text-anchor="middle" font-size="10.5" fill="#94a3b8">provenance, reconcile</text>
     <rect x="450" y="96" width="170" height="60" rx="10" fill="#0d9488" fill-opacity="0.08" stroke="#0d9488" stroke-width="1.8"/>
     <text x="535" y="122" text-anchor="middle" font-weight="700" fill="#475569">OPA gate</text>
-    <text x="535" y="140" text-anchor="middle" font-size="10.5" fill="#64748b">30 signed checks</text>
+    <text x="535" y="140" text-anchor="middle" font-size="10.5" fill="#64748b">33 signed checks</text>
     <rect x="640" y="96" width="190" height="60" rx="10" fill="#0d9488" fill-opacity="0.12" stroke="#0d9488" stroke-width="1.8"/>
     <text x="735" y="122" text-anchor="middle" font-weight="700" fill="#0d9488">Signed VSA</text>
     <text x="735" y="140" text-anchor="middle" font-size="10.5" fill="#64748b">subject = firmware digest D</text>

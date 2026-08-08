@@ -177,6 +177,17 @@ check("chipsec_subresults: secure_boot/smm/bios_wp/bios_ts surfaced (upper-cased
       cs == {"secure_boot": "PASSED", "smm": "PASSED", "bios_wp": "FAILED",
              "bios_ts": "NOTAPPLICABLE", "smrr": "ABSENT"})
 
+# sbom_identity + component_supplier (Increment E)
+idf = a.sbom_identity({"serialNumber": "urn:uuid:a4b5bfe8-34ca-4810-8985-856d63fde373",
+                       "compositions": [{"aggregate": "incomplete"}]})
+check("identity: urn:uuid serialNumber + aggregate -> both declared",
+      idf["serial_present"] is True and idf["completeness_declared"] is True and idf["aggregate"] == "incomplete")
+check("identity: non-uuid serialNumber -> serial absent (shape-checked)",
+      a.sbom_identity({"serialNumber": "not-a-uuid"})["serial_present"] is False)
+csup = a.component_supplier({"components": [{"name": "a", "supplier": {"name": "X"}}, {"name": "b"}]})
+check("component_supplier: missing supplier flagged", csup["missing_count"] == 1 and csup["missing"] == ["b"])
+check("component_supplier: components:null does not crash", a.component_supplier({"components": None})["total"] == 0)
+
 print("----")
 print("ALL PASS" if ok else "FAILURES")
 sys.exit(0 if ok else 1)

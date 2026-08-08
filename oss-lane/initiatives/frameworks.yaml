@@ -224,6 +224,24 @@ initiatives:
         citation: "CISA 2026 Minimum Elements for an SBOM — Dependency Relationship (Required) / NTIA 2021 baseline"
         canonical: sbom-dependency-relationships
         satisfied_by: [dependency-relationships]
+      - id: cisa-sbom-version
+        name: "CISA 2026: SBOM Version / unique identifier (serialNumber)"
+        description: "The SBOM carries a globally-unique identifier — CycloneDX serialNumber (urn:uuid) + integer version. A NEW CISA 2026 element for document identity / revision tracking; the -Y SBOM generator now stamps a urn:uuid per document."
+        citation: "CISA 2026 Minimum Elements for an SBOM — SBOM Version (unique identifier)"
+        canonical: sbom-unique-id
+        satisfied_by: [sbom-serial-number]
+      - id: cisa-completeness
+        name: "CISA 2026: Explicitly identify unknown information (completeness)"
+        description: "The SBOM declares how complete it is (CycloneDX compositions[].aggregate — complete / incomplete / unknown), so a consumer knows what is NOT enumerated. A NEW CISA 2026 element; the generator declares 'incomplete' (built modules + libraries + vendored OSS are enumerated; binary blobs/microcode are not)."
+        citation: "CISA 2026 Minimum Elements for an SBOM — Explicitly Identifying Unknown Information"
+        canonical: sbom-completeness
+        satisfied_by: [sbom-completeness]
+      - id: cisa-component-producer
+        name: "CISA 2026: Component Producer (per-component supplier)"
+        description: "EVERY enumerated component (target + subcomponents) carries a Producer/Supplier — CycloneDX component.supplier.name — distinct from the document-level supplier. A CISA 2026 renamed+broadened required element; BSI TR-03183-2 also requires a per-component supplier."
+        citation: "CISA 2026 Minimum Elements for an SBOM — Component Producer (per-component) / BSI TR-03183-2"
+        canonical: component-producer
+        satisfied_by: [component-supplier]
       - id: cisa-data-quality
         name: "NTIA SBOM data quality (identifier validity)"
         description: "The identifiers the SBOM declares are VALID, not merely present: every purl parses as a package URL and every license is well-formed (SPDX-id-shaped id / expression / name). NTIA SBOM data-quality practice. HONESTY: a syntactic/shape check on present identifiers — not full SPDX-license-list membership (a documented refinement), and presence itself is gated by cisa-license-id / thirdparty-identifiers."

@@ -284,6 +284,34 @@ def dependency_facts(sbom):
             "has_composition": has_composition}
 
 
+_URN_UUID_RE = re.compile(
+    r"^urn:uuid:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
+
+def sbom_identity(sbom):
+    """CISA 2026 'SBOM Version' unique-id element: a serialNumber (urn:uuid) + integer version, and
+    a completeness/known-unknowns declaration (compositions[].aggregate). Both are surfaced for
+    gating; the -Y SBOM generator now emits both."""
+    serial = str(sbom.get("serialNumber") or "")
+    comps = sbom.get("compositions") or []
+    aggregate = next((c.get("aggregate") for c in comps if isinstance(c, dict) and c.get("aggregate")), "")
+    return {"serial_present": bool(_URN_UUID_RE.match(serial)),
+            "completeness_declared": bool(aggregate), "aggregate": aggregate}
+
+
+def component_supplier(sbom):
+    """CISA 2026 'Component Producer' (per-component supplier), applied to every enumerated component
+    — distinct from the document-level supplier. Every component must carry a non-empty supplier.name
+    (or author.name as a fallback)."""
+    comps = [c for c in (sbom.get("components") or []) if isinstance(c, dict)]
+    def has_supplier(c):
+        s = c.get("supplier") or {}
+        a = c.get("author")
+        return bool((isinstance(s, dict) and s.get("name")) or a)
+    missing = [c.get("name") for c in comps if not has_supplier(c)]
+    return {"total": len(comps), "missing": missing[:10], "missing_count": len(missing)}
+
+
 def baseline_metadata(sbom):
     """CISA 2026 / NTIA baseline REQUIRED elements that live in metadata but were never gated:
       - author_present:    metadata.authors[] carries a name (the SBOM Author element)
@@ -539,7 +567,8 @@ def main():
                  "integrity": integrity(sbom), "thirdparty": thirdparty(sbom),
                  "generation": generation(sbom), "osf": osf_conformance(sbom),
                  "baseline": baseline_metadata(sbom), "dependencies": dependency_facts(sbom),
-                 "data_quality": data_quality(sbom)},
+                 "data_quality": data_quality(sbom), "identity": sbom_identity(sbom),
+                 "component_supplier": component_supplier(sbom)},
         "attestation": {"file_subject": ("" if att_file == "" else "sha256:" + att_file),
                         "firmware_subject": ("" if att_firmware == "" else "sha256:" + att_firmware)},
         "signature": {"verified": sig == "true", "identity": effective_builder},

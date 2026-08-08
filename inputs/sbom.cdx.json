@@ -70,6 +70,15 @@
           "alg": "SHA-512",
           "content": "a9422902181722e5bcc243f4a98974ce265eb0fd7991bf6d555e58ecf9caefa38afda8978c34f431edaa1c81973f16adfd1a8287933eeb6e96360667de282dd5"
         }
+      ],
+      "cpe": "cpe:2.3:a:tianocore:edk2:edk2-stable202605:*:*:*:*:*:*:*",
+      "purl": "pkg:github/tianocore/edk2@edk2-stable202605",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     "supplier": {
@@ -126,6 +135,13 @@
           "alg": "SHA-512",
           "content": "454902e1233d4757735ea3975695344dcac248a6fc757250fc01a2f8ead3d6c08d119413d39f732904708f46c3d3cd7113b5a9d252137dbd4bc121dab1ecc132"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -174,6 +190,13 @@
           "alg": "SHA-512",
           "content": "04a7979f7ac4f3cbe1bec6e0d2a4c2be54b00944bd99236e650ab75fe3b166b33b1cc38b728b814efe4b2b1869f6c843c8c034df5c524c5335b423f75ecb0048"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -208,7 +231,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "device-driver",
@@ -255,6 +285,13 @@
         {
           "alg": "SHA-512",
           "content": "0aa21d48664d1ec79aebff61b86e3c89ffc204ae1b3398b1d31f36197556a42d72b6ab61f149b76c211bf56251cb37b62f27e30b31c7eb60e3de1c745f351358"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -304,6 +341,13 @@
           "alg": "SHA-512",
           "content": "51e5c88504877dda3cf21d2a6db523f0fef0a6ca8ab66cc78edfa271e04f5558700b4f4b7644d81025041ac7e2541a6a789e5f3fc3de4e54ff57f71c9e075a11"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -352,6 +396,13 @@
           "alg": "SHA-512",
           "content": "fe3865284045ea196e595e5bcbe99702884c28e51a4222e2db2d162a902c4b9243115a39289c7bf32e4f6b20a7847eb8b2085401107c4eba12cd9bac05eec52d"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -386,7 +437,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -420,7 +478,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -454,7 +519,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -488,7 +560,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.1"
+      "version": "1.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -522,7 +601,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -556,7 +642,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -590,7 +683,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -624,7 +724,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -658,7 +765,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -692,7 +806,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -726,7 +847,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.1"
+      "version": "1.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -760,7 +888,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.1"
+      "version": "1.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -794,7 +929,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -828,7 +970,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -862,7 +1011,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -896,7 +1052,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -930,7 +1093,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -964,7 +1134,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -998,7 +1175,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -1032,7 +1216,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -1066,7 +1257,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -1100,7 +1298,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -1134,7 +1339,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -1168,7 +1380,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -1202,7 +1421,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -1236,7 +1462,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -1270,7 +1503,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -1304,7 +1544,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -1338,7 +1585,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -1372,7 +1626,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -1406,7 +1667,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -1440,7 +1708,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -1474,7 +1749,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.1"
+      "version": "1.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "device-driver",
@@ -1522,6 +1804,13 @@
           "alg": "SHA-512",
           "content": "a431015426dc83ea3e01c82cf8ebe4af5acb36f731e14d530d8ec2079f85c41c1a537f3649db5f3c68f797e8bf3395cab704c03f135997c250a1350532c8314b"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -1556,7 +1845,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "device-driver",
@@ -1604,6 +1900,13 @@
           "alg": "SHA-512",
           "content": "7049bf9034d339a741da41bbf75115171bd8f126b3adae037bfa12cb63a592af4a771866715016920ce17d7ffbeb80388789e5aac6a0a26e6cef8e98cece8252"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -1638,7 +1941,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -1672,7 +1982,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "application",
@@ -1720,6 +2037,13 @@
           "alg": "SHA-512",
           "content": "a93ff3398021fb498d6f938003a6abf23c33567f7e98d356bca19cc7525c90fb55216aef2631cf5538bbdeab85cd126ae0d172631530798a6c5829affa4bfec7"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -1754,7 +2078,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "device-driver",
@@ -1801,6 +2132,13 @@
         {
           "alg": "SHA-512",
           "content": "af3232bd0c55104f3cfac768eb6cd09d8188b3de7ac0c78462fab0d67343df9fc23ba457c619fef86f0f514a6d18ab2c06ccefe5efa3e252c718bb28c74084c7"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -1850,6 +2188,13 @@
           "alg": "SHA-512",
           "content": "f8d7022aa84bf776fac267517b1ace315ea204e96ba740a42df307393f3a7f50cc10d8e4a032af33bba18e5595a4a73eb00e93f059b8fbb90b38108fa7c9e9bd"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -1884,7 +2229,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "device-driver",
@@ -1931,6 +2283,13 @@
         {
           "alg": "SHA-512",
           "content": "c66b5cf51b2db14e1ddf10da86233864b1b0ac778d333952c1b7045727b15b1c3c56ead40656bdd6d19ee96b95168e0aa3c02c193ece48bba121383d8e200baf"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -1980,6 +2339,13 @@
           "alg": "SHA-512",
           "content": "9f6254eb2693daee930598ff2cc2645d770c23c2cbf1a31954577e7bd2a2f516eed312dbd032aca1013c57beca8a9486892aa07afd54f41105baecc343dd6031"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -2027,6 +2393,13 @@
         {
           "alg": "SHA-512",
           "content": "8a73523bac941a5b861aa410e0031b1f76410c3783373828069777299b018bc8b707ae8f7311ea95c37af06f3c2df036562688f68ae247301e20eb318a72bbc7"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -2076,6 +2449,13 @@
           "alg": "SHA-512",
           "content": "e2be39bdf6245304ea13caff029b8fdcd26a16aa4629154d91d1c1e2d8cb4be6fb6c85c467e0578d65132560c0ef02b1307379eed402b3c5745b26e7a6cdc59f"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -2123,6 +2503,13 @@
         {
           "alg": "SHA-512",
           "content": "7587df22a70ba341589ae5baa604ffdb4cc49a56a95612252e07a958b5546cbcbaedeeec87b40886bf398c5f44a2fcf6dfff224eddc7a4a4ddf2996f7d247915"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -2172,6 +2559,13 @@
           "alg": "SHA-512",
           "content": "2ccf90aa0a2506263ceba42ee052bca967f4c64003c0f92623e4d58866084cbcc763c69e39ca9354689e181b53fcdbf54cf1eb47173851746e446a6f687c9496"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -2220,6 +2614,13 @@
           "alg": "SHA-512",
           "content": "24ddf92ca905d37d902926799119b469026972a79c49b725b49446b1651bd53cba48075b182517812035c2c2b70851b90fab7d69178c679b6a9699094f60267e"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -2254,7 +2655,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -2288,7 +2696,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "device-driver",
@@ -2336,6 +2751,13 @@
           "alg": "SHA-512",
           "content": "9bf7d2425fd75aeadcd7a8f01501894dd938cfeb64f0f3a4f0e28c55d6a9fd40fcca1b5df86cd1e5c2117365d90715121f812b79d913410a2541b8811de4873c"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -2370,7 +2792,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -2404,7 +2833,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -2438,7 +2874,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "device-driver",
@@ -2485,6 +2928,13 @@
         {
           "alg": "SHA-512",
           "content": "10ef83b05f46d7d5a6419be1e138ca077aa72d54bd4a43550bfd1eecebcdabc3ca94bcc0e0a579d03ab2c3dacb6d0249f463eb440180738be2d3fe096cf27d7d"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -2534,6 +2984,13 @@
           "alg": "SHA-512",
           "content": "f1b65900edc61ba7cda254278e67290135d5518f88fc392092c52551b8cfe4a9f9e009538b2de48e24e97449f28cb1a8ceb15797dc77d3caedaa25ef9904240e"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -2581,6 +3038,13 @@
         {
           "alg": "SHA-512",
           "content": "8c9c310122d159ad9fbb276651c55e821fc33d22ce6bd5fc9cd0558b05d5134b8dc8edc8ddbfa56a0dcd98f11cf59f6646a61036f289f62fd98f74107e88ef1f"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -2630,6 +3094,13 @@
           "alg": "SHA-512",
           "content": "c1585fb59201dd703c381274ec1c3d78d496061a2534ab4a3ecf6ff359d1be0e42ec62277a77e14d216bb4af33a575f872c6db91db8d708d3ae34f502e864155"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -2677,6 +3148,13 @@
         {
           "alg": "SHA-512",
           "content": "cdd2be95067c48ace4efd9100098b523cfbfcb689be80aad5e372b9f5ed259a33ca359af4bc24278ce94be97b5facbeef64e98ab80ec4b6c99f29eaf71ae6429"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -2726,6 +3204,13 @@
           "alg": "SHA-512",
           "content": "fa74f1a1ccebaffa1fc5fa6b07275751881324517a93a1f0959eb17c3792f9d76e654736b59d428a30b9905c318d2f67bdbfaa964b07f3ea18f6650ced8478f3"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -2760,7 +3245,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -2794,7 +3286,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -2828,7 +3327,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -2862,7 +3368,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "firmware",
@@ -2910,6 +3423,13 @@
           "alg": "SHA-512",
           "content": "1d3efd5c6e71623c6b0a9f0ec03c058857d707cb2e29d9645da9df8ffdd15f79ebf418a229828d10216ac1474e76ad32425fa02ee3e1869a6acd7856a51fef89"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -2944,7 +3464,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -2978,7 +3505,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -3012,7 +3546,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -3046,7 +3587,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.1"
+      "version": "1.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -3080,7 +3628,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -3114,7 +3669,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -3148,7 +3710,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -3182,7 +3751,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -3216,7 +3792,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -3250,7 +3833,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -3284,7 +3874,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "firmware",
@@ -3332,6 +3929,13 @@
           "alg": "SHA-512",
           "content": "6fcd71de67df8ac833866e7ed60212efecc5563d7322e845bcc3d01a0573861d8de3f0fb0774fe8b3f93fdf1b0620cc2781aa372b114d6d7367d5d42baaa3264"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -3366,7 +3970,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -3400,7 +4011,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.1"
+      "version": "1.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -3434,7 +4052,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -3468,7 +4093,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -3502,7 +4134,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -3536,7 +4175,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -3570,7 +4216,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -3604,7 +4257,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -3638,7 +4298,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -3672,7 +4339,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -3706,7 +4380,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -3740,7 +4421,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -3774,7 +4462,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -3808,7 +4503,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -3842,7 +4544,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -3876,7 +4585,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -3910,7 +4626,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -3944,7 +4667,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -3978,7 +4708,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -4012,7 +4749,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -4046,7 +4790,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "device-driver",
@@ -4093,6 +4844,13 @@
         {
           "alg": "SHA-512",
           "content": "52bed87924607b02eb006592150b69a08549f408fd07b4c1d1bb7e6ca5bfcb15c8b98c5fe41d1c07ecbefbaeefa0bac51dc2cecc91e1dbed5ed1378d0a3f19af"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -4142,6 +4900,13 @@
           "alg": "SHA-512",
           "content": "14b8ac1218fc318a64dd0b34d8195a6fac26edc2db4d7c602c1a84190d6b2903c976fb8811da527e07443621da069bb82fbcea99cf348c4d01697304ae4bdb16"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -4190,6 +4955,13 @@
           "alg": "SHA-512",
           "content": "23238489bd93bcbf70ae3a984bed2ed33b81d845454b4801e0967343d5640694a27cb2b0dcf38b566610b0aa58ac720cb1f21058e6c229cd862b03054830e20d"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -4224,7 +4996,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "device-driver",
@@ -4271,6 +5050,13 @@
         {
           "alg": "SHA-512",
           "content": "c3b7ff847082dd309581d98da6f756348244a6d94f3ed2fa9ce65d1fea54db283b750991d5437c2edfb2723f90a6298ecb9e57c733efdf79c2576abacbff32a5"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -4320,6 +5106,13 @@
           "alg": "SHA-512",
           "content": "c87194d9f277a9f10ca9749be6f6f6ded132310c3d0d4359b428ae377f286d06c331746993fc27d3b2171f5920fd57be5dbd768035b37983faa54e813215991c"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -4367,6 +5160,13 @@
         {
           "alg": "SHA-512",
           "content": "dd1b3acd28e1d31dc09e32ca52ec63345179c0947cab1a7f3421c0a10b773ff46be03a516d6c0e1c8099daa3d208c1e8ddaafad577e4ab9835d20d2f60fcf00e"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -4416,6 +5216,13 @@
           "alg": "SHA-512",
           "content": "8b15426e1563a8dabb0321240dfa815145506631c852e07f34e5fcb1dfba5b201d6e143313095df57c0baab720bc8f158328ab8595350f646232f88c37e2b5b4"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -4450,7 +5257,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -4484,7 +5298,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -4518,7 +5339,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "device-driver",
@@ -4566,6 +5394,13 @@
           "alg": "SHA-512",
           "content": "99ae4a35558732427a8a1c36b21377693dde5daa13442a9e800f6c59a37e2d44146951a5477e27bc499a3fee95837c5ecd8b0e3287a70549327845a7bf338d37"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -4600,7 +5435,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "device-driver",
@@ -4647,6 +5489,13 @@
         {
           "alg": "SHA-512",
           "content": "c7458807ff94a832f10abcc38defb018b796be3fe106a5f05cb76c5049d3434dffd482a0d16d0ca94dffaedf65f99c42f48cfe2e94c759a1b2e2c5022b2124b4"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -4696,6 +5545,13 @@
           "alg": "SHA-512",
           "content": "93d1bbf5826c3b5fa8276ed2f6ba6f0f2a7e9e650a4f8b91ba7ab059e62efd431b03e13abe3a9b8b29b540aa29de064ffc12ea1b73f7aeaf7764d0fe7fdc163a"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -4730,7 +5586,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -4764,7 +5627,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "device-driver",
@@ -4811,6 +5681,13 @@
         {
           "alg": "SHA-512",
           "content": "f66188f56d3f064305f0df0fc6896150c733ad3eaba16fef4773853196283969f74b972c0bb4888a16fcf141757ece7e2e6c26ee6f7362667ee747c0a933e81e"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -4860,6 +5737,13 @@
           "alg": "SHA-512",
           "content": "bfff1293d1203a45708c7399eecfe6f3ceef2e926eece3cada2a46bd2c72a857ea1424e26a0d0202023b62827bab5a94f0f5a96a84921db20da153cababb8376"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -4894,7 +5778,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "device-driver",
@@ -4941,6 +5832,13 @@
         {
           "alg": "SHA-512",
           "content": "5b7abe49ef3a90e412d84bae4bd1d8a9847b9dfbee6ba49e772290acff2441998c4f920824ec943cdedb2e02d20f6f8993ca6b0254169b2bff7072c3ae87bd66"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -4990,6 +5888,13 @@
           "alg": "SHA-512",
           "content": "cfc6e05e30259c4538d0334d8a4e712067ec540c0df59d22d9041c2489fa116b1e4ac05580d4b05a3b861d9ad934d709ca2bc41ad2c97799bdd3c750c7a257ae"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -5037,6 +5942,13 @@
         {
           "alg": "SHA-512",
           "content": "11d6336bf1e4192d907a0b58958f26ce3c1a09cfb0c4d80d6567ed03f99783bd314d20841662511e5d2e4982374d0d0e0ec4d8bfd93bf183b86af9ef1e7a1e00"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -5086,6 +5998,13 @@
           "alg": "SHA-512",
           "content": "f2559b8f0fcb44954d05a0a9df23a34c5f4a42b0935e22759e1272ccbc48f1851974d4acc515c86b6c518fea01ef6dd3d9c89228289d0d028c6bea4e5bade306"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -5120,7 +6039,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "device-driver",
@@ -5168,6 +6094,13 @@
           "alg": "SHA-512",
           "content": "40e51332c9eee0dc81e13dd7aee6549c84b523e41606cd96489e4016d7d3bca25ee1d93a40612813559a47f4f16f12ca8c9d95c1b3671996d00c40dabdd3da58"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -5202,7 +6135,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -5236,7 +6176,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "device-driver",
@@ -5284,6 +6231,13 @@
           "alg": "SHA-512",
           "content": "c649bb5c8933bd20d6093572d88162a654d25c8914a98f5903fab87aac96ee30e8f6ba532391b9ab8fa2b3fb9c271e72127c3da7f4d9194e532db1139937183c"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -5318,7 +6272,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -5352,7 +6313,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -5386,7 +6354,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "device-driver",
@@ -5434,6 +6409,13 @@
           "alg": "SHA-512",
           "content": "5296bc02e4c8a23e11f02c42fa89dc0f3ad764dea4458108880b918329182e1f91bcbcf3396c9e1028728f6d091a919fa0f3d2c98f72a9b8ecc7bdd3be7f9af8"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -5468,7 +6450,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "device-driver",
@@ -5515,6 +6504,13 @@
         {
           "alg": "SHA-512",
           "content": "f99cb47994e6414256ad27ab77980df503378050332d4033f5cdc5dabd375b4b3d9665d2ead6ecc11080a52f26e4131554ae4c255df8bddfc8a77c499105f7ca"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -5564,6 +6560,13 @@
           "alg": "SHA-512",
           "content": "325a060f2d6148faf16941b2345e89071e7e1a9f6f13e19885fe61965b0d51e6bf6bab3974e11fc493487133ec8015bc38737e5217f337e63101801eb7f20204"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -5598,7 +6601,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.1"
+      "version": "1.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -5632,7 +6642,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "device-driver",
@@ -5680,6 +6697,13 @@
           "alg": "SHA-512",
           "content": "c90ef4ee5d9db0f48dae1d0bdc71855359501aa898066a5a17c305cb52a1f81535f9de1cff9005b096dfb9f9d7ba39e58666b631c52b63f3463cb784f07a8852"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -5714,7 +6738,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -5748,7 +6779,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -5782,7 +6820,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "device-driver",
@@ -5830,6 +6875,13 @@
           "alg": "SHA-512",
           "content": "0ef4d17cbd52ae4dee03bc39aa838373e9cece539fbafcb10a0cd176db06f9a68fea8c5dc4299f2c985769be1b6c3196866125a178b85c9e14e289284f2cf013"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -5864,7 +6916,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -5898,7 +6957,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "device-driver",
@@ -5946,6 +7012,13 @@
           "alg": "SHA-512",
           "content": "030471f5b763e83b2852d9ef53133edeaf0734577df21fc1e848fc3a3af72d102d63bd0f00b5899a3ae105f23fc78a077d756995fc7d80c6f57922de643c4acf"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -5980,7 +7053,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "device-driver",
@@ -6027,6 +7107,13 @@
         {
           "alg": "SHA-512",
           "content": "b1a2f3213cd607ff9d150ca4671963e75e81bec98431db250309c28836a9f824ff286dbe6137ece712901bcfe94d13b0e5ec18a51a1b975a3b93922bfbcf58b4"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -6076,6 +7163,13 @@
           "alg": "SHA-512",
           "content": "2a0438c3eaae8d0e259a3090448b33a7d00c2f7e240ea86cecc319608d738eef4942caa6971a1136a924f381eb7367e4a3d460cddda3899f9b31c397fce98ec0"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -6123,6 +7217,13 @@
         {
           "alg": "SHA-512",
           "content": "a085da74384ecf2aa7e64d9b4e5586f31866cb3803fb78e9e8004a9c6ea5609eea8ad01847b9313edf2e7bbe2dac7731f031588b164adfb845fe79526135a2fa"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -6172,6 +7273,13 @@
           "alg": "SHA-512",
           "content": "ea699ab6c20abc71da1fb48944bfe4168ff072ab76a8281eea9057f7402494572061d82c5cc1fc0326e74cc779869e53773adf513b12bab8d01892ab55696538"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -6220,6 +7328,13 @@
           "alg": "SHA-512",
           "content": "cc5572086eb8d69889a88180e0708a1c55e7ab23e58c7e4a2ffb8734c04ae2fbfb913d2806b202688822b52f1b8f03f2ce5a90827fe7879af7a9bd03d34ec3f2"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -6254,7 +7369,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -6288,7 +7410,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "device-driver",
@@ -6335,6 +7464,13 @@
         {
           "alg": "SHA-512",
           "content": "c4512d033d3d06826557eb256f71ee7a0fd79bb1f2604218c9b8f4f6889f79c566180bf648e69fe238cdbb60b2ab9add45a83880d3ee15a3f10d545df9c820b1"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -6384,6 +7520,13 @@
           "alg": "SHA-512",
           "content": "a5b14ab8d21e9d420de179f37fafcf6a6e88cc088f98dbc83af74fd9fd1cb0752a5b9d8e4e439e5827322a717a94fc737ba036879a73f0c56ae4c38f9723f0fb"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -6418,7 +7561,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "firmware",
@@ -6466,6 +7616,13 @@
           "alg": "SHA-512",
           "content": "a21109467a78d7567181d249ac1c281c3a771c7189abe799f381e8431fcbc19981ce16d56525ac89cf91835d3c01008ab2fd8c2bb96e0b461403dd30c2ef7964"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -6500,7 +7657,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -6534,7 +7698,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.1"
+      "version": "1.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -6568,7 +7739,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -6602,7 +7780,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -6636,7 +7821,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -6670,7 +7862,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -6704,7 +7903,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -6738,7 +7944,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -6772,7 +7985,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.1"
+      "version": "1.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -6806,7 +8026,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -6840,7 +8067,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -6874,7 +8108,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -6908,7 +8149,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -6942,7 +8190,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -6976,7 +8231,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -7010,7 +8272,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -7044,7 +8313,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -7078,7 +8354,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -7112,7 +8395,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -7146,7 +8436,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -7180,7 +8477,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -7214,7 +8518,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -7248,7 +8559,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "device-driver",
@@ -7296,6 +8614,13 @@
           "alg": "SHA-512",
           "content": "8e7e4ed35ff331857e7ddf1526671e07505f81de10b113a30ec430ce73d4eb5457db1efe36ccc51eb6fac7d58f77a10eac5e56733c6bb11bee7051ff743a8809"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -7330,7 +8655,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -7364,7 +8696,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "firmware",
@@ -7412,6 +8751,13 @@
           "alg": "SHA-512",
           "content": "8aee90e7fbfba4d0489586e0056ac25af600106a4e3b2b1d08947292e78326cc96397dec893f563c5cc5c2fd5350947b3d8c6a11007255f63c6c076207d3005e"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -7446,7 +8792,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "device-driver",
@@ -7494,6 +8847,13 @@
           "alg": "SHA-512",
           "content": "d441f78e5054270b7627ad63c5e83a0236f182daecb41f978226bb0a7de1ead0497a60592c9b4b5a47101452115d62c18c718f154a13bc8c5059c972e3b68c54"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -7528,7 +8888,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -7562,7 +8929,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "device-driver",
@@ -7610,6 +8984,13 @@
           "alg": "SHA-512",
           "content": "42f52eb5c8a9b6e94867b412a087aed352548f8689b3dea00ba9b19fe11da1e56d16f6b3bb5355bb729d295061790c10046dda2c87103caef769e9d95a951d0f"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -7644,7 +9025,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -7678,7 +9066,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -7712,7 +9107,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "device-driver",
@@ -7759,6 +9161,13 @@
         {
           "alg": "SHA-512",
           "content": "ee3e6ee7cca44e161c7a83747f2a24fd8bc0c1f41b8fbb5284c4231dd5a4ccd5de198c6d939e7d7789f9e598a9496c824a20cf8c67085155b0f4c31535eae33f"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -7808,6 +9217,13 @@
           "alg": "SHA-512",
           "content": "d86eae1a6540cd6f81dfaf8bb4887ab3727cfefa236f48f5aac7ca6a98594f320d3361a8047b592b6183fb45475656d569fdf7cea0771df5d3cb40e72d64591f"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -7855,6 +9271,13 @@
         {
           "alg": "SHA-512",
           "content": "52ef89d22bf7a8fc15972ce50ff769afd98a0df99fa5dcafe90070e61f573b8953a159211fc0fc3edf877d9bb631d694f40d5b985f1a760204a6c27ea10bdaa2"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -7904,6 +9327,13 @@
           "alg": "SHA-512",
           "content": "005e98a13dcddbc07e3a20920e05c844ef571c963d11331b8279108c17f5a845423a027f5388b2e6d5691654b6d707e1e096a00676ed0048d86269ff07f428a5"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -7951,6 +9381,13 @@
         {
           "alg": "SHA-512",
           "content": "63a53dca50c15bb5118e8f5c809f7188f474e0d151a6f47557bff1985d5b47f038c3103f78b0496e175f32773799878e7ee15668aaefa0b066187008b4b23d52"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -8000,6 +9437,13 @@
           "alg": "SHA-512",
           "content": "2ff3a77a003e01b734078d01c1c15da8c6899291683e8dc36727eb33bb046643ff3e6e0289846594dbb779b05d511beabbb29df8102c9abe11d3c4ecfa753c5f"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -8048,6 +9492,13 @@
           "alg": "SHA-512",
           "content": "1d7aa5e87744e60b350393d630b73e5d0b9f42c280f5495bd62ef9b00618723e97d13a2e91b69b8f6b8f983e12eec871f00b8d9e0c343c5c6fa5773ee0a64037"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -8082,7 +9533,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.1"
+      "version": "1.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "device-driver",
@@ -8129,6 +9587,13 @@
         {
           "alg": "SHA-512",
           "content": "84bd28cbfd71aad0be439bf0128ec8eb5a908d0d9880989d928e4921c11b2f56e2301f0a94e1ebf56928da652c6163a7262cb3f746739d9de83d3a2126e30e2c"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -8178,6 +9643,13 @@
           "alg": "SHA-512",
           "content": "9c83ac04cb2e1fae13f1b160eb7dfdae030af9a01f1657dfcfc0979652699e2a48bf29b104549a16079d5c92609abb8ae26869de1f7f947fe5832a2f9610f656"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -8212,7 +9684,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "firmware",
@@ -8259,6 +9738,13 @@
         {
           "alg": "SHA-512",
           "content": "fb9d5761d28d5194e5fbc79c84c444e6a50806377f29eab6b1b93a2bb754d0cc3c878a31a2294b915328b56e5d170df3793bc538e09d70cbad9970eb9afcec73"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -8308,6 +9794,13 @@
           "alg": "SHA-512",
           "content": "c25314eb2ce967210650c5f989641c0c7b13d2eb3af42a8d9251c06282d372cede7324f42f0a13dbcf7e9b4dff07fc1199c5a7f76309f640bff9ce776637d383"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -8355,6 +9848,13 @@
         {
           "alg": "SHA-512",
           "content": "b8527df9e341aa2be618556564fa3812803d7c17197d1d250af0c24fb4b8febf8e516c5c0178630a5ebb98f986315a1524812c4ee0333e650ff762da3028e39b"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -8404,6 +9904,13 @@
           "alg": "SHA-512",
           "content": "c22646fa216c9315913612a5079de3e68f319a5bcbb366dcb191d2ec18d61f64d57a175e2c7be531dbee28e2ddd32ae9c7d72d31f5c1c27b568d7c9ed16790c4"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -8451,6 +9958,13 @@
         {
           "alg": "SHA-512",
           "content": "2ed215ab667c16a3c4551e46a94b12bef6b6ddebcdcd2d35e4d77e81026e081cf7d6c25a560d89234acd7f8e3c6d1c2dc844cff5750e9083a31080cd6d1589b7"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -8500,6 +10014,13 @@
           "alg": "SHA-512",
           "content": "e535e6c4aff702fa5dd016eef4ccf2038cad9b22e98ef40be9b0be4c55d371ceb4e01d0249480e3015ff74ed0437afe8177f5e1d41e1e83ed88a593acb2f1032"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -8548,6 +10069,13 @@
           "alg": "SHA-512",
           "content": "4caa78057af417156dcf735d87675def9d1ef6cc2233eb243751515f6dc80d8271d58f3129ea614ab876524cb0988bc7615be7ea20d62851cc49d16711f42987"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -8582,7 +10110,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -8616,7 +10151,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "firmware",
@@ -8664,6 +10206,13 @@
           "alg": "SHA-512",
           "content": "44189e5d2453aa240156938468e5a09e03810d64496535c8c81c8b524dcd691beff7d3e74478610a76dff9a10983a0c5f741ec43cd2ded66550047af6ee64569"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -8698,7 +10247,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -8732,7 +10288,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -8766,7 +10329,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.1"
+      "version": "1.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -8800,7 +10370,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -8834,7 +10411,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "device-driver",
@@ -8881,6 +10465,13 @@
         {
           "alg": "SHA-512",
           "content": "9f0f0cb82e05dc6e519a43687f845f0e7133fb0604a9ee709abe0b3231e171ddfaf0db3d3b11d7d7530da8a088c3395f3d4b03cf01c5511493bbfab7b0686717"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -8930,6 +10521,13 @@
           "alg": "SHA-512",
           "content": "0f565c137ac7d0bee908764bb9059688ccb1e78ef8143339e24221ceff9ded4c28b5d7663d2d5d177a483c4c12431c3d55b05b637a7e9ccc0c3a20755a57f9f9"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -8977,6 +10575,13 @@
         {
           "alg": "SHA-512",
           "content": "8fe3512c3af6ef22fdc7acdf946ed883b8af5a4a7e225865e7d81f7cfc7dc7585fffa7011c746744400600bb7a9d616d4154695a00c028cac789d08fbdea0e6d"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -9026,6 +10631,13 @@
           "alg": "SHA-512",
           "content": "ef5a008ebe1bcf1e2662c9c8abe528f8c4c948fbca9b6b5c4f3c14e1a30e6dd3983732954d0bd36bc111a9a12926155e4451dfb584441a8825684a9e1086206f"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -9073,6 +10685,13 @@
         {
           "alg": "SHA-512",
           "content": "27fedb1bbc13c3eb0dca8227f6d4b51d67649c3ad866c80a72d6ff8d9b7c58c28569a03dcd7bf76f5166a4822b0406bb7c7451414ca0f569228d870c5355bd82"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -9122,6 +10741,13 @@
           "alg": "SHA-512",
           "content": "d07fb656e6ced4e8254d0b83b44e169729ad6b8a2524ff86edb9fa5b1daffaa155d0b14ddbf028a446637ce5c2d7f91e495815b8366824a987e8a44cb9db7f45"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -9170,6 +10796,13 @@
           "alg": "SHA-512",
           "content": "26636dc257f571490bf0baa392dcda7d70578921239e10b41d8f1d029f3fae306c7236d23ca2054668f9b30346b1977e13f08c5e2066b7d99e6f57ab38b87617"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -9204,7 +10837,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "device-driver",
@@ -9252,6 +10892,13 @@
           "alg": "SHA-512",
           "content": "941fdeff292181ea6c960e5f28981a2c2967910810a792980db7b2f6060caf4896c07f98a67694188f547727e5afa776223d122a3c71f9fccdb03f11523d8dbc"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -9286,7 +10933,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "firmware",
@@ -9333,6 +10987,13 @@
         {
           "alg": "SHA-512",
           "content": "18adf426fcbd270630dac3c6831d7211aa0d24d5e9c5a58fae31bdd58612bb84fe76cd2bf81748392e41ba9f9c7104c225ace7c744e2adc663a9699283b3763f"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -9382,6 +11043,13 @@
           "alg": "SHA-512",
           "content": "711813a40b3e87c282c6ea7bad6418bea93b88f4a169b5f37f26c437fd74b7c65df096abeb9ab9c9822b6a60f0d2c4042368388432ab8415887786004533d41b"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -9429,6 +11097,13 @@
         {
           "alg": "SHA-512",
           "content": "65be79f1b4b1c01ce48ded4506063816a067160b72f56b31b6a268c206a6afb04324101d766e809df360bc6761349240d9af60b22369872ea91b973d40ec5de7"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -9478,6 +11153,13 @@
           "alg": "SHA-512",
           "content": "03e85ceff0a4e957828a215ca87eec3fe19e96f187ce4527fbc08d70d995c078db286028061028b98d57ccfd777bc6151986a2a1da472004c7094ead40aae776"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -9525,6 +11207,13 @@
         {
           "alg": "SHA-512",
           "content": "21d5774c5ef7f6a21473da86464dafa233b4dc1a35a0515f48b699808815b7408e3c28c03d8e309afe53fd335e37973956d8b9c2c601eaea0461b25e9bb166ac"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -9574,6 +11263,13 @@
           "alg": "SHA-512",
           "content": "7ef1449b7b092bcb8920705949841e29155f87e1f1a700df2eb1b252295f46e818d996a19bfbb2044b80850f2169f7216e0d7657eeeffa44048acf28bfd7d440"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -9622,6 +11318,13 @@
           "alg": "SHA-512",
           "content": "368c3cee00e4690c67aabc371b94d70355d65e91dfdb9a723ca718b02c46b7c941064c837d2f736e34f7c12b9d552e3049d39c8a3d33d0cf9ac1ba7fa6c48f0d"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -9656,7 +11359,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -9690,7 +11400,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "device-driver",
@@ -9737,6 +11454,13 @@
         {
           "alg": "SHA-512",
           "content": "49c0b7ec5fffaa5d20df8923e2ddbf8a2fc7b9e8c3d4eaf92c2c4b6759d1acf260564fb8a0ddd0b2a31d104ea1ebe6e0d0ae6c782da3288431595c6591be17da"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -9786,6 +11510,13 @@
           "alg": "SHA-512",
           "content": "6c9cfcc1de46e60eaa066ecd048adf8c9e09c7b7bbe1908af15306a2adb9bfc6c2f0c84a8bf771e81b1720031497d9b662215b7e616716bf67ebcaf8a635c8b4"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -9820,7 +11551,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -9854,7 +11592,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "device-driver",
@@ -9901,6 +11646,13 @@
         {
           "alg": "SHA-512",
           "content": "ed2ca353b98c353bf2e456ca1cafe43b8f03700f76b5653217b552764b8c20e7c60f9fdf612372d7306d254c8a20c5e478445819e20360c2b5ffaaee2c839d73"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -9950,6 +11702,13 @@
           "alg": "SHA-512",
           "content": "98c8d7dfaa59769199422e5e80a6ca3de113cad5ba9ef849a3f38c6fc205bbfc0e89af66442d3e9a7d35c02d33dedd646bc44f1a19609009f9248067010ad717"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -9984,7 +11743,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -10018,7 +11784,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -10052,7 +11825,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -10086,7 +11866,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -10120,7 +11907,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -10154,7 +11948,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -10188,7 +11989,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -10222,7 +12030,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -10256,7 +12071,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -10290,7 +12112,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -10324,7 +12153,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -10358,7 +12194,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -10392,7 +12235,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -10426,7 +12276,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "device-driver",
@@ -10474,6 +12331,13 @@
           "alg": "SHA-512",
           "content": "ef2f8117473df4b30fc58c2d8c1b83f10cc2d2b25238c48ac8b4fd833c7db3430416c42b270cd580671576056ebcf20a653f08c16b54537748ee79595e621ca5"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -10508,7 +12372,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -10542,7 +12413,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -10576,7 +12454,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -10610,7 +12495,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.1"
+      "version": "1.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -10644,7 +12536,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.1"
+      "version": "1.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -10678,7 +12577,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.2"
+      "version": "1.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -10712,7 +12618,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -10746,7 +12659,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -10780,7 +12700,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -10814,7 +12741,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -10848,7 +12782,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -10882,7 +12823,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.2"
+      "version": "1.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -10916,7 +12864,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -10950,7 +12905,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -10984,7 +12946,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "device-driver",
@@ -11031,6 +13000,13 @@
         {
           "alg": "SHA-512",
           "content": "2ab07afca31dd0f86895d4eb5097b085aafd45aedf6740d7cf5bac38ccbed9b52e49e5e13af4823ddbaac1258f18923952f5efb07638a86c9826d6325ae7db60"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -11080,6 +13056,13 @@
           "alg": "SHA-512",
           "content": "d165ccc72b8c4773dce3492b469853eaa1b6eac59e59816a45feb4caecf08ccc2c3af5a34a2c1b6b65bffb9a29d4497426764ecb24e521d193962180b8e53b69"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -11127,6 +13110,13 @@
         {
           "alg": "SHA-512",
           "content": "ca4fe96759b44205a10f8e53d33d255b69653d975e8f1647ffab7f0d27ea8ea5947ebdc780af073f0319bfb99861487148a6b3eeaee81d64077fe53aa166b813"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -11176,6 +13166,13 @@
           "alg": "SHA-512",
           "content": "f6f23fdfade486a6bd66b3b024ad5bef077080d2dc4c7acf9c1d2206ae13f1cf137bb63728cef9d17c2fbee1b81e6b94e4312cf57333a111053dac5338f800e1"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -11224,6 +13221,13 @@
           "alg": "SHA-512",
           "content": "0bab19c4de2df629fecdada3eaf5c49ab6698cc74fc1394d9ebd8fcabc93bde690e1e155b0566113d67158b9831844baec288d56e54d3919dcb69385a2f95a39"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -11258,7 +13262,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -11292,7 +13303,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "device-driver",
@@ -11340,6 +13358,13 @@
           "alg": "SHA-512",
           "content": "c6711d28529ffd3d37a30706e1f6815619517c4cf1e06f88707c31035e7c75efc59470b1985037b260eeaf350c887caee9a73d9b35e71b3f16d9c47d7e933477"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -11374,7 +13399,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -11408,7 +13440,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "device-driver",
@@ -11455,6 +13494,13 @@
         {
           "alg": "SHA-512",
           "content": "bca1659158fd0d4dc1d12bfd78c0afbe11aaca9bb36594b0b0ab0e08cb196bf3c08b044632f6f6c87035c9ec153d90c11846d753bd34494fc9ad6ca23bf72336"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -11504,6 +13550,13 @@
           "alg": "SHA-512",
           "content": "fd68654f06ec26514369a86bc4eaeb735fe75669c0b4464a42def7b4ca43fc16be17fc356ce8e15c0c0c3662720b41fd7da369f1301fa42e7528678854c63fe7"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -11551,6 +13604,13 @@
         {
           "alg": "SHA-512",
           "content": "617f8b8572e17276521a733677ddcc3d1e920c8777ee53dd07d89bb74380ff600357db0ce5db6f1619adeeb0b8a3fa4b80d934d51bc3c3fe60659a72312fc1aa"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -11600,6 +13660,13 @@
           "alg": "SHA-512",
           "content": "be9cb4ac2c1cfcd64dccb54ab4c8f515078984c62c51acdb5d1a4f7ee50017f27930d5ec2cf4281f7d361cc369d5432242454dfe91641a4e32550c4b0673c6ac"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -11647,6 +13714,13 @@
         {
           "alg": "SHA-512",
           "content": "23d052cd827434bf388e6d0e2c669d698427d2f2bff2421f6ee7c021606e7bb07df37884cc1c265e8677b27f0b6d8ec6bc3adba646318a24cfd0d7138c65d0d2"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -11696,6 +13770,13 @@
           "alg": "SHA-512",
           "content": "2bf8b3cfae9abf92d38c8e54413e53b912f12360aff1f05eb5c7dd3b400d907ebb8bbb49af09ade51143487dcada3afa752448196554cbd10296eae2038d3dc2"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -11744,6 +13825,13 @@
           "alg": "SHA-512",
           "content": "850f99b04e8dbd220127171e25b1b1fb1799daff6505963119062992329cd0a0909b9c41643c8c8745185a64f48653dce8babd38fde53d42b25869edc9832b2e"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -11778,7 +13866,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "device-driver",
@@ -11825,6 +13920,13 @@
         {
           "alg": "SHA-512",
           "content": "dbf09146feebc72c3921b3a96d9ce4a2a9c1409979331f0fc0c3dba5bd090353bf753893416dce18e33c8ea02145e341ce1a8f4ac6bd981285c6a8a1b6e10430"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -11874,6 +13976,13 @@
           "alg": "SHA-512",
           "content": "3b0edaf66f3c31e1c5999c3d5df64e1a490b5992c68799527bff604bc06c9ef8bcdf497f3101f6ef6d98691e700df7f7a2f0f19280cc59a9b198f514e558910d"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -11921,6 +14030,13 @@
         {
           "alg": "SHA-512",
           "content": "261327c93d42132a210f4c36e4533afc3484f9c5ce6528bea343af5d59c9cad7a82b2429bacd1f1b1d3a01e6c27504c2a15c864794c5fa77c521e330ac7ba55c"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -11970,6 +14086,13 @@
           "alg": "SHA-512",
           "content": "86a0c5f0a796c2161061061523442245d64ebedcc2311ab87a91ef3dc0831a9127f26b68de8fc220d9fb4d255dc4335edd9c93739cf06f586a59b14763ddb3bb"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -12017,6 +14140,13 @@
         {
           "alg": "SHA-512",
           "content": "39f8b658fd332bc5b827239fc521cd410cc3de92421d026a2c07aee3bc50c250655491845cd7a785c8f557ad582b8f7e243d2e69b552bc206ecdafdedf4467d9"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -12066,6 +14196,13 @@
           "alg": "SHA-512",
           "content": "4e51848b30e9eea0f2d55e01b9078463a89e3cc7f1fc65245021bf8d937f02f2af2ca4133a0d3a17c21589df00b812d7ba21dc704cac0799f83893e0c645268d"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -12113,6 +14250,13 @@
         {
           "alg": "SHA-512",
           "content": "729b0972f348e63a618fbdc6bb50f0c6bf910ce395414cf1b9528a9f2935ee149aaeae96742052e3b10c22779d03929b38a89715f2d512c0ac3e5b4173666fe0"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -12162,6 +14306,13 @@
           "alg": "SHA-512",
           "content": "fc05f2a612fac69771958f4c735b537bb8fa9e3c7882cc06074465cf3615da9b9286a298e9b60ec364cd93d49ad8f43959f90ddfa84a38ca9a348d508e602a4d"
         }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
       ]
     },
     {
@@ -12196,7 +14347,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "library",
@@ -12230,7 +14388,14 @@
           "comment": "module INF"
         }
       ],
-      "version": "1.0"
+      "version": "1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
+        }
+      ]
     },
     {
       "type": "device-driver",
@@ -12277,6 +14442,13 @@
         {
           "alg": "SHA-512",
           "content": "05a6f78a471ea2e61a4875435af97d908ae9eeb507316093a2362c2650d33fc486b4d98f06a1e8906c52fc6a6c742f6fa60cfb71dca75696ff7effa8c3a065e9"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -12325,6 +14497,13 @@
         {
           "alg": "SHA-512",
           "content": "2aa7e8a5e071741eeb40ccaa4db3b58379d56f91b6509e33d8b181b27d64774b31faea842c03d1bdada389b2efbc889dcbc4c8183911c1e08d0f78fc4126fa22"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause-Patent"
+          }
         }
       ]
     },
@@ -15860,6 +18039,325 @@
         "f6ef2763-ca3b-4c6f-a931-2a48de3ce352",
         "fa177ff7-1fc7-458d-a358-d9d62ae61cec",
         "fd565572-5195-4113-9018-113b33939e91"
+      ]
+    }
+  ],
+  "serialNumber": "urn:uuid:a4b5bfe8-34ca-4810-8985-856d63fde373",
+  "compositions": [
+    {
+      "aggregate": "incomplete",
+      "assemblies": [
+        "9622E42C-8E38-4a08-9E8F-54F784652F6B",
+        "2ec9da37-ee35-4de9-86c5-6d9a81dc38a7",
+        "288e3588-87d8-4c2c-b568-bf900de0fb36",
+        "529D3F93-E8E9-4e73-B1E1-BDF6A9D50113",
+        "5E523CB4-D397-4986-87BD-A6DD8B22F455",
+        "19DF145A-B1D4-453f-8507-38816676D7F6",
+        "435CB0E4-7C9A-4BB7-9907-8FD4643E978A",
+        "FB648CF5-91BE-4737-9023-FD807AC6D96D",
+        "CF5F650B-C208-409A-B889-0755172E2B0C",
+        "123dd843-57c9-4158-8418-ce68b3944ce7",
+        "4FBD2538-249C-4b50-8F4A-A9E66609CBF6",
+        "be3bb803-91b6-4da0-bd91-a8b21c18ca5d",
+        "A2C09E18-E4D2-407e-AFCC-628B79113F72",
+        "4e3236e9-d1c8-4c04-a89f-26f1c44b2592",
+        "63850097-3E97-4c4f-A52D-C811A0106105",
+        "93742f95-6e71-4581-b600-8e1da443f95a",
+        "27d67720-ea68-48ae-93da-a3a074c90e30",
+        "e7884bf4-51a1-485b-982a-ff89129983bc",
+        "699F73C3-0058-484C-A9E5-61189276A985",
+        "40096a3a-5c2a-4fbc-aef7-5475dd7ab334",
+        "6957540D-F7B5-4D5B-BEE4-FC14114DCD3C",
+        "ED011855-AA31-43B9-ACC0-BF45A05C5985",
+        "472ab06d-9810-4c00-bb7f-dad1828fc1ab",
+        "287e50f4-a188-4699-b907-3e4080ca5688",
+        "28bde99c-e8a7-4e3e-9a8a-e66cd64f31c6",
+        "AABF95D6-F40C-405F-8360-6A59794B8040",
+        "be490364-73d2-420d-950e-f6450ca75dfb",
+        "556f5d10-7309-4af4-b80a-8196bd60946f",
+        "FC120ED3-40E1-46dc-8C9C-AAE3CA139ACF",
+        "a86fbfca-0183-4eeb-aa8a-762e3b7da1f3",
+        "626440D8-1971-41D9-9AB2-FB25F4AE79BC",
+        "B3E66B05-D218-4B9A-AC33-EF0F83D6A513",
+        "CDD9D74F-213E-4c28-98F7-8B4A167DB936",
+        "4EA91BFA-3482-4930-B136-70679C6CE489",
+        "E2ECA273-A1C0-407E-9A5C-F10C55142196",
+        "FC9990DF-C5FF-44cf-8799-CBB45B577F87",
+        "9ae5147d-b240-467f-a484-b024fdc42ee0",
+        "DEC426C9-C92E-4BAD-8E93-3F61C261118B",
+        "967B6E05-F10D-4c10-8BF7-365291CA143F",
+        "6D33944A-EC75-4855-A54D-809C75241F6C",
+        "b1b5533e-e01a-43bb-9e54-414f00ca036e",
+        "B8E62775-BB0A-43f0-A843-5BE8B14F8CCD",
+        "85CDAFAD-13BE-422A-A8E5-55A249600DC3",
+        "CA9E4824-4198-4715-AA22-E2935E703A07",
+        "EEC25BDC-67F2-4D95-B1D5-F81B2039D11D",
+        "CCB2DCE1-4FC8-41CB-88C5-D349E134C9FC",
+        "FA20568B-548B-4b2b-81EF-1BA08D4A3CEC",
+        "42857F0A-13F2-4B21-8A23-53D3F714B840",
+        "0e923c25-13cd-430b-8714-ffe85652a97b",
+        "51ccf399-4fdf-4e55-a45b-e123f84d456a",
+        "408edcec-cf6d-477c-a5a8-b4844e3de281",
+        "1A1E4886-9517-440e-9FDE-3BE44CEE2136",
+        "6490f1c5-ebcc-4665-8892-0075b9bb49b7",
+        "A19B1FE7-C1BC-49F8-875F-54A5D542443F",
+        "280251c4-1d09-4035-9062-839acb5f18c1",
+        "EDADEB9D-DDBA-48BD-9D22-C1C169C8C5C6",
+        "524ed6a1-f661-451b-929b-b54d755c914a",
+        "80B92017-EC64-4923-938D-94FAEE85832E",
+        "29e54f5e-365a-4235-ba62-c832d7660852",
+        "4904B42F-9FC0-4c2e-BB3F-A2AB35123530",
+        "6c633bb2-ae33-49ae-9f89-b5aa999fe3ae",
+        "75EBDC2E-5323-4F31-A41D-FD1A7A9FC65E",
+        "9B680FCE-AD6B-4F3A-B60B-F59899003443",
+        "94734718-0BBC-47fb-96A5-EE7A5AE6A2AD",
+        "6B38F7B4-AD98-40e9-9093-ACA2B5A253C4",
+        "E660EA85-058E-4b55-A54B-F02F83A24707",
+        "A210F973-229D-4f4d-AA37-9895E6C9EABA",
+        "EBF8ED7C-0DD1-4787-84F1-F48D537DCACF",
+        "578F441A-4A4C-4D24-B9BE-F783152B46F6",
+        "52DECA02-2EE8-4EAA-8EAD-1AB83F8A5955",
+        "4004de5a-09a5-4f0c-94d7-82322e096aa7",
+        "05184ec9-abb0-4491-8584-e388639a7c48",
+        "D6A2CB7F-6A18-4e2f-B43B-9920A733700A",
+        "d258d6af-2fc0-4019-9c1f-1101c3dd19b5",
+        "882ee1a3-35b2-412c-b8a2-7a8d34a7c390",
+        "632F3FAC-1CA4-4725-BAA2-BDECCF9A111C",
+        "B6E9835A-EDCF-4748-98A8-27D3C722E02D",
+        "38897D86-FF36-4472-AE64-1DB9AE715C81",
+        "f773469b-e265-4b0c-b0a6-2f971fbfe72b",
+        "F60B206A-5C56-11EC-AEAC-67CB080BCFF2",
+        "f12b59c9-76d0-4661-ad7c-f04d1bef0558",
+        "7DE1C620-F587-4116-A36D-40F3467B9A0C",
+        "ABBAB4CD-EA88-45b9-8234-C8A7450531FC",
+        "A302F877-8625-425c-B1EC-7487B62C4FDA",
+        "86D70125-BAA3-4296-A62F-602BEBBB9081",
+        "c1594631-3888-4be4-949f-9c630dbc842b",
+        "B88F7146-9834-4c55-BFAC-481CC0C33736",
+        "57461928-290D-4FEC-A439-377420A829BE",
+        "95FA4B7B-930E-4755-A9B7-10F0716DA374",
+        "db6dcef3-9f4e-4340-9351-fc35aa8a5888",
+        "af97eb89-4cc6-45f8-a514-ca025b346480",
+        "5360bff6-3911-4495-ae3c-b02ff004b585",
+        "C5DE76EB-E8DE-4057-A487-C5A09AB039AB",
+        "EBF144C8-70F5-4e09-ADE2-F41F5C59AFDA",
+        "bc7835ea-4094-41fe-b770-bad9e6c479b2",
+        "57F9967B-26CD-4262-837A-55B8AA158254",
+        "7F61122C-19DF-47c3-BA0D-6C1149E30FA1",
+        "9515f92a-83ae-45fd-9d2e-e3dc15df52d0",
+        "EE680C58-FFC0-4a5d-858F-66FF9C84BC9F",
+        "baa1baa3-0a8d-402c-8042-985115fae953",
+        "2A6BA243-DC22-42D8-9C3D-AE3728DC7AFA",
+        "D4608509-1AB0-4cc7-827A-AB8E1E7BD3E6",
+        "7ad50992-cc31-4d2c-9048-6e92ed4b42b5",
+        "778CE4F4-36BD-4ae7-B8F0-10B420B0D174",
+        "30930D10-AF5B-4abf-80E6-EB4FFC0AE9D1",
+        "7E615AA1-41EE-49d4-B7E9-1D7A60AA5C8D",
+        "13AC6DD0-73D0-11D4-B06B-00AA00BD6DE7",
+        "BDFE430E-8F2A-4db0-9991-6F856594777E",
+        "2145F72F-E6F1-4440-A828-59DC9AAB5F89",
+        "8a6062ed-7140-4a74-b4ea-fe900e79e24b",
+        "22dc2b60-fe40-42ac-b01f-3ab1fad9aad8",
+        "CD3BAFB6-50FB-4fe8-8E4E-AB74D2C1A600",
+        "961578FE-B6B7-44c3-AF35-6BC705CD2B1F",
+        "FE5CEA76-4F72-49e8-986F-2CD899DFFE5D",
+        "4FC9C630-0F90-4053-8F13-264CBD22FC58",
+        "9F555194-A410-4AD6-B3FC-53F6E10FA793",
+        "243D3E8C-2780-4A25-9693-A410475BFCEC",
+        "733cbac2-b23f-4b92-bc8e-fb01ce5907b7",
+        "E228F30C-C7D5-4A93-BBA7-B4E22327E289",
+        "CCCB0C28-4B24-11d5-9A5A-0090273FC14D",
+        "63E3BDCF-2AC7-4ac0-9B92-03A7541422FF",
+        "74223710-17A9-478F-9B24-E354496B968B",
+        "77F6EA3E-1ABA-4467-A447-926E8CEB2D13",
+        "348C4D62-BFBD-4882-9ECE-C80BB1C4783B",
+        "86CDDF93-4872-4597-8AF9-A35AE4D3725F",
+        "5CCA36C1-C430-4A90-8BF7-23D2719D5928",
+        "F6697AC4-A776-4EE1-B643-1FEFF2B615BB",
+        "8657015b-ea43-440d-949a-af3be365c0fc",
+        "9FB1A1F3-3B71-4324-B39A-745CBB015FFF",
+        "2f30da26-f51b-4b6f-85c4-31873c281bca",
+        "eaec1915-65a0-43a9-bf0b-a76438da61db",
+        "52fe8196-f9de-4d07-b22f-51f77a0e7c41",
+        "17CA9B37-5BAB-492C-A09C-7121FBE34CE6",
+        "f61c9a34-2e18-44ce-af2f-21a998e64fda",
+        "F74D20EE-37E7-48FC-97F7-9B1047749C69",
+        "35194660-7421-44ad-9636-e44885f092d1",
+        "11b4523c-2c30-44f7-9dee-e6d59eef3d04",
+        "7E6651B2-B775-4593-A410-FC05B8C61993",
+        "C8339973-A563-4561-B858-D8476F9DEFC4",
+        "EB8C72BC-8A48-4F80-996B-E52F68416D57",
+        "025BBFC7-E6A9-4b8b-82AD-6815A1AEAF4A",
+        "AD608272-D07F-4964-801E-7BD3B7888652",
+        "70E9818C-A4F0-4061-9FA2-2DFFC7016D6E",
+        "C64B5035-FA3D-4215-ADBF-9C9F3F458E30",
+        "DC3641B8-2FA8-4ed3-BC1F-F9962A03454B",
+        "6826b408-f4f3-47ee-917f-af7047f9d937",
+        "8df39823-2f9e-4ef2-b971-243b44c32c67",
+        "9172fe8b-9a36-40f8-bba5-5e57a44390bd",
+        "5BE3BDF4-53CF-46a3-A6A9-73C34A6E5EE3",
+        "54D2878F-25CD-4a2b-8420-EBD18E609C76",
+        "E29FC209-8B64-4500-BD20-AF4EAE47EA0E",
+        "1FA1F39E-FEFF-4aae-BD7B-38A070A3B609",
+        "1B25AF84-1EA8-4b52-894E-BFA6880B97FF",
+        "378D7B65-8DA9-4773-B6E4-A47826A833E1",
+        "80CF7257-87AB-47f9-A3FE-D50B76D89541",
+        "9B3ADA4F-AE56-4c24-8DEA-F03B7558AE50",
+        "93B80004-9FB3-11d4-9A3A-0090273FC14D",
+        "128FB770-5E79-4176-9E51-9BB268A17DD1",
+        "9F2BC05E-51EA-4AED-9A3E-7699641734E8",
+        "e3aa5932-527a-42e7-86f5-81b144c7e5f1",
+        "11A6EDF6-A9BE-426D-A6CC-B22FE51D9224",
+        "E2775B47-D453-4EE3-ADA7-391A1B05AC17",
+        "0EB84DA1-267A-40b4-8347-1F48694C8B47",
+        "52C05B14-0B98-496c-BC3B-04B50211D680",
+        "b3b0654a-969d-4096-86cb-27e262a02083",
+        "980DDA67-44A6-4897-99E6-275290B71F9E",
+        "9a2a4375-194c-4e97-9f67-547ec98d96ca",
+        "41ddf016-2a11-415f-8880-00d938e9541a",
+        "3D5011B3-9CBB-4C0B-88E8-1D758283C659",
+        "9643128f-ac24-4b3e-b6be-d8849a306153",
+        "15d9a694-3d2a-4184-9672-ba55c3070e07",
+        "b694e0dc-cd4e-4b30-885b-9c164ed3e74a",
+        "B00F6090-7739-4830-B906-E0032D388987",
+        "D14271DE-FBEA-4AAC-9633-7143DCD7C1C8",
+        "9dbf6f25-0da2-4a1d-8e12-e78de6ab4d0e",
+        "DD8D28B4-C1DC-4CAF-BB93-074BE80DAE6D",
+        "8c690838-7a22-45c4-aa58-a33e3e515cd4",
+        "e8d6390d-e190-4957-9ab6-d47d51b01336",
+        "a804239b-4155-446f-acc8-f0825d74908c",
+        "DED3F743-CE2C-4ba6-92A2-FFCE2A6D72D9",
+        "4d22289d-3bde-4501-a737-7719f3215065",
+        "9A62C49D-C45A-4322-9F3C-45958DF0056B",
+        "fa177ff7-1fc7-458d-a358-d9d62ae61cec",
+        "3417c705-903e-41a7-9485-3fafebf60917",
+        "B6169BD3-EB70-4E00-B4CB-4C24C2C5235E",
+        "FB65006C-AC9F-4992-AD80-184B2BDBBD83",
+        "DF934DA3-CD31-49FE-AF50-B3C87C79325F",
+        "D9DCC5DF-4007-435E-9098-8970935504B2",
+        "49b4b018-0558-448b-1e1a-12226342877d",
+        "89f886b0-7109-46e1-9d28-503ad4ab6ee0",
+        "222c386d-5abc-4fb4-b124-fbb82488acf4",
+        "CEB0D9D3-328F-4C24-8C02-28FA1986AE1B",
+        "C4D1F932-821F-4744-BF06-6D30F7730F8D",
+        "1da2723f-52df-432a-8d03-6e8fa8acc107",
+        "1D677A58-C753-4AF1-B552-EFE142DF8F57",
+        "17985e6f-e778-4d94-aefa-c5dd2b77e186",
+        "80474090-55e7-4c28-b25c-9f236ba41f28",
+        "ddd4f5f0-5304-42a8-9efa-d14bf11a3533",
+        "a9a1211d-061e-4b64-af30-5dd0cac9dc99",
+        "806040ca-dad9-4978-a3b4-2d2ab0c8a48f",
+        "dce1b094-7dc6-45d0-9fdd-d7fc3cc3e4ef",
+        "e3752948-b9a1-4770-90c4-df41c38986be",
+        "28A03FF4-12B3-4305-A417-BB1A4F94081E",
+        "A3610442-E69F-4DF3-82CA-2360C4031A23",
+        "D93CE3D8-A7EB-4730-8C8E-CC466A9ECC3C",
+        "4B28E4C7-FF36-4e10-93CF-A82159E777C5",
+        "1BA0062E-C779-4582-8566-336AE8F78F09",
+        "B981A835-6EE8-4f4c-AE0B-210AA0BFBF01",
+        "B601F8C4-43B7-4784-95B1-F4226CB40CEE",
+        "07D25BBB-F832-41bb-BBA0-612E9F033067",
+        "89E549B0-7CFE-449d-9BA3-10D8B2312D71",
+        "BDCE85BB-FBAA-4f4e-9264-501A2C249581",
+        "820C59BB-274C-43B2-83EA-DAC673035A59",
+        "0167CCC4-D0F7-4f21-A3EF-9E64B7CDCE8B",
+        "0A66E322-3740-4cce-AD62-BD172CECCA35",
+        "430AC2F7-EEC6-4093-94F7-9F825A7C1C40",
+        "8E325979-3FE1-4927-AAE2-8F5C4BD2AF0D",
+        "dafff819-f86c-4cff-a70e-83161e5bcf9a",
+        "3689D343-0D32-4284-8053-BF10537990E8",
+        "df1ccef6-f301-4a63-9661-fc6030dcc880",
+        "046388b4-430e-4e61-88f6-51ea21db2632",
+        "78eb7f2a-a42a-4b01-b160-5a05a0a52bac",
+        "CA4BBC99-DFC6-4234-B553-8B6586B7B113",
+        "fd565572-5195-4113-9018-113b33939e91",
+        "ba69ac6b-0c59-4472-899d-b684590ec1e9",
+        "F80697E9-7FD6-4665-8646-88E33EF71DFC",
+        "EBf342FE-B1D3-4EF8-957C-8048606FF671",
+        "7C04A583-9E3E-4f1c-AD65-E05268D0B4D1",
+        "864E1CA8-85EB-4D63-9DCC-6E0FC90FFD55",
+        "F9D88642-0737-49bc-81B5-6889CD57D9EA",
+        "D27FED59-ABB4-4FED-BEAD-2A878C7E4A7E",
+        "4110465d-5ff3-4f4b-b580-24ed0d06747a",
+        "51834F51-CCE0-4743-B553-935D0C8A53FF",
+        "A2f436EA-A127-4EF8-957C-8048606FF670",
+        "f6ef2763-ca3b-4c6f-a931-2a48de3ce352",
+        "9D225237-FA01-464C-A949-BAABC02D31D0",
+        "6C2004EF-4E0E-4BE4-B14C-340EB4AA5891",
+        "AD416CE3-A483-45b1-94C2-4B4E4D575562",
+        "1A7E4468-2F55-4a56-903C-01265EB7622B",
+        "F062221E-C607-44C2-B0B4-C3886331D351",
+        "fcb3a3d6-6274-411c-a548-bd0e717d533a",
+        "E750224E-7BCE-40AF-B5BB-47E3611EB5C2",
+        "032A8E0D-0C27-40C0-9CAA-23B731C1B223",
+        "2F81A9BA-748E-4519-BB11-A63A039D561E",
+        "9E863906-A40F-4875-977F-5B93FF237FC6",
+        "A487A478-51EF-48AA-8794-7BEE2A0562F1",
+        "B1B07E01-6896-448C-8E75-F0E119ABDF49",
+        "DDFCEB08-9CE3-4CB8-ABBD-D32925E8CAAB",
+        "905f13b0-8f91-4b0a-bd76-e1e78f9422e4",
+        "6d6963ab-906d-4a65-a7ca-bd40e5d6af2b",
+        "DADE8301-CB29-4fd5-8148-56FD246C5B88",
+        "8D4752BC-595E-49a2-B4AF-F3F57B601DE9",
+        "ff5c7a2c-ab7a-4366-8616-11c6e53247b6",
+        "91c1677a-e57f-4191-8b8e-eb7711a716e0",
+        "050EB8C6-C12E-4b86-892B-40985E8B3137",
+        "331deb15-454b-48d8-9b74-70d01f3f3556",
+        "73349b79-f148-43b8-b24e-9098a6f3e1db",
+        "9495D344-9D8A-41f3-8D17-E2FD238C4E71",
+        "3CDC7177-CC2A-4678-BA8F-1A936A093FA4",
+        "3143687A-7C80-404e-B5FE-2D88980E1B1C",
+        "894DC1B6-07A3-4a9d-8CDD-333580B3D4B1",
+        "3a004ba5-efe0-4a61-9f1a-267a46ae5ba9",
+        "4674739d-3195-4fb2-8094-ac1d22d00194",
+        "4102F4FE-DA10-4F0F-AC18-4982ED506154",
+        "B95E9FDA-26DE-48d2-8807-1F9107AC5E3A",
+        "b1ee6c28-54aa-4d17-b705-3e28ccb27b2e",
+        "19cbbb97-ff61-45ff-8c3f-dfa66dd118c8",
+        "280E42C3-826E-4573-9772-B74EF1086D95",
+        "F6A3BF5D-4095-4E4F-9670-408770C2DBDF",
+        "5C12F31F-EBAC-466e-A400-FCA8C9EA3A05",
+        "90330D51-A99B-4cc8-A2EB-AE22542A3F45",
+        "313D3674-3ED4-48fd-BF97-7DB35D4190D1",
+        "D250E364-51C6-49ed-AEBF-6D83F5130F74",
+        "50cb6037-1102-47af-b2dd-9944b6eb1abe",
+        "CBF3931C-A2DF-40e5-B77E-CCA9555E9755",
+        "71374B42-85D7-4753-AD17-AA84C3A0EB93",
+        "449D0F00-2148-4a43-9836-F10B3980ECF5",
+        "9A929F7E-3861-45ce-87AB-7371219AE255",
+        "4264A823-45A3-42db-B92C-AA078555CBD3",
+        "87eb5df9-722a-4241-ad7f-370d0b3a56d7",
+        "2FB92EFA-2EE0-4bae-9EB6-7464125E1EF7",
+        "462CAA21-7614-4503-836E-8AB6F4662331",
+        "240612B7-A063-11d4-9A3A-0090273FC14D",
+        "2D2E62CF-9ECF-43b7-8219-94E7FC713DFE",
+        "9FB4B4A7-42C0-4bcd-8540-9BCC6711F83E",
+        "63E12D08-0C5D-47F8-95E4-09F89D7506C5",
+        "AC24A4C7-F845-4665-90E5-6431D6E28DC0",
+        "17D0EF2A-5933-4007-8950-5749169D3DC5",
+        "B3C2206B-FDD1-4AED-8352-FC5EC34C5630",
+        "205F7F0E-8EAC-4914-8390-1B90DD7E2A27",
+        "CBD2E4D5-7068-4FF5-B462-9822B4AD8D60",
+        "60740CF3-D428-4500-80E6-04A5798241ED",
+        "0170F60C-1D40-4651-956D-F0BD9879D527",
+        "11D92DFB-3CA9-4F93-BA2E-4780ED3E03B5",
+        "7BD9DDF7-8B83-488E-AEC9-24C78610289C",
+        "D6099B94-CD97-4CC5-8714-7F6312701A8A",
+        "F141B1E5-9C7C-44CC-AFAA-E87D7689B113",
+        "90CED1D9-18F2-47CC-BF24-41EC29406637",
+        "A92CDB4B-82F1-4E0B-A516-8A655D371524",
+        "83dd3b39-7caf-4fac-a542-e050b767e3a7",
+        "58E26F0D-CBAC-4BBA-B70F-18221415665A",
+        "FAB5D4F4-83C0-4AAF-8480-442D11DF6CEA",
+        "23CACE14-EBA4-49F6-9681-C697FF0B649E",
+        "E4F61863-FE2C-4b56-A8F4-08519BC439DF",
+        "F099D67F-71AE-4c36-B2A3-DCEB0EB2B7D8",
+        "f6394dd2-bafd-4d8e-999e-7590df8fc546",
+        "2304df80-e21d-4170-9c3c-113c878f7ac0",
+        "DB54DBB7-8142-4EE5-9364-78C824B582EB",
+        "B7F50E91-A759-412c-ADE4-DCD03E7F7C28",
+        "19618BCE-55AE-09C6-37E9-4CE04084C7A1",
+        "pkg:github/openssl/openssl@openssl-3.5.7"
       ]
     }
   ]

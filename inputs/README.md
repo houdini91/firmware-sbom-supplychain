@@ -67,3 +67,15 @@ the same; the `AcpiTableDxe` value was re-derived independently and matched to t
 satisfy the OSF **M-srchash** MUST (gate control `osf-source-hash`, now GREEN) without touching
 the shipped-byte hashes or `D`. The generator change lives in the fork's `BuildReport.py`
 (per-module `edk2:sourceHash` + document `edk2:sourceRevision`).
+
+## Shape enrichment — added 2026-08-08 (Increment E)
+
+The reference (and the generator) now also carry: a document **`serialNumber`** (urn:uuid, CISA
+SBOM-Version), **per-component `licenses`** (edk2 first-party = `BSD-2-Clause-Patent`; vendored OSS
+keeps its own — 123/123 modules), **platform `metadata.component` `cpe`/`purl`/`licenses`**
+(`cpe:2.3:a:tianocore:edk2:edk2-stable202605`), a **`compositions[].aggregate: incomplete`**
+completeness declaration (CISA known-unknowns), and the restored **`edk2:hashCanonicalForm`**
+property. These are deterministic (license/cpe/compositions) or a valid urn:uuid (serialNumber),
+annotated onto the reference from the enhanced generator's real build WITHOUT touching the
+shipped-byte hashes or `D`. New gated controls: cisa-sbom-version, cisa-completeness,
+cisa-component-producer (all GREEN on the reference).

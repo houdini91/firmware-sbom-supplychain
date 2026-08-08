@@ -37,6 +37,16 @@
       "license_checked": 1,
       "license_invalid": 0,
       "bad_licenses": []
+    },
+    "identity": {
+      "serial_present": true,
+      "completeness_declared": true,
+      "aggregate": "incomplete"
+    },
+    "component_supplier": {
+      "total": 311,
+      "missing": [],
+      "missing_count": 0
     }
   },
   "attestation": {
