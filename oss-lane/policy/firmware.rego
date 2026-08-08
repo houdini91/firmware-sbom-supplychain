@@ -299,6 +299,30 @@ _sbom_gen_tool if input.sbom.generation.tool_present
 default _sbom_gen_context := false
 _sbom_gen_context if input.sbom.generation.context_present
 
+# CISA 2026 / NTIA baseline REQUIRED elements: SBOM Author, Timestamp, Software Producer/Supplier.
+# These live in metadata (authors/timestamp/supplier) and were previously ungated even though the
+# gate read the sibling tools/lifecycles for the generation controls. All three must be present.
+default _sbom_baseline_metadata := false
+_sbom_baseline_metadata if {
+	input.sbom.baseline.author_present
+	input.sbom.baseline.timestamp_present
+	input.sbom.baseline.supplier_present
+}
+
+default _sbom_baseline_msg := "SBOM baseline metadata evidence absent (no sbom.baseline section) — cannot confirm author/timestamp/supplier"
+
+_sbom_baseline_msg := sprintf(
+	"SBOM missing CISA/NTIA baseline required element(s): %v",
+	[[e |
+		some e, present in {
+			"author (metadata.authors[].name)": object.get(input, ["sbom", "baseline", "author_present"], false),
+			"timestamp (metadata.timestamp)": object.get(input, ["sbom", "baseline", "timestamp_present"], false),
+			"supplier (metadata.supplier.name)": object.get(input, ["sbom", "baseline", "supplier_present"], false),
+		}
+		present == false
+	]],
+) if input.sbom.baseline
+
 # SP 800-193 §4.3.1 (Detection) input: a GENUINE flash-time image measurement was supplied
 # (a real FW_IMAGE hashed at leg-3), as opposed to DEV_ASSUME_FWIMAGE mode where leg-3 is
 # copied from the build's own SBOM self-claim. The assembler sets input.firmware.freshly_measured
@@ -519,6 +543,12 @@ _core_reports := [
 		"SBOM declares its generation context (metadata.lifecycles[].phase present) — declared, not independently proven",
 		"SBOM declares no generation context (metadata.lifecycles[].phase missing)",
 	),
+	# CISA 2026 / NTIA baseline required elements: SBOM Author + Timestamp + Supplier.
+	_report(
+		"sbom-baseline-metadata", _sbom_baseline_metadata,
+		"SBOM carries the CISA/NTIA baseline required elements: author (metadata.authors), timestamp (metadata.timestamp), and supplier (metadata.supplier)",
+		_sbom_baseline_msg,
+	),
 	# CISA KEV (BOD 22-01): no shipped component carries a Known-Exploited CVE (unless an explicit
 	# exec-risk VEX waiver applies). HONESTY: KEV membership is by the DECLARED component version,
 	# not proven runtime exploitability; data.cisa_kev is a small illustrative seed.
@@ -628,6 +658,7 @@ _remediation := {
 	"firmware-digest-anchor": "Make the three firmware-byte digests agree — the SBOM metadata digest D, the reconcile re-hash, and the deployed .fd — by rebuilding/re-measuring; an empty leg is a supply-chain gap and a mismatch is a possible swap.",
 	"sbom-generation-tool": "Regenerate the SBOM with a generator that records metadata.tools[] carrying a name AND version (e.g. the edk2 '-Y SBOM' BuildReport generator); a tool-less SBOM does not meet the CISA generation-tool element.",
 	"sbom-generation-context": "Regenerate the SBOM so metadata.lifecycles[] declares the generation phase (build-time is the gold standard); a context-less SBOM does not meet the CISA generation-context element.",
+	"sbom-baseline-metadata": "Populate the CISA/NTIA baseline required metadata: metadata.authors[].name (SBOM Author), metadata.timestamp (ISO-8601 UTC), and metadata.supplier.name (Software Producer); these are required elements, not optional.",
 	"no-kev-component": "Upgrade or remove the named component so it no longer carries the CISA KEV (Known-Exploited) CVE; a plain not_affected does NOT waive a KEV — only an explicit, reviewed exec-risk justification in data.kev_waivers may, and only after human review.",
 	"uefi-secure-boot-posture": "Provision + enforce UEFI Secure Boot (PK/KEK/db/dbx, SecureBoot=1, SetupMode=0) so CHIPSEC secureboot.variables PASSES; do not admit an image whose target does not enforce Secure Boot.",
 	"platform-protection-posture": "Fix the platform-protection gap so CHIPSEC bios_wp (flash write-protection, 800-147) and smm (SMM isolation, 800-193 §4.2.3) both PASS; a FAILED pillar is a real protection gap (bios_ts/smrr N/A on QEMU is expected).",
@@ -774,6 +805,8 @@ deny contains msg if {
 deny contains "SBOM declares no generation tool (metadata.tools[] missing, or lacks a name+version)" if not _sbom_gen_tool
 
 deny contains "SBOM declares no generation context (metadata.lifecycles[].phase missing)" if not _sbom_gen_context
+
+deny contains _sbom_baseline_msg if not _sbom_baseline_metadata
 
 # CISA KEV (BOD 22-01): a shipped component carries a Known-Exploited CVE with no exec-risk waiver.
 deny contains msg if {

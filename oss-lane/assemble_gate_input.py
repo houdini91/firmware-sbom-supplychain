@@ -206,6 +206,25 @@ def osf_conformance(sbom):
             "source_hash_present": sum(1 for c in mods if _source_hash_present(c))}
 
 
+def baseline_metadata(sbom):
+    """CISA 2026 / NTIA baseline REQUIRED elements that live in metadata but were never gated:
+      - author_present:    metadata.authors[] carries a name (the SBOM Author element)
+      - timestamp_present: metadata.timestamp is a non-empty ISO-8601 UTC string (the Timestamp element)
+      - supplier_present:  metadata.supplier.name is set (the Software Producer/Supplier element)
+    These are surfaced the same way integrity()/generation() surface theirs, so a new gated report
+    can assert the baseline. Presence-not-validity (a data-quality control checks the values)."""
+    md = sbom.get("metadata", {}) or {}
+    authors = md.get("authors") or []
+    ts = md.get("timestamp") or ""
+    supplier = md.get("supplier") or {}
+    author_present = any(a.get("name") for a in authors if isinstance(a, dict))
+    timestamp_present = bool(re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}", str(ts)))
+    supplier_present = bool(isinstance(supplier, dict) and supplier.get("name"))
+    return {"author_present": author_present,
+            "timestamp_present": timestamp_present,
+            "supplier_present": supplier_present}
+
+
 def thirdparty(sbom):
     def vendored(c):
         return any(p.get("name") == "edk2:vendored" and p.get("value") == "true"
@@ -440,7 +459,8 @@ def main():
     gate_input = {
         "sbom": {"present": len(sbom.get("components", [])) > 0, "hash": "sha256:" + sbom_hash,
                  "integrity": integrity(sbom), "thirdparty": thirdparty(sbom),
-                 "generation": generation(sbom), "osf": osf_conformance(sbom)},
+                 "generation": generation(sbom), "osf": osf_conformance(sbom),
+                 "baseline": baseline_metadata(sbom)},
         "attestation": {"file_subject": ("" if att_file == "" else "sha256:" + att_file),
                         "firmware_subject": ("" if att_firmware == "" else "sha256:" + att_firmware)},
         "signature": {"verified": sig == "true", "identity": effective_builder},

@@ -6,9 +6,9 @@ built OVMF image. Section 5 (the same-GUID trojan) is self-contained — it runs
 
 ---
 
-## 1. The gate ALLOWs a clean release — 26 signed checks, each tagged with the control it earns
+## 1. The gate ALLOWs a clean release — 27 signed checks, each tagged with the control it earns
 
-A fixture carrying complete, valid evidence: the gate ANDs the **25 always-emitted** verifier reports
+A fixture carrying complete, valid evidence: the gate ANDs the **26 always-emitted** verifier reports
 and signs the VSA. On this reference release a 26th fires — `osf-source-provenance` — the conditional
 advisory report that appears only when every module carries a source hash (as the `-Y SBOM` generator
 now emits); it is non-gating, so a build without source hashes simply omits it.
@@ -36,10 +36,11 @@ now emits); it is non-gating, so a build without source hashes simply omits it.
    ✅ cve-triage: no un-triaged critical CVEs  [s2c2f:SCA-1, sp-800-53:RA-5, ssdf:PW.4.4, ssdf:RV.1.1]
    ✅ sbom-generation-tool: SBOM declares its generation tool (metadata.tools[] carries a name+version) — declared, not independently proven to have produced these bytes  [cra-bsi-cisa:cisa-generation-tool]
    ✅ sbom-generation-context: SBOM declares its generation context (metadata.lifecycles[].phase present) — declared, not independently proven  [cra-bsi-cisa:cisa-generation-context]
-   ✅ no-kev-component: no shipped component carries a CISA KEV (Known-Exploited) CVE — or each is waived by an explicit exec-risk VEX justification (declared version, not runtime exploitability)  [cra-bsi-cisa:cisa-kev, sp-800-53:RA-5]
+   ✅ sbom-baseline-metadata: SBOM carries the CISA/NTIA baseline required elements: author (metadata.authors), timestamp (metadata.timestamp), and supplier (metadata.supplier)  [cra-bsi-cisa:cisa-author, cra-bsi-cisa:cisa-supplier, cra-bsi-cisa:cisa-timestamp]
+   ✅ no-kev-component: no shipped component carries a Known-Exploited CVE in the configured data.cisa_kev set (a seed — refresh from the live CISA KEV feed) — or each is waived by an explicit exec-risk VEX justification (declared version, not runtime exploitability)  [cra-bsi-cisa:cisa-kev, sp-800-53:RA-5]
    ✅ uefi-secure-boot-posture: UEFI Secure Boot provisioned + enforcing (CHIPSEC secureboot.variables PASSED) — SAMPLE/ILLUSTRATIVE chipsec.json on OVMF/QEMU, config-level posture not a live hardware-rooted run  [nist-800-147:800-147B-secure-boot]
    ✅ platform-protection-posture: platform protections verified (CHIPSEC bios_wp flash write-protection + smm SMM isolation PASSED; bios_ts/smrr N/A on QEMU) — SAMPLE/ILLUSTRATIVE chipsec.json, config-level posture not physical silicon  [nist-800-147:800-147-flash-wp, sp-800-193:4.2.3]
-   ✅ osf-identity-shape: OSF embedded-SBOM identity shape verified: every firmware module carries a GUID-form tag-id (== FILE_GUID) — manifest-level structural conformance, not a parse of the coSWID extracted from the shipped PE  [osf-embedded-sbom:osf-guid-identity]
+   ✅ osf-identity-shape: OSF embedded-SBOM identity shape verified: every firmware module's tag-id (bom-ref) is in GUID form — a manifest-level SHAPE check, NOT proof the value is a live UEFI FILE_GUID carved from the image (a UUID from any tool passes the shape); parsing the coSWID from the shipped PE to confirm the FILE_GUID remains roadmapped  [osf-embedded-sbom:osf-guid-identity]
    ✅ osf-source-provenance: OSF source-file hash (M-srchash) verified: every module carries a source-file hash (CycloneDX edk2:sourceHash property) — manifest-level, not a parse of the coSWID in the shipped PE; the coSWID colloquial-version carrier is written downstream by uswid  [osf-embedded-sbom:osf-source-hash]
 ✅ ALLOW — clean.json  (VSA: PASSED, verifiedLevels=[SLSA_BUILD_LEVEL_0] for the firmware subject; evidenceBuildLevel=SLSA_BUILD_LEVEL_2 — the SBOM artifact's build provenance)
 ```
@@ -99,7 +100,7 @@ Evidence (VSA) : vsa.json   verificationResult=PASSED
   ✅ NIST SP 800-53 Rev 5 (SR/SI/CM/RA)         10/10  [required]
   ✅ NIST SP 800-193 — Platform Firmware Resiliency (Protection) 2/3  [required]  · 1 advisory pending
   ✅ OpenSSF S2C2F v2                           4/4  [required]
-  ✅ EU CRA / BSI TR-03183-2 / CISA 2026 Minimum Elements (SBOM obligations) 7/7  [required]
+  ✅ EU CRA / BSI TR-03183-2 / CISA 2026 Minimum Elements (SBOM obligations) 10/10  [required]
   ✅ NIST SP 800-147 / 147B + UEFI Secure Boot — BIOS protection & authenticated boot 2/2  [required]
   ✅ OSF Firmware Embedded SBOM Specification (structural conformance) 2/2  [required]
 ──────────────────────────────────────────────────────────────────
@@ -121,7 +122,7 @@ The killer feature: it doesn't guess or fail-confusingly. No attestation ⇒ eve
   ❔ NIST SP 800-53 Rev 5 (SR/SI/CM/RA)         0/10  [required]
   ❔ NIST SP 800-193 — Platform Firmware Resiliency (Protection) 0/3  [required]  · 1 advisory pending
   ❔ OpenSSF S2C2F v2                           0/4  [required]
-  ❔ EU CRA / BSI TR-03183-2 / CISA 2026 Minimum Elements (SBOM obligations) 0/7  [required]
+  ❔ EU CRA / BSI TR-03183-2 / CISA 2026 Minimum Elements (SBOM obligations) 0/10  [required]
   ❔ NIST SP 800-147 / 147B + UEFI Secure Boot — BIOS protection & authenticated boot 0/2  [required]
   ❔ OSF Firmware Embedded SBOM Specification (structural conformance) 0/2  [required]  · 1 advisory pending
   ...
@@ -193,7 +194,7 @@ RESULT: same-GUID byte swap — reconcile-membership PASSED, component-byte-inte
 ```
 
 The `… (19 other reports, all ✅) …` lines are the only elision — `make attack-demo`
-prints all 25 verifier reports in full both times. **The crux is the contrast:**
+prints all 26 verifier reports in full both times. **The crux is the contrast:**
 `reconcile-membership` PASSES the swap in both runs (the GUID is present); only
 `component-byte-integrity` flips from ✅ to ⛔, and that flip is what turns the gate's
 verdict from ALLOW to DENY.

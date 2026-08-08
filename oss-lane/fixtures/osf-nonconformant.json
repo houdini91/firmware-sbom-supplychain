@@ -23,6 +23,11 @@
       "modules_total": 123,
       "guid_tag_id": 122,
       "source_hash_present": 123
+    },
+    "baseline": {
+      "author_present": true,
+      "timestamp_present": true,
+      "supplier_present": true
     }
   },
   "attestation": {

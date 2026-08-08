@@ -365,6 +365,36 @@
           ]
         },
         {
+          "id": "cisa-author",
+          "name": "CISA 2026: SBOM Author (required)",
+          "description": "The SBOM declares its Author \u2014 the entity that created the SBOM (CDX metadata.authors[].name). A REQUIRED CISA 2026 / NTIA baseline element; carried in metadata alongside timestamp + supplier.",
+          "citation": "CISA 2026 Minimum Elements for an SBOM \u2014 SBOM Author (Required) / NTIA 2021 baseline",
+          "canonical": "sbom-author",
+          "satisfied_by": [
+            "sbom-baseline-metadata"
+          ]
+        },
+        {
+          "id": "cisa-timestamp",
+          "name": "CISA 2026: Timestamp (required)",
+          "description": "The SBOM declares its generation Timestamp (CDX metadata.timestamp, ISO-8601 UTC). A REQUIRED CISA 2026 / NTIA baseline element.",
+          "citation": "CISA 2026 Minimum Elements for an SBOM \u2014 Timestamp (Required) / NTIA 2021 baseline",
+          "canonical": "sbom-timestamp",
+          "satisfied_by": [
+            "sbom-baseline-metadata"
+          ]
+        },
+        {
+          "id": "cisa-supplier",
+          "name": "CISA 2026: Software Producer / Supplier (required)",
+          "description": "The SBOM declares the Software Producer / Supplier (CDX metadata.supplier.name). A REQUIRED CISA 2026 / NTIA baseline element; BSI TR-03183-2 likewise requires a supplier.",
+          "citation": "CISA 2026 Minimum Elements for an SBOM \u2014 Software Producer (Required) / BSI TR-03183-2",
+          "canonical": "sbom-supplier",
+          "satisfied_by": [
+            "sbom-baseline-metadata"
+          ]
+        },
+        {
           "id": "cisa-generation-tool",
           "name": "CISA 2026: generation tool",
           "description": "The SBOM declares the tool that generated it (metadata.tools with a name+version \u2014 here the edk2 '-Y SBOM' BuildReport generator). HONESTY: this proves the SBOM DECLARES a generation tool, not that that tool actually produced these bytes (cf. vex-adjudicated, which proves a justification is declared).",

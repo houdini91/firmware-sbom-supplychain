@@ -17,6 +17,11 @@
     "generation": {
       "tool_present": true,
       "context_present": true
+    },
+    "baseline": {
+      "author_present": true,
+      "timestamp_present": true,
+      "supplier_present": true
     }
   },
   "attestation": {
