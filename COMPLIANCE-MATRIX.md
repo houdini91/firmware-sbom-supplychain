@@ -234,6 +234,26 @@ an honest gate:
    not an independently proven one.
 5. **§4.3.1 advisory.** Detection stays MISSING_EVIDENCE until a real flash-time measurement is
    supplied — it is never counted as a pass on demo data.
+6. **No vacuous SATISFIED — the CVE and reconcile facts carry non-vacuity guards.** An empty CVE
+   findings list only satisfies `cve-triage`/`vex-adjudicated`/`no-kev-component` when a scan
+   actually ran (`cve.scanned`); a zeroed reconcile block (`declared==0`) does not satisfy
+   `reconcile-membership`. Without a scan/reconcile these controls report **not-satisfied**
+   (fail-closed), never "clean" — parity with the `byte_integrity.ran` / `binary_hardening`
+   coverage guards. `no-kev-component` matches against the configured `data.cisa_kev` **seed**
+   (refresh from the live feed), and `osf-identity-shape` is a GUID-**shape** check (a UUID from
+   any tool passes; it does not prove the value is a live UEFI FILE_GUID). These are stated in the
+   report messages, not just here.
+
+## Applicability — this gate is edk2/`-Y SBOM`-shaped (honest scope)
+
+The gate reads edk2 shapes (GUID `bom-ref`, `edk2:*` properties, module `type`). Run against a
+**foreign** vendor SBOM (Dell/Lenovo/coreboot) it correctly **DENYs** and — after the non-vacuity
+guards above — reports the un-evidenced controls as **not-satisfied** rather than falsely SATISFIED.
+But its edk2-shaped readers (`thirdparty` keys off `edk2:vendored`; `integrity`/`binary-hardening`
+off `edk2:moduleType`) still can't *positively assess* a non-edk2 SBOM's real components. A
+format-agnostic mapping layer (read `purl`/`licenses`/`hashes`/`type` from standard CycloneDX) and
+an explicit NOT-APPLICABLE state for non-edk2 inputs are **roadmapped** — until then, treat a
+foreign-SBOM verdict as "not evidenced here," not "non-compliant."
 
 ## Regenerating this matrix
 

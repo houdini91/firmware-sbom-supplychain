@@ -59,7 +59,8 @@
         "component": "openssl",
         "severity": "HIGH"
       }
-    ]
+    ],
+    "scanned": true
   },
   "chipsec": {
     "critical_passed": true,

@@ -43,8 +43,14 @@ _provenance_ok if {
 default _reconcile_clean := false
 _reconcile_clean if input.reconcile.clean
 
+# NON-VACUITY GUARD: "no un-triaged critical CVE" is only a real claim if a scan actually
+# ran. Without input.cve.scanned an empty findings list is absence-of-evidence, not evidence
+# of absence — the report must NOT pass (fail-closed; foreign/unscanned SBOMs report not-satisfied).
 default _no_critical := false
-_no_critical if count(critical_cves) == 0
+_no_critical if {
+	input.cve.scanned
+	count(critical_cves) == 0
+}
 
 # SLSA L2: the pipeline verified platform-generated provenance (attest-build-
 # provenance + `gh attestation verify`) and the assembler surfaced it here.
@@ -62,6 +68,9 @@ _chipsec_posture if input.chipsec.critical_passed
 # image and no undeclared (suspicious) artifact was present.
 default _reconcile_membership := false
 _reconcile_membership if {
+	input.reconcile.declared > 0 # NON-VACUITY: a zeroed reconcile block (no reconcile evidence,
+	# e.g. a foreign SBOM) has declared==matched==0, which would pass 0==0 vacuously. Require a
+	# real declared-module count so "every declared module observed" is a claim about real modules.
 	input.reconcile.matched == input.reconcile.declared
 	input.reconcile.missing_count == 0
 	input.reconcile.undeclared_observed == 0
@@ -175,7 +184,10 @@ _unadjudicated contains c if {
 }
 
 default _vex_adjudicated := false
-_vex_adjudicated if count(_unadjudicated) == 0
+_vex_adjudicated if {
+	input.cve.scanned # NON-VACUITY: nothing to adjudicate without a scan; unscanned != "all adjudicated"
+	count(_unadjudicated) == 0
+}
 
 # CISA License + Software-Identifiers, S2C2F SCA-2, SSDF PW.4.4: every third-party
 # component carries a purl + license. edk2 FFS modules are excluded by
@@ -311,12 +323,17 @@ _kev_hits contains c if {
 }
 
 default _no_kev := false
-_no_kev if count(_kev_hits) == 0
+_no_kev if {
+	input.cve.scanned # NON-VACUITY: KEV membership is matched over scan findings; unscanned != "no KEV"
+	count(_kev_hits) == 0
+}
+
+_kev_msg := "no CVE scan supplied (cve.scanned=false) — cannot assert 'no Known-Exploited component'; unscanned is MISSING this evidence, not KEV-free" if not input.cve.scanned
 
 _kev_msg := sprintf(
-	"CISA KEV: %d shipped component(s) carry a Known-Exploited CVE with no exec-risk VEX waiver: %v — KEV membership is by DECLARED component version, not proven runtime exploitability",
+	"CISA KEV: %d shipped component(s) carry a Known-Exploited CVE with no exec-risk VEX waiver: %v — matched against the configured data.cisa_kev set (a seed, refresh from the live CISA KEV feed), by DECLARED component version not proven runtime exploitability",
 	[count(_kev_hits), sort([s | some c in _kev_hits; s := sprintf("%s in %q", [c.id, c.component])])],
-)
+) if input.cve.scanned
 
 # NIST SP 800-147B + UEFI Spec §32: UEFI Secure Boot is provisioned and enforcing. Reads the
 # EXISTING CHIPSEC secureboot.variables sub-result surfaced by the assembler. HONESTY CEILING:
@@ -507,7 +524,7 @@ _core_reports := [
 	# not proven runtime exploitability; data.cisa_kev is a small illustrative seed.
 	_report(
 		"no-kev-component", _no_kev,
-		"no shipped component carries a CISA KEV (Known-Exploited) CVE — or each is waived by an explicit exec-risk VEX justification (declared version, not runtime exploitability)",
+		"no shipped component carries a Known-Exploited CVE in the configured data.cisa_kev set (a seed — refresh from the live CISA KEV feed) — or each is waived by an explicit exec-risk VEX justification (declared version, not runtime exploitability)",
 		_kev_msg,
 	),
 	# UEFI Secure Boot posture — reads the EXISTING chipsec secureboot.variables result.
@@ -528,7 +545,7 @@ _core_reports := [
 	# coSWID shape, not a parse of the shipped-PE coSWID). The MET half of OSF conformance.
 	_report(
 		"osf-identity-shape", _osf_identity_shape,
-		"OSF embedded-SBOM identity shape verified: every firmware module carries a GUID-form tag-id (== FILE_GUID) — manifest-level structural conformance, not a parse of the coSWID extracted from the shipped PE",
+		"OSF embedded-SBOM identity shape verified: every firmware module's tag-id (bom-ref) is in GUID form — a manifest-level SHAPE check, NOT proof the value is a live UEFI FILE_GUID carved from the image (a UUID from any tool passes the shape); parsing the coSWID from the shipped PE to confirm the FILE_GUID remains roadmapped",
 		_osf_identity_msg,
 	),
 ]
@@ -625,17 +642,29 @@ _provenance_msg := sprintf(
 	[object.get(input, ["provenance", "builder_id"], ""), object.get(input, ["provenance", "source_repo"], "")],
 )
 
-_cve_msg := sprintf("%d un-triaged critical CVE(s)", [count(critical_cves)])
+_cve_msg := "no CVE scan supplied (cve.scanned=false) — cannot assert 'no un-triaged critical CVEs'; a firmware that was never scanned is MISSING this evidence, not clean" if not input.cve.scanned
+
+_cve_msg := sprintf("%d un-triaged critical CVE(s)", [count(critical_cves)]) if input.cve.scanned
 
 # Absent-input guard: with no reconcile section at all, do NOT print "?" placeholders — that reads
 # like a computed verdict. Say plainly that the evidence is absent.
 default _reconcile_membership_msg := "reconcile evidence absent (no reconcile section supplied) — cannot confirm module membership"
 
+# Zeroed/empty reconcile (declared=0): no reconcile attestation, or a foreign SBOM with no
+# reconcile evidence. Say "absent", not "incomplete" — 0==0 is not a computed clean membership.
+_reconcile_membership_msg := "reconcile evidence absent or empty (declared=0) — no declared modules to confirm membership against (no reconcile attestation, or a non-edk2 SBOM)" if {
+	input.reconcile
+	input.reconcile.declared == 0
+}
+
 _reconcile_membership_msg := sprintf(
 	"reconcile membership incomplete: matched=%v declared=%v missing=%v undeclared=%v",
 	[object.get(input, ["reconcile", "matched"], "?"), object.get(input, ["reconcile", "declared"], "?"),
 		object.get(input, ["reconcile", "missing_count"], "?"), object.get(input, ["reconcile", "undeclared_observed"], "?")],
-) if input.reconcile
+) if {
+	input.reconcile
+	input.reconcile.declared > 0
+}
 
 # Absent-input guard: with no sbom.integrity section, do NOT print "0 module(s)…[]" — that reads
 # like a clean-but-failing verdict. Say plainly that the evidence is absent.
@@ -643,7 +672,9 @@ default _integrity_msg := "SBOM integrity evidence absent (no sbom.integrity sec
 
 _integrity_msg := sprintf("%d module(s) lack a hash and are not in data.hash_exempt: %v", [count(_integrity_unresolved), _integrity_unresolved]) if input.sbom.integrity
 
-_vex_msg := sprintf("%d high/critical CVE(s) lack a non-empty VEX justification: %v", [count(_unadjudicated), {c.id | some c in _unadjudicated}])
+_vex_msg := "no CVE scan supplied (cve.scanned=false) — nothing to adjudicate; VEX completeness cannot be asserted on an unscanned image" if not input.cve.scanned
+
+_vex_msg := sprintf("%d high/critical CVE(s) lack a non-empty VEX justification: %v", [count(_unadjudicated), {c.id | some c in _unadjudicated}]) if input.cve.scanned
 
 _thirdparty_msg := sprintf(
 	"third-party identity incomplete: %d component(s) lack purl/license %v (total third-party=%v)",

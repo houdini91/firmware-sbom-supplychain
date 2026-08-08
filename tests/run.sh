@@ -50,6 +50,7 @@ expect kev-component.json deny
 expect secureboot-fail.json deny
 expect platform-protection-fail.json deny
 expect osf-nonconformant.json deny
+expect cve-not-scanned.json deny
 expect firmware-freshly-measured.json allow
 
 # byte-integrity exemption ALLOW path: the same un-verifiable module that DENYs above must

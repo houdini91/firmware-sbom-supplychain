@@ -45,7 +45,8 @@
         "component": "brotli",
         "severity": "LOW"
       }
-    ]
+    ],
+    "scanned": true
   },
   "build_tools": {
     "present": true,

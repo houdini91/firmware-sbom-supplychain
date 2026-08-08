@@ -45,7 +45,8 @@
     ]
   },
   "cve": {
-    "findings": []
+    "findings": [],
+    "scanned": true
   },
   "build_tools": {
     "present": true,

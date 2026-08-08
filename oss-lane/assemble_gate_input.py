@@ -236,6 +236,17 @@ def cve_findings(path):
     return sorted(out, key=lambda x: json.dumps(x, sort_keys=True))
 
 
+def cve_fact(path):
+    """CVE evidence with a NON-VACUITY 'scanned' flag (parity with byte_integrity.ran).
+    scanned=False when no grype scan was supplied — distinct from 'scanned, found nothing'.
+    Without this flag an empty findings list read as 'no critical CVEs / no KEV / all VEX-
+    adjudicated' on a firmware that was never scanned (a foreign SBOM, or a missing scan) —
+    absence-of-evidence reported as evidence-of-absence. The gate now treats not-scanned as
+    NOT-satisfied (fail-closed), never a silent pass."""
+    scanned = bool(path and os.path.isfile(path) and os.path.getsize(path) > 0)
+    return {"scanned": scanned, "findings": cve_findings(path)}
+
+
 def byte_integrity_fact(path):
     """R4: fold the byte-integrity producer's verdict into a gate fact. ran=False
     when no image+edk2 was available to the producer (distinct from a clean run).
@@ -445,7 +456,7 @@ def main():
                       "undeclared_observed": dflt(summary, "added_suspicious", 0)},
         "firmware": {"sbom_digest": fw_sbom, "reconcile_digest": fw_reconcile, "deployed_digest": fw_deployed,
                      "freshly_measured": fw_freshly_measured},
-        "cve": {"findings": cve_findings(env("GRYPE_JSON"))},
+        "cve": cve_fact(env("GRYPE_JSON")),
         "chipsec": {"critical_passed": chipsec_passed, **chipsec_subs},
         "byte_integrity": byte_integrity_fact(env("BYTE_INTEGRITY_JSON")),
         "binary_hardening": binary_hardening_fact(env("BINARY_HARDENING_JSON")),

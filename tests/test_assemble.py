@@ -62,6 +62,20 @@ check("generation: tool without a version, and a phaseless lifecycle -> both abs
 check("generation: empty metadata -> both absent",
       a.generation({}) == {"tool_present": False, "context_present": False})
 
+# cve_fact: NON-VACUITY scanned flag. No GRYPE_JSON -> scanned=False (not "clean"); a real
+# grype file -> scanned=True. Distinguishes "scanned, found nothing" from "never scanned".
+cf_none = a.cve_fact("")
+check("cve_fact: no scan file -> scanned False, findings []",
+      cf_none == {"scanned": False, "findings": []})
+import tempfile as _tf, os as _os, json as _json
+_fd, _gp = _tf.mkstemp(suffix=".json")
+with _os.fdopen(_fd, "w") as _f:
+    _json.dump({"matches": [{"vulnerability": {"id": "CVE-1", "severity": "High"},
+                             "artifact": {"name": "x"}}]}, _f)
+cf = a.cve_fact(_gp); _os.remove(_gp)
+check("cve_fact: real grype file -> scanned True, finding parsed",
+      cf["scanned"] is True and len(cf["findings"]) == 1 and cf["findings"][0]["id"] == "CVE-1")
+
 # osf_conformance: bom-ref in GUID form -> guid_tag_id; edk2:sourceHash -> source_hash_present;
 # libraries excluded. The reference SBOM carries no source hash (M-srchash UNMET by default).
 osf = a.osf_conformance({"components": [

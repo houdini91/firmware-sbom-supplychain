@@ -54,7 +54,8 @@
     "undeclared_observed": 0
   },
   "cve": {
-    "findings": []
+    "findings": [],
+    "scanned": true
   },
   "chipsec": {
     "critical_passed": true,

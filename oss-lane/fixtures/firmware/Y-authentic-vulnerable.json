@@ -52,7 +52,8 @@
         "component": "libwebp",
         "severity": "HIGH"
       }
-    ]
+    ],
+    "scanned": true
   },
   "chipsec": {
     "critical_passed": true,

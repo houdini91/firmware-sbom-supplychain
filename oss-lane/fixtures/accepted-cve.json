@@ -59,7 +59,8 @@
         "component": "edk2",
         "severity": "CRITICAL"
       }
-    ]
+    ],
+    "scanned": true
   },
   "chipsec": {
     "critical_passed": true,
