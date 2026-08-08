@@ -4,10 +4,9 @@
     "hash": "sha256:3b1f0a9c8e2d4b6a7c5e9f01234567890abcdef1122334455667788990011aabb",
     "integrity": {
       "hashable_total": 123,
-      "hashed": 121,
+      "hashed": 122,
       "unhashed": [
-        "ResetVector",
-        "SomeDxe"
+        "ResetVector"
       ],
       "dxe_class_total": 122
     },
@@ -38,12 +37,16 @@
       "has_composition": false
     },
     "data_quality": {
-      "purl_checked": 1,
-      "purl_invalid": 0,
-      "bad_purls": [],
-      "license_checked": 1,
-      "license_invalid": 0,
-      "bad_licenses": []
+      "purl_checked": 2,
+      "purl_invalid": 1,
+      "bad_purls": [
+        "Foo: garbage"
+      ],
+      "license_checked": 2,
+      "license_invalid": 1,
+      "bad_licenses": [
+        "Bar"
+      ]
     }
   },
   "attestation": {
@@ -94,12 +97,13 @@
   "firmware": {
     "sbom_digest": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37",
     "reconcile_digest": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37",
-    "deployed_digest": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37"
+    "deployed_digest": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37",
+    "freshly_measured": false
   },
   "byte_integrity": {
     "ran": true,
-    "checked": 121,
-    "verified": 121,
+    "checked": 122,
+    "verified": 122,
     "modified_count": 0,
     "skipped_count": 0,
     "unverifiable": []

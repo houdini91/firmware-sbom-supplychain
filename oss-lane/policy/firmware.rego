@@ -309,6 +309,48 @@ _sbom_baseline_metadata if {
 	input.sbom.baseline.supplier_present
 }
 
+# CISA 2026 / NTIA REQUIRED 'Dependency Relationship': the SBOM declares a dependency graph and it
+# is referentially sound (every dependsOn points at a real component — no dangling ref). NON-VACUITY:
+# require a non-empty graph (present + edges>0), so an SBOM with no dependencies[] does NOT pass. This
+# gates the graph's presence + integrity, NOT completeness (a compositions[].aggregate declaration).
+default _dependency_relationships := false
+_dependency_relationships if {
+	input.sbom.dependencies.present
+	input.sbom.dependencies.edges > 0
+	input.sbom.dependencies.dangling_count == 0
+}
+
+# NTIA 'SBOM data quality': the identifiers that ARE declared must be VALID (not merely present).
+# Every declared purl must parse; every declared license must be well-formed (SPDX-id-shaped id, or
+# an expression/name) — a "NOT-A-LICENSE"/garbage/empty license or a malformed purl fails. This is a
+# correctness check on present identifiers; presence is gated separately (cisa-license-id / thirdparty).
+default _sbom_data_quality := false
+_sbom_data_quality if {
+	input.sbom.data_quality.purl_invalid == 0
+	input.sbom.data_quality.license_invalid == 0
+}
+
+default _data_quality_msg := "SBOM data-quality evidence absent (no sbom.data_quality section)"
+
+_data_quality_msg := sprintf("SBOM data-quality: %d malformed purl(s) %v; %d invalid license(s) on %v", [
+	object.get(input, ["sbom", "data_quality", "purl_invalid"], 0),
+	object.get(input, ["sbom", "data_quality", "bad_purls"], []),
+	object.get(input, ["sbom", "data_quality", "license_invalid"], 0),
+	object.get(input, ["sbom", "data_quality", "bad_licenses"], []),
+]) if input.sbom.data_quality
+
+default _dependency_msg := "SBOM dependency evidence absent (no sbom.dependencies section) — cannot confirm the dependency graph"
+
+_dependency_msg := "SBOM declares no dependency relationships (dependencies[] empty) — the CISA/NTIA required Dependency Relationship element is unmet" if {
+	input.sbom.dependencies
+	not input.sbom.dependencies.present
+}
+
+_dependency_msg := sprintf("SBOM dependency graph has %d dangling dependsOn ref(s) pointing at non-existent components: %v", [object.get(input, ["sbom", "dependencies", "dangling_count"], 0), object.get(input, ["sbom", "dependencies", "dangling"], [])]) if {
+	input.sbom.dependencies.present
+	input.sbom.dependencies.dangling_count > 0
+}
+
 default _sbom_baseline_msg := "SBOM baseline metadata evidence absent (no sbom.baseline section) — cannot confirm author/timestamp/supplier"
 
 _sbom_baseline_msg := sprintf(
@@ -549,6 +591,18 @@ _core_reports := [
 		"SBOM carries the CISA/NTIA baseline required elements: author (metadata.authors), timestamp (metadata.timestamp), and supplier (metadata.supplier)",
 		_sbom_baseline_msg,
 	),
+	# CISA 2026 / NTIA required Dependency Relationship: a present, referentially-sound dependency graph.
+	_report(
+		"dependency-relationships", _dependency_relationships,
+		"SBOM declares a dependency graph (CycloneDX dependencies[]) and it is referentially sound — every dependsOn points at a real component (presence + integrity, not completeness)",
+		_dependency_msg,
+	),
+	# NTIA SBOM data quality: declared purls/licenses are well-formed (correctness, not just presence).
+	_report(
+		"sbom-data-quality", _sbom_data_quality,
+		"SBOM data quality: every declared purl parses and every declared license is well-formed (SPDX-id-shaped / expression / name) — correctness of present identifiers, not full SPDX-list membership",
+		_data_quality_msg,
+	),
 	# CISA KEV (BOD 22-01): no shipped component carries a Known-Exploited CVE (unless an explicit
 	# exec-risk VEX waiver applies). HONESTY: KEV membership is by the DECLARED component version,
 	# not proven runtime exploitability; data.cisa_kev is a small illustrative seed.
@@ -659,6 +713,8 @@ _remediation := {
 	"sbom-generation-tool": "Regenerate the SBOM with a generator that records metadata.tools[] carrying a name AND version (e.g. the edk2 '-Y SBOM' BuildReport generator); a tool-less SBOM does not meet the CISA generation-tool element.",
 	"sbom-generation-context": "Regenerate the SBOM so metadata.lifecycles[] declares the generation phase (build-time is the gold standard); a context-less SBOM does not meet the CISA generation-context element.",
 	"sbom-baseline-metadata": "Populate the CISA/NTIA baseline required metadata: metadata.authors[].name (SBOM Author), metadata.timestamp (ISO-8601 UTC), and metadata.supplier.name (Software Producer); these are required elements, not optional.",
+	"dependency-relationships": "Emit a CycloneDX dependencies[] graph (module -> library dependsOn) with every dependsOn ref resolving to a declared component; a missing graph or a dangling ref fails the CISA/NTIA Dependency Relationship element.",
+	"sbom-data-quality": "Fix the malformed identifier(s): every purl must parse (pkg:type/name@version) and every license must be a valid SPDX-id-shaped id, an expression, or a name — a garbage/empty license or malformed purl fails NTIA data quality.",
 	"no-kev-component": "Upgrade or remove the named component so it no longer carries the CISA KEV (Known-Exploited) CVE; a plain not_affected does NOT waive a KEV — only an explicit, reviewed exec-risk justification in data.kev_waivers may, and only after human review.",
 	"uefi-secure-boot-posture": "Provision + enforce UEFI Secure Boot (PK/KEK/db/dbx, SecureBoot=1, SetupMode=0) so CHIPSEC secureboot.variables PASSES; do not admit an image whose target does not enforce Secure Boot.",
 	"platform-protection-posture": "Fix the platform-protection gap so CHIPSEC bios_wp (flash write-protection, 800-147) and smm (SMM isolation, 800-193 §4.2.3) both PASS; a FAILED pillar is a real protection gap (bios_ts/smrr N/A on QEMU is expected).",
@@ -807,6 +863,10 @@ deny contains "SBOM declares no generation tool (metadata.tools[] missing, or la
 deny contains "SBOM declares no generation context (metadata.lifecycles[].phase missing)" if not _sbom_gen_context
 
 deny contains _sbom_baseline_msg if not _sbom_baseline_metadata
+
+deny contains _dependency_msg if not _dependency_relationships
+
+deny contains _data_quality_msg if not _sbom_data_quality
 
 # CISA KEV (BOD 22-01): a shipped component carries a Known-Exploited CVE with no exec-risk waiver.
 deny contains msg if {

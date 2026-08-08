@@ -8,7 +8,7 @@
 [![pr-checks](https://github.com/houdini91/firmware-sbom-supplychain/actions/workflows/pr-checks.yml/badge.svg)](https://github.com/houdini91/firmware-sbom-supplychain/actions/workflows/pr-checks.yml)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/houdini91/firmware-sbom-supplychain/badge)](https://scorecard.dev/viewer/?uri=github.com/houdini91/firmware-sbom-supplychain)
 ![SLSA VSA](https://img.shields.io/badge/SLSA-VSA%20signed-0d9488)
-![frameworks](https://img.shields.io/badge/8%20frameworks-41%20controls-475569)
+![frameworks](https://img.shields.io/badge/8%20frameworks-43%20controls-475569)
 ![license](https://img.shields.io/badge/license-MIT-475569)
 
 **[Primer](PRIMER.md)** · **[Design](DESIGN.md)** · **[Frameworks](FRAMEWORKS.md)** · **[Live demo output](docs/DEMO.md)** · **[Quickstart](#quickstart)**
@@ -93,7 +93,7 @@ The three that matter most, each verified against the code in this repo:
   bytes**, not a JSON file. A consumer re-hashes their own image and re-checks the verdict against `D` — the
   evidence is provably about *those* bytes.
 - **Framework-aware, drift-proof output.** Every verdict line carries its framework + control number +
-  description + citation + `satisfied_by` / `missing_evidence` — **41 controls across 8 frameworks**. The control
+  description + citation + `satisfied_by` / `missing_evidence` — **43 controls across 8 frameworks**. The control
   tags are *derived from one manifest*, so the Rego reports and the framework map can never disagree, and
   reusable checks share a **canonical crosswalk id** across frameworks.
 
@@ -127,19 +127,19 @@ the verdict travels with the bytes and anyone downstream can re-verify it.
     "verifiedLevels": ["SLSA_BUILD_LEVEL_0"],   // ← the firmware SUBJECT's own build level is not verified
     "evidenceBuildLevel": "SLSA_BUILD_LEVEL_2", // ← the SBOM/attestation artifact's provenance IS L2 (scoped, not on the firmware)
     "verifierReports":     [ /* 24 per-rule observations (always-emitted), each framework-tagged */ ],   // extension
-    "controlAssessments":  [ /* 41 per-control findings across 8 frameworks, each cited */ ] // extension
+    "controlAssessments":  [ /* 43 per-control findings across 8 frameworks, each cited */ ] // extension
   }
 }
 ```
 
 ## Framework &amp; control coverage
 
-26 always-emitted verifier reports resolve to **41 controls across 8 frameworks**.
+28 always-emitted verifier reports resolve to **43 controls across 8 frameworks**.
 
 <div align="center">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/img/framework-coverage-dark.svg">
-  <img alt="One gate mapping to 41 controls across 8 frameworks" src="docs/img/framework-coverage.svg" width="940">
+  <img alt="One gate mapping to 43 controls across 8 frameworks" src="docs/img/framework-coverage.svg" width="940">
 </picture>
 </div>
 
@@ -150,7 +150,7 @@ the verdict travels with the bytes and anyone downstream can re-verify it.
 | **NIST SP 800-53** Rev 5 | 10 | `SI-7`, `SI-7(1)`, `SI-7(15)`, `SI-16`, `CM-8`, `CM-8(3)`, `SR-4(3)`, `RA-5` | `reconcile-membership`, `component-byte-integrity`, `signer-identity-pinned`, `no-kev-component` |
 | **NIST SP 800-193** (Protection) | 3 | `§4.2` protection, `§4.2.3` SMM, `§4.3.1` detection *(advisory)* | `chipsec-posture`, `platform-protection-posture` |
 | **OpenSSF S2C2F** v2 | 4 | `SCA-1`, `SCA-2`, `REB-3`, `AUD-3` | `cve-triage`, `thirdparty-identifiers`, `build-tools-signed` |
-| **EU CRA / BSI TR-03183-2 / CISA 2026 Minimum Elements** | 10 | Annex I II(1), **author**, **timestamp**, **supplier**, component-hash, firmware-binding, license/PURL, gen-tool, gen-context, KEV | `sbom-present`, `sbom-baseline-metadata`, `component-integrity`, `no-kev-component` |
+| **EU CRA / BSI TR-03183-2 / CISA 2026 Minimum Elements** | 12 | Annex I II(1), **author**, **timestamp**, **supplier**, component-hash, firmware-binding, license/PURL, gen-tool, gen-context, **dependencies**, **data-quality**, KEV | `sbom-present`, `sbom-baseline-metadata`, `dependency-relationships`, `sbom-data-quality`, `no-kev-component` |
 | **NIST SP 800-147 / 147B** + UEFI Secure Boot | 2 | `800-147` flash write-protect, `800-147B` Secure Boot | `platform-protection-posture`, `uefi-secure-boot-posture` |
 | **OSF Firmware Embedded SBOM** (structural) | 2 | `osf-guid-identity`, `osf-source-hash` *(advisory)* | `osf-identity-shape`, `osf-source-provenance` |
 
@@ -179,7 +179,7 @@ make demo      # the full OSS lane end to end (needs cosign + grype)
 the byte-integrity un-rebase test). The **coSWID round-trip and the PEI/XIP BUG-1 regression need
 python-uswid** and only *run* under `make test-full` — under plain `make test` they are honestly skipped, not
 silently passed. The gate itself is
-[`oss-lane/policy/firmware.rego`](oss-lane/policy/firmware.rego) — **26 verifier reports** (plus a conditional 25th, `firmware-freshly-measured`) ANDed into a signed
+[`oss-lane/policy/firmware.rego`](oss-lane/policy/firmware.rego) — **28 verifier reports** (plus a conditional 25th, `firmware-freshly-measured`) ANDed into a signed
 SLSA VSA, each with an isolating negative fixture under [`oss-lane/fixtures/`](oss-lane/fixtures).
 
 A clean release ALLOWs; a same-GUID swap DENYs — the byte check catches what membership misses. **Real captured

@@ -13,7 +13,7 @@ evidence, not a second enforcement point.
 
 ## The gate reports (what the release is blocked on)
 
-The release is hard-blocked on **26 verifier reports**. To keep one source of truth, they are **not
+The release is hard-blocked on **28 verifier reports**. To keep one source of truth, they are **not
 re-tabulated here** — the authoritative list lives in two places that cannot drift from the gate:
 
 - **Mechanism (canonical):** [`policy/firmware.rego`](./policy/firmware.rego) — the `verifier_reports` array

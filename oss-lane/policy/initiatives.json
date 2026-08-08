@@ -335,6 +335,26 @@
           ]
         },
         {
+          "id": "cisa-dependencies",
+          "name": "CISA 2026: Dependency Relationship (required)",
+          "description": "The SBOM declares a dependency graph (CycloneDX dependencies[] \u2014 module\u2192library dependsOn edges) and it is referentially sound (no dangling ref). A REQUIRED CISA 2026 / NTIA element. HONESTY: this gates the graph's presence + integrity, not dependency COMPLETENESS \u2014 a completeness declaration needs a compositions[].aggregate flag from the generator (tracked).",
+          "citation": "CISA 2026 Minimum Elements for an SBOM \u2014 Dependency Relationship (Required) / NTIA 2021 baseline",
+          "canonical": "sbom-dependency-relationships",
+          "satisfied_by": [
+            "dependency-relationships"
+          ]
+        },
+        {
+          "id": "cisa-data-quality",
+          "name": "NTIA SBOM data quality (identifier validity)",
+          "description": "The identifiers the SBOM declares are VALID, not merely present: every purl parses as a package URL and every license is well-formed (SPDX-id-shaped id / expression / name). NTIA SBOM data-quality practice. HONESTY: a syntactic/shape check on present identifiers \u2014 not full SPDX-license-list membership (a documented refinement), and presence itself is gated by cisa-license-id / thirdparty-identifiers.",
+          "citation": "NTIA \u2014 SBOM data quality / CISA 2026 Software Identifiers (usable identifier)",
+          "canonical": "sbom-data-quality",
+          "satisfied_by": [
+            "sbom-data-quality"
+          ]
+        },
+        {
           "id": "cisa-hash",
           "name": "CISA 2026: component hash",
           "description": "Each SBOM component carries a cryptographic hash of the component.",

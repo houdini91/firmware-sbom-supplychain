@@ -4,10 +4,9 @@
     "hash": "sha256:3b1f0a9c8e2d4b6a7c5e9f01234567890abcdef1122334455667788990011aabb",
     "integrity": {
       "hashable_total": 123,
-      "hashed": 121,
+      "hashed": 122,
       "unhashed": [
-        "ResetVector",
-        "SomeDxe"
+        "ResetVector"
       ],
       "dxe_class_total": 122
     },
@@ -33,8 +32,10 @@
     "dependencies": {
       "present": true,
       "edges": 123,
-      "dangling_count": 0,
-      "dangling": [],
+      "dangling_count": 1,
+      "dangling": [
+        "DEAD-REF"
+      ],
       "has_composition": false
     },
     "data_quality": {
@@ -94,12 +95,13 @@
   "firmware": {
     "sbom_digest": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37",
     "reconcile_digest": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37",
-    "deployed_digest": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37"
+    "deployed_digest": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37",
+    "freshly_measured": false
   },
   "byte_integrity": {
     "ran": true,
-    "checked": 121,
-    "verified": 121,
+    "checked": 122,
+    "verified": 122,
     "modified_count": 0,
     "skipped_count": 0,
     "unverifiable": []

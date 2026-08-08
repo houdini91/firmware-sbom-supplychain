@@ -206,6 +206,78 @@ def osf_conformance(sbom):
             "source_hash_present": sum(1 for c in mods if _source_hash_present(c))}
 
 
+_PURL_RE = re.compile(r"^pkg:[a-zA-Z][a-zA-Z0-9.+-]*/[^@?#]+")
+# SPDX short-form license id shape (letters/digits/.+-); NOT a full SPDX-list membership check —
+# that would need the ~600-entry SPDX license list. A shape check catches "NOT-A-LICENSE"/garbage
+# and empty ids; full-list membership is a documented refinement.
+_SPDX_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9.+-]*$")
+
+
+def data_quality(sbom):
+    """NTIA 'SBOM data quality' — the identifiers that ARE present must be VALID, not merely
+    non-empty. thirdparty()/cisa-license-id check presence; this checks correctness:
+      - purl_invalid:    declared component.purl strings that don't parse as a package URL
+      - license_invalid: declared component.licenses[] entries that are neither a well-formed
+        SPDX-id-shaped `license.id`/`expression` nor a non-empty `name` (so 'NOT-A-LICENSE',
+        'garbage', or an empty license object is flagged).
+    A component with no purl/license is not counted here (presence is a separate control)."""
+    comps = sbom.get("components", [])
+    purl_checked = purl_invalid = 0
+    bad_purls, bad_lics = [], []
+    lic_checked = lic_invalid = 0
+    for c in comps:
+        purl = c.get("purl")
+        if purl:
+            purl_checked += 1
+            if not _PURL_RE.match(str(purl)):
+                purl_invalid += 1
+                if len(bad_purls) < 10:
+                    bad_purls.append("%s: %s" % (c.get("name"), purl))
+        for lic in (c.get("licenses") or []):
+            if not isinstance(lic, dict):
+                continue
+            lic_checked += 1
+            lid = (lic.get("license") or lic).get("id") if isinstance(lic.get("license"), dict) else lic.get("id")
+            expr = lic.get("expression")
+            name = (lic.get("license") or {}).get("name") if isinstance(lic.get("license"), dict) else lic.get("name")
+            ok = (lid and _SPDX_ID_RE.match(str(lid))) or (expr and str(expr).strip()) or (name and str(name).strip())
+            if not ok:
+                lic_invalid += 1
+                if len(bad_lics) < 10:
+                    bad_lics.append(c.get("name"))
+    return {"purl_checked": purl_checked, "purl_invalid": purl_invalid, "bad_purls": bad_purls,
+            "license_checked": lic_checked, "license_invalid": lic_invalid, "bad_licenses": bad_lics}
+
+
+def dependency_facts(sbom):
+    """CISA 2026 / NTIA REQUIRED 'Dependency Relationship' element. The -Y SBOM generator emits a
+    CycloneDX dependencies[] graph (module -> library dependsOn edges), but the gate never read it.
+    Surface structural facts so a gated report can assert the graph is present, non-trivial, and
+    well-formed (no dangling dependsOn ref pointing at a non-existent component). This is presence +
+    referential integrity of the declared graph — NOT a claim of dependency COMPLETENESS (that needs
+    a compositions[].aggregate declaration from the generator; tracked separately)."""
+    deps = sbom.get("dependencies") or []
+    refs = {c.get("bom-ref") for c in sbom.get("components", []) if c.get("bom-ref")}
+    md_ref = ((sbom.get("metadata", {}) or {}).get("component", {}) or {}).get("bom-ref")
+    if md_ref:
+        refs.add(md_ref)
+    edges = 0
+    dangling = set()
+    for d in deps:
+        if not isinstance(d, dict):
+            continue
+        if d.get("ref") and d["ref"] not in refs:
+            dangling.add(d["ref"])
+        for t in (d.get("dependsOn") or []):
+            edges += 1
+            if t not in refs:
+                dangling.add(t)
+    has_composition = bool(sbom.get("compositions"))
+    return {"present": len(deps) > 0, "edges": edges,
+            "dangling_count": len(dangling), "dangling": sorted(dangling)[:10],
+            "has_composition": has_composition}
+
+
 def baseline_metadata(sbom):
     """CISA 2026 / NTIA baseline REQUIRED elements that live in metadata but were never gated:
       - author_present:    metadata.authors[] carries a name (the SBOM Author element)
@@ -460,7 +532,8 @@ def main():
         "sbom": {"present": len(sbom.get("components", [])) > 0, "hash": "sha256:" + sbom_hash,
                  "integrity": integrity(sbom), "thirdparty": thirdparty(sbom),
                  "generation": generation(sbom), "osf": osf_conformance(sbom),
-                 "baseline": baseline_metadata(sbom)},
+                 "baseline": baseline_metadata(sbom), "dependencies": dependency_facts(sbom),
+                 "data_quality": data_quality(sbom)},
         "attestation": {"file_subject": ("" if att_file == "" else "sha256:" + att_file),
                         "firmware_subject": ("" if att_firmware == "" else "sha256:" + att_firmware)},
         "signature": {"verified": sig == "true", "identity": effective_builder},

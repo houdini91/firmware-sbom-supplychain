@@ -10,7 +10,7 @@ result and is recorded here deliberately, not hidden.
 
 ## How to read this
 
-- **Gated** means the report is one of the 26 always-emitted `verifier_reports` that are
+- **Gated** means the report is one of the 28 always-emitted `verifier_reports` that are
   ANDed into `allow` (`allow if { every r in verifier_reports { r.isSuccess } }`,
   `firmware.rego:601`). If any gated report is `isSuccess:false`, the gate DENYs.
 - **Three-state per control** (`verify-initiative.py`): a control is **PASS** only when
@@ -36,12 +36,12 @@ result and is recorded here deliberately, not hidden.
 | NIST SP 800-53 Rev 5 | 10 | 10 | 10/10 ✅ | Only an SR/SI/CM/RA firmware slice of a 1000+ control catalog |
 | NIST SP 800-193 | 3 | 2 gated + 1 advisory | 2/3 (§4.3.1 ❔ advisory) | **Recovery (§4.4) not covered**; Detection needs a real flash-time measurement |
 | OpenSSF S2C2F v2 | 4 | 4 | 4/4 ✅ | Ingestion/mirroring/enforcement practice areas (ING/ENF/UPD) not covered |
-| EU CRA / BSI TR-03183-2 / CISA 2026 | 10 | 10 | 10/10 ✅ | Only SBOM-artifact obligations; CRA vuln-handling/disclosure/update duties out of scope |
+| EU CRA / BSI TR-03183-2 / CISA 2026 | 12 | 12 | 12/12 ✅ | Only SBOM-artifact obligations; CRA vuln-handling/disclosure/update duties out of scope |
 | NIST SP 800-147 / 147B + UEFI Secure Boot | 2 | 2 | 2/2 ✅ (sample) | **Authenticated BIOS-update mechanism not assessed**; sample CHIPSEC, not silicon |
 | OSF Firmware Embedded SBOM (structural) | 2 | 2 | 2/2 ✅ | Manifest-level proxy, not a parse of the shipped-PE coSWID (deeper check roadmapped) |
-| **Total** | **41** | **40 gated + 1 advisory** | **40/41** | §4.3.1 Detection is the one advisory-MISSING, honest on clean |
+| **Total** | **43** | **42 gated + 1 advisory** | **42/43** | §4.3.1 Detection is the one advisory-MISSING, honest on clean |
 
-40/41 satisfied on a clean release. The one non-green control (§4.3.1 Detection) is
+42/43 satisfied on a clean release. The one non-green control (§4.3.1 Detection) is
 **advisory** — it reports MISSING_EVIDENCE until a genuine flash-time measurement is supplied,
 and it is not counted against `allow`. (OSF source-hash was advisory-MISSING until the `-Y SBOM`
 generator began emitting a real per-module `edk2:sourceHash`; it is now MET — see §8.) A control
@@ -151,6 +151,8 @@ controls upstream of the artifact this gate inspects.
 | cisa-author | `sbom-baseline-metadata` | CISA 2026 **required**: SBOM Author (`metadata.authors[].name`) | ✅ |
 | cisa-timestamp | `sbom-baseline-metadata` | CISA 2026 **required**: Timestamp (`metadata.timestamp`, ISO-8601) | ✅ |
 | cisa-supplier | `sbom-baseline-metadata` | CISA 2026 **required**: Software Producer / Supplier (`metadata.supplier.name`) | ✅ |
+| cisa-dependencies | `dependency-relationships` | CISA 2026 **required**: Dependency Relationship — `dependencies[]` present + referentially sound (integrity, not completeness) | ✅ |
+| cisa-data-quality | `sbom-data-quality` | NTIA data quality: declared purls parse + licenses well-formed (validity, not just presence; not full SPDX-list membership) | ✅ |
 | cisa-hash | `component-integrity` | CISA 2026 minimum field: component hash | ✅ |
 | cisa-fw-binding | `firmware-digest-anchor` | SBOM bound to the firmware image digest — **our extension**, beyond the CISA/NTIA minimum | ✅ |
 | cisa-license-id | `thirdparty-identifiers` | CISA 2026 minimum fields: license + software identifiers | ✅ |

@@ -28,6 +28,21 @@
       "author_present": true,
       "timestamp_present": true,
       "supplier_present": true
+    },
+    "dependencies": {
+      "present": true,
+      "edges": 123,
+      "dangling_count": 0,
+      "dangling": [],
+      "has_composition": false
+    },
+    "data_quality": {
+      "purl_checked": 1,
+      "purl_invalid": 0,
+      "bad_purls": [],
+      "license_checked": 1,
+      "license_invalid": 0,
+      "bad_licenses": []
     }
   },
   "attestation": {
