@@ -326,18 +326,31 @@ _dependency_relationships if {
 # correctness check on present identifiers; presence is gated separately (cisa-license-id / thirdparty).
 default _sbom_data_quality := false
 _sbom_data_quality if {
+	# NON-VACUITY: an SBOM with ZERO identifiers has 0 invalid ones — "all valid" would be
+	# vacuously true. Require at least one identifier to assess (CISA requires usable software
+	# identifiers), so a bare SBOM with no purls/licenses (e.g. a Dell CDX) fails rather than
+	# passing green. Presence per component is a separate control (cisa-license-id/thirdparty).
+	input.sbom.data_quality.purl_checked + input.sbom.data_quality.license_checked > 0
 	input.sbom.data_quality.purl_invalid == 0
 	input.sbom.data_quality.license_invalid == 0
 }
 
 default _data_quality_msg := "SBOM data-quality evidence absent (no sbom.data_quality section)"
 
+_data_quality_msg := "SBOM declares NO software identifiers (0 purls + 0 licenses across all components) — no usable identifier to assess; CISA requires usable software identifiers" if {
+	input.sbom.data_quality
+	input.sbom.data_quality.purl_checked + input.sbom.data_quality.license_checked == 0
+}
+
 _data_quality_msg := sprintf("SBOM data-quality: %d malformed purl(s) %v; %d invalid license(s) on %v", [
 	object.get(input, ["sbom", "data_quality", "purl_invalid"], 0),
 	object.get(input, ["sbom", "data_quality", "bad_purls"], []),
 	object.get(input, ["sbom", "data_quality", "license_invalid"], 0),
 	object.get(input, ["sbom", "data_quality", "bad_licenses"], []),
-]) if input.sbom.data_quality
+]) if {
+	input.sbom.data_quality
+	input.sbom.data_quality.purl_checked + input.sbom.data_quality.license_checked > 0
+}
 
 default _dependency_msg := "SBOM dependency evidence absent (no sbom.dependencies section) — cannot confirm the dependency graph"
 

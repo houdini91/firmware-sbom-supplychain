@@ -1,0 +1,115 @@
+{
+  "sbom": {
+    "present": true,
+    "hash": "sha256:3b1f0a9c8e2d4b6a7c5e9f01234567890abcdef1122334455667788990011aabb",
+    "integrity": {
+      "hashable_total": 123,
+      "hashed": 122,
+      "unhashed": [
+        "ResetVector"
+      ],
+      "dxe_class_total": 122
+    },
+    "thirdparty": {
+      "total": 1,
+      "missing": []
+    },
+    "generation": {
+      "tool_present": true,
+      "context_present": true
+    },
+    "osf": {
+      "evaluated": true,
+      "modules_total": 123,
+      "guid_tag_id": 123,
+      "source_hash_present": 123
+    },
+    "baseline": {
+      "author_present": true,
+      "timestamp_present": true,
+      "supplier_present": true
+    },
+    "dependencies": {
+      "present": true,
+      "edges": 123,
+      "dangling_count": 0,
+      "dangling": [],
+      "has_composition": false
+    },
+    "data_quality": {
+      "purl_checked": 0,
+      "purl_invalid": 0,
+      "bad_purls": [],
+      "license_checked": 0,
+      "license_invalid": 0,
+      "bad_licenses": []
+    }
+  },
+  "attestation": {
+    "file_subject": "sha256:3b1f0a9c8e2d4b6a7c5e9f01234567890abcdef1122334455667788990011aabb",
+    "firmware_subject": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37"
+  },
+  "signature": {
+    "verified": true,
+    "identity": "https://github.com/houdini91/firmware-sbom-supplychain/.github/workflows/supply-chain.yml@refs/heads/main"
+  },
+  "provenance": {
+    "builder_id": "https://github.com/houdini91/firmware-sbom-supplychain/.github/workflows/supply-chain.yml@refs/heads/main",
+    "source_repo": "https://github.com/houdini91/firmware-sbom-supplychain",
+    "slsa_verified": true,
+    "slsa_level": 2,
+    "file_subject": "sha256:3b1f0a9c8e2d4b6a7c5e9f01234567890abcdef1122334455667788990011aabb",
+    "firmware_subject": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37",
+    "source_commit": "git:eb53e5a75ebb3f153f64646e04bc69ffd499d463"
+  },
+  "reconcile": {
+    "clean": true,
+    "missing": [],
+    "added": [],
+    "modified": [],
+    "declared": 123,
+    "matched": 123,
+    "missing_count": 0,
+    "undeclared_observed": 0
+  },
+  "cve": {
+    "findings": [],
+    "scanned": true
+  },
+  "chipsec": {
+    "critical_passed": true,
+    "secure_boot": "PASSED",
+    "smm": "PASSED",
+    "bios_wp": "PASSED",
+    "bios_ts": "NOTAPPLICABLE",
+    "smrr": "NOTAPPLICABLE"
+  },
+  "build_tools": {
+    "present": true,
+    "signature_verified": true,
+    "all_pinned": true,
+    "unpinned": []
+  },
+  "firmware": {
+    "sbom_digest": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37",
+    "reconcile_digest": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37",
+    "deployed_digest": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37",
+    "freshly_measured": false
+  },
+  "byte_integrity": {
+    "ran": true,
+    "checked": 122,
+    "verified": 122,
+    "modified_count": 0,
+    "skipped_count": 0,
+    "unverifiable": []
+  },
+  "binary_hardening": {
+    "ran": true,
+    "dxe_class_checked": 122,
+    "dxe_nx_compat": 122,
+    "missing_nx_count": 0,
+    "errored_count": 0,
+    "unverifiable": []
+  }
+}
