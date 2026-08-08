@@ -561,7 +561,7 @@ _detection_reports := [] if not _fw_freshly_measured
 # hash DENYed at the gate while the advisory-aware consumers ACCEPTed — a three-way divergence.)
 _osf_source_reports := [_report(
 	"osf-source-provenance", true,
-	"OSF source-file hash (M-srchash) verified: every module carries a source-file hash in coSWID colloquial-version",
+	"OSF source-file hash (M-srchash) verified: every module carries a source-file hash (CycloneDX edk2:sourceHash property) — manifest-level, not a parse of the coSWID in the shipped PE; the coSWID colloquial-version carrier is written downstream by uswid",
 	_osf_source_msg,
 )] if _osf_source_hash_ok
 

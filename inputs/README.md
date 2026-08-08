@@ -53,3 +53,17 @@ is NOT swapped in here: the checked-in snapshot's per-module hashes must stay co
 26 hand-crafted gate fixtures. To adopt a fresh capture end-to-end, regenerate the *whole*
 evidence set (SBOM + reconcile + byte-integrity + `D`) from one build — see
 `scripts/regen-reference-sbom.sh` for the SBOM step.
+
+## Source hashes — real values, added 2026-08-08
+
+Every module now carries a real **`edk2:sourceHash`** (123/123 non-library modules; 310/311
+components) and the document root carries **`edk2:sourceRevision = git:eb53e5a…`**
+(edk2-stable202605-473). Unlike the *code-post-dating* hardening annotations above, these are
+**real hash values**: they were produced by the enhanced `-Y SBOM` generator on a genuine
+OvmfPkgX64 build and are a deterministic SHA-256 over each module's INF `[Sources]` file set —
+a function of the **source**, independent of the compiler. They are valid for this checked-in
+snapshot because every module GUID here matches that build 123/123 and the source revision is
+the same; the `AcpiTableDxe` value was re-derived independently and matched to the byte. They
+satisfy the OSF **M-srchash** MUST (gate control `osf-source-hash`, now GREEN) without touching
+the shipped-byte hashes or `D`. The generator change lives in the fork's `BuildReport.py`
+(per-module `edk2:sourceHash` + document `edk2:sourceRevision`).

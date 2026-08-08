@@ -6,9 +6,12 @@ built OVMF image. Section 5 (the same-GUID trojan) is self-contained — it runs
 
 ---
 
-## 1. The gate ALLOWs a clean release — 25 signed checks, each tagged with the control it earns
+## 1. The gate ALLOWs a clean release — 26 signed checks, each tagged with the control it earns
 
-A fixture carrying complete, valid evidence: the gate ANDs all 25 verifier reports and signs the VSA.
+A fixture carrying complete, valid evidence: the gate ANDs the **25 always-emitted** verifier reports
+and signs the VSA. On this reference release a 26th fires — `osf-source-provenance` — the conditional
+advisory report that appears only when every module carries a source hash (as the `-Y SBOM` generator
+now emits); it is non-gating, so a build without source hashes simply omits it.
 
 ```
   verifier reports (clean.json):
@@ -37,6 +40,7 @@ A fixture carrying complete, valid evidence: the gate ANDs all 25 verifier repor
    ✅ uefi-secure-boot-posture: UEFI Secure Boot provisioned + enforcing (CHIPSEC secureboot.variables PASSED) — SAMPLE/ILLUSTRATIVE chipsec.json on OVMF/QEMU, config-level posture not a live hardware-rooted run  [nist-800-147:800-147B-secure-boot]
    ✅ platform-protection-posture: platform protections verified (CHIPSEC bios_wp flash write-protection + smm SMM isolation PASSED; bios_ts/smrr N/A on QEMU) — SAMPLE/ILLUSTRATIVE chipsec.json, config-level posture not physical silicon  [nist-800-147:800-147-flash-wp, sp-800-193:4.2.3]
    ✅ osf-identity-shape: OSF embedded-SBOM identity shape verified: every firmware module carries a GUID-form tag-id (== FILE_GUID) — manifest-level structural conformance, not a parse of the coSWID extracted from the shipped PE  [osf-embedded-sbom:osf-guid-identity]
+   ✅ osf-source-provenance: OSF source-file hash (M-srchash) verified: every module carries a source-file hash (CycloneDX edk2:sourceHash property) — manifest-level, not a parse of the coSWID in the shipped PE; the coSWID colloquial-version carrier is written downstream by uswid  [osf-embedded-sbom:osf-source-hash]
 ✅ ALLOW — clean.json  (VSA: PASSED, verifiedLevels=[SLSA_BUILD_LEVEL_0] for the firmware subject; evidenceBuildLevel=SLSA_BUILD_LEVEL_2 — the SBOM artifact's build provenance)
 ```
 
@@ -97,7 +101,7 @@ Evidence (VSA) : vsa.json   verificationResult=PASSED
   ✅ OpenSSF S2C2F v2                           4/4  [required]
   ✅ EU CRA / BSI TR-03183-2 / CISA 2026 Minimum Elements (SBOM obligations) 7/7  [required]
   ✅ NIST SP 800-147 / 147B + UEFI Secure Boot — BIOS protection & authenticated boot 2/2  [required]
-  ✅ OSF Firmware Embedded SBOM Specification (structural conformance) 1/2  [required]  · 1 advisory pending
+  ✅ OSF Firmware Embedded SBOM Specification (structural conformance) 2/2  [required]
 ──────────────────────────────────────────────────────────────────
 VERDICT: ✅ ACCEPT — firmware bound + all required frameworks pass.
 ```

@@ -25,8 +25,11 @@ embedded-SBOM plan, not compete with it.")
 > asserts the OSF **GUID-identity MUST** — every firmware module carries a GUID-form tag-id
 > (== FILE_GUID) — evaluated against the CycloneDX manifest the gate holds (each module's
 > `bom-ref` carries the FILE_GUID). A conditional+advisory `osf-source-provenance` report
-> represents the **M-srchash MUST** and is honestly MISSING until real source hashes are
-> supplied. Both map to the `osf-embedded-sbom` framework (`frameworks.yaml`).
+> represents the **M-srchash MUST**; the `-Y SBOM` generator now emits a real per-module
+> `edk2:sourceHash` (123/123 on OvmfPkgX64), so on the reference this report **fires GREEN**
+> and the `osf-source-hash` control is MET (it stays non-gating: a build without source
+> hashes leaves it absent, never a DENY). Both map to the `osf-embedded-sbom` framework
+> (`frameworks.yaml`).
 >
 > **What the gate still does NOT check (deeper roadmap):** the `osf-identity-shape` check is a
 > **manifest-level structural proxy** — it reasons about the CycloneDX manifest, **not** the
@@ -50,14 +53,19 @@ embedded-SBOM plan, not compete with it.")
   (regid `oatssolutions.tech`), role **`tag-creator` only**. (`metadata.rst:49-52`,
   RFC 9393 §2.5 tag-creator MUST)
 - **Name + version** — `software-name` and `software-version` (fallback `"0"`).
+- **M-srchash (MUST) — now MET.** The `-Y SBOM` generator emits a real per-module
+  **`edk2:sourceHash`** — a SHA-256 over the module's INF `[Sources]` file set (each source
+  file hashed, keyed by workspace-relative path, sorted, then hashed; deterministic and
+  reproducible) — for every built module (**123/123** on OvmfPkgX64, verified by independent
+  recompute). The CycloneDX carrier is the `edk2:sourceHash` property; the coSWID carrier is
+  `colloquial-version`. The build's **source revision** (git commit) is additionally recorded
+  as `edk2:sourceRevision` on the document root and surfaced into the gate's provenance as
+  `source_commit`. Nothing is fabricated — a module with no readable source honestly carries
+  none (0 such modules on OvmfPkgX64). The gate's `osf-source-hash` control is now GREEN.
+  (`metadata.rst:56,62`)
 
 ## NOT-YET (unmet MUSTs — do not claim these)
 
-- **M-srchash (MUST):** a real source-file SHA-256 over the module's `.c`/`.h` set.
-  We **do not fabricate** one: a source hash is emitted **only** when a real value is
-  supplied via `--source-hashes` (it then rides in `colloquial-version`, where the
-  ecosystem carries a source/tree hash). With no input, **none is emitted**. The edk2
-  source tree is not vendored here, so by default this MUST is unmet. (`metadata.rst:56,62`)
 - **M-lic (MUST):** OSS license links (SPDX URL + `license` rel) for OSS modules.
   The emitter adds no `link` entries. (`metadata.rst:115-117`)
 - **M-swid (MUST):** `swid:`-prefixed generated GUIDs for **non-UEFI** parts

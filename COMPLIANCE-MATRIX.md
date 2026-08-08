@@ -38,13 +38,14 @@ result and is recorded here deliberately, not hidden.
 | OpenSSF S2C2F v2 | 4 | 4 | 4/4 ✅ | Ingestion/mirroring/enforcement practice areas (ING/ENF/UPD) not covered |
 | EU CRA / BSI TR-03183-2 / CISA 2026 | 7 | 7 | 7/7 ✅ | Only SBOM-artifact obligations; CRA vuln-handling/disclosure/update duties out of scope |
 | NIST SP 800-147 / 147B + UEFI Secure Boot | 2 | 2 | 2/2 ✅ (sample) | **Authenticated BIOS-update mechanism not assessed**; sample CHIPSEC, not silicon |
-| OSF Firmware Embedded SBOM (structural) | 2 | 1 gated + 1 advisory | 1/2 (source-hash ❔ advisory) | Manifest-level proxy, not a parse of the shipped-PE coSWID; **M-srchash MUST unmet** |
-| **Total** | **38** | **36 gated + 2 advisory** | **36/38** | §4.3.1 + OSF source-hash are the two advisory-MISSING, honest on clean |
+| OSF Firmware Embedded SBOM (structural) | 2 | 2 | 2/2 ✅ | Manifest-level proxy, not a parse of the shipped-PE coSWID (deeper check roadmapped) |
+| **Total** | **38** | **37 gated + 1 advisory** | **37/38** | §4.3.1 Detection is the one advisory-MISSING, honest on clean |
 
-36/38 satisfied on a clean release. The two non-green controls (§4.3.1 Detection, OSF
-source-hash) are both **advisory** — each reports MISSING_EVIDENCE until its evidence (a
-genuine flash-time measurement; a real source-file hash) is supplied, and neither is counted
-against `allow`. A control with no satisfying report reports MISSING_EVIDENCE, never a silent
+37/38 satisfied on a clean release. The one non-green control (§4.3.1 Detection) is
+**advisory** — it reports MISSING_EVIDENCE until a genuine flash-time measurement is supplied,
+and it is not counted against `allow`. (OSF source-hash was advisory-MISSING until the `-Y SBOM`
+generator began emitting a real per-module `edk2:sourceHash`; it is now MET — see §8.) A control
+with no satisfying report reports MISSING_EVIDENCE, never a silent
 pass.
 
 ---
@@ -188,22 +189,25 @@ controls upstream of the artifact this gate inspects.
 | Control | Gated report(s) | Evidence read | Clean |
 |---|---|---|---|
 | osf-guid-identity | `osf-identity-shape` | every firmware module carries a GUID-form tag-id (== FILE_GUID) in the CDX manifest | ✅ |
-| osf-source-hash | `osf-source-provenance` | a source-file hash rides in colloquial-version for every module (M-srchash) | ❔ **MISSING (advisory)** |
+| osf-source-hash | `osf-source-provenance` | a source-file hash rides in colloquial-version for every module (M-srchash) | ✅ |
 
-This is the newest gate, and its scope is deliberately narrow and honestly labelled:
-- **What it gates (MET):** the OSF **GUID-identity MUST** — every firmware module's tag-id is
-  its FILE_GUID. `osf-identity-shape` is an always-emitted, gated report: on a clean release
-  every module's `bom-ref` is GUID-form, so it is GREEN; a module lacking a GUID tag-id DENYs
-  (see fixture `osf-nonconformant.json`).
-- **What it does NOT do (the honest ceiling):** `osf-identity-shape` is a **manifest-level
-  structural proxy** — it reasons about the CycloneDX manifest the gate holds, **not** the
-  coSWID parsed from the shipped PE / `.sbom` COFF section. A firmware whose *embedded* coSWID
-  diverged from its manifest could still pass. The deeper "extract the coSWID from the shipped
-  image → `uswid --validate` → assert it matches the manifest" check remains roadmapped.
-- **Source-hash MUST is a truthful RED.** `osf-source-hash` (M-srchash) is **advisory** and
-  honestly MISSING on clean: the edk2 source tree is not vendored here, so no source-file hash
-  is supplied. It reports MISSING_EVIDENCE (not a pass, not a hard DENY) until `--source-hashes`
-  populates a real `edk2:sourceHash` carrier. See [`CONFORMANCE.md`](CONFORMANCE.md).
+Both controls are now MET, and the scope stays honestly labelled:
+- **GUID-identity MUST (MET):** every firmware module's tag-id is its FILE_GUID.
+  `osf-identity-shape` is an always-emitted, gated report: on a clean release every module's
+  `bom-ref` is GUID-form, so it is GREEN; a module lacking a GUID tag-id DENYs (see fixture
+  `osf-nonconformant.json`).
+- **Source-hash / M-srchash MUST (now MET):** the `-Y SBOM` generator emits a real per-module
+  **`edk2:sourceHash`** — a SHA-256 over the module's INF `[Sources]` file set, deterministic
+  and reproducible (verified by independent recompute) — for **123/123** OvmfPkgX64 modules,
+  plus a document-level **`edk2:sourceRevision`** (git commit) also surfaced into the gate's
+  provenance as `source_commit`. `osf-source-provenance` fires GREEN. It stays **non-gating**:
+  the report is emitted only when the MUST is *fully* met, so a build with partial/zero source
+  hashes leaves it ABSENT (control MISSING) rather than DENYing — an advisory that never blocks.
+- **The honest ceiling that remains:** `osf-identity-shape` is a **manifest-level structural
+  proxy** — it reasons about the CycloneDX manifest the gate holds, **not** the coSWID parsed
+  from the shipped PE / `.sbom` COFF section. A firmware whose *embedded* coSWID diverged from
+  its manifest could still pass. The deeper "extract the coSWID from the shipped image →
+  `uswid --validate` → assert it matches the manifest" check remains roadmapped.
 
 ---
 
@@ -215,12 +219,13 @@ an honest gate:
 1. **CHIPSEC = sample on QEMU.** Every §4.2/§4.2.3/800-147 row reads an illustrative
    `chipsec.json` on OVMF/QEMU. No hardware root of trust. Real deployment substitutes a live
    CHIPSEC run on physical silicon; the report messages say so explicitly.
-2. **OSF embedded-SBOM MUSTs are only *partially* gate-verified.** The gate now checks the OSF
-   GUID-identity MUST at the **manifest level** (`osf-identity-shape`, framework 8) and represents
-   the source-hash MUST as an advisory control — but it still does **not** parse the coSWID from
-   the shipped PE / `.sbom` COFF section, so the deeper embedded-conformance check (and the
-   shipped-byte reconcile, which is an extension *beyond* OSF) remain as documented. See
-   [`CONFORMANCE.md`](CONFORMANCE.md); the shipped-PE coSWID parse is still roadmapped.
+2. **OSF embedded-SBOM MUSTs are gate-verified at the manifest level, not the shipped PE.** The
+   gate now checks the OSF GUID-identity MUST (`osf-identity-shape`) **and** the source-hash MUST
+   (`osf-source-provenance` — a real per-module `edk2:sourceHash` is emitted, so it is MET), both
+   at framework 8 — but it still does **not** parse the coSWID from the shipped PE / `.sbom` COFF
+   section. So the deeper embedded-conformance check (and the shipped-byte reconcile, which is an
+   extension *beyond* OSF) remain as documented. See [`CONFORMANCE.md`](CONFORMANCE.md); the
+   shipped-PE coSWID parse is still roadmapped.
 3. **L0 on the firmware subject.** The VSA sets `verifiedLevels:[SLSA_BUILD_LEVEL_0]` on the
    firmware image and scopes real L2 to `evidenceBuildLevel` (the SBOM artifact's provenance).
    The machine-readable claim never overstates the firmware's own build level.

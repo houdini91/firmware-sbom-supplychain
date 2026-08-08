@@ -55,6 +55,10 @@
         {
           "name": "edk2:thirdPartyEnumeration",
           "value": "git-submodules"
+        },
+        {
+          "name": "edk2:sourceRevision",
+          "value": "git:eb53e5a75ebb3f153f64646e04bc69ffd499d463"
         }
       ],
       "hashes": [
@@ -99,6 +103,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:459fe8fa9301df487aa55084fd224573814695c81c80ef508323ef8f7ebae6e6"
         }
       ],
       "externalReferences": [
@@ -143,6 +151,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:ec7a9f31cc3d089e5af6ba0b5760793ac36200db03ad4bfa925ada9ded1aaa38"
         }
       ],
       "externalReferences": [
@@ -183,6 +195,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:a72f665087c3e60e6f70ca872a516e1eda0fbcf6a8daecf6ae7cd154d29e083b"
         }
       ],
       "externalReferences": [
@@ -217,6 +233,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:d187822cc4b6ce92e49c2b80575da3e407dea04b352e1f02c6cb49fc2e209a26"
         }
       ],
       "externalReferences": [
@@ -261,6 +281,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:5463807f898bb285776069e55b8cd9a738590287ba9a8675558b7dddd50573aa"
         }
       ],
       "externalReferences": [
@@ -305,6 +329,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:9983177c8a30e29ac40ea98f19ce598830e10a0a346cc291d6e10ac2a24b3434"
         }
       ],
       "externalReferences": [
@@ -345,6 +373,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:91e6b681abe251271b234beac2c579ca72d044cce90479db4e9a7cb406b9540d"
         }
       ],
       "externalReferences": [
@@ -375,6 +407,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:e35ae61fe4eb92b8b56f4b5109f7d31aa6cd42706bbed8c0086332b0fabc464e"
         }
       ],
       "externalReferences": [
@@ -405,6 +441,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:55ad1aeba70c6d5cbfe406fe5cc58448472a91f7a4dfd18b1268b133ec16f051"
         }
       ],
       "externalReferences": [
@@ -435,6 +475,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:371013258f30c2078fc52e80d034a15041e7408243d35ff6e875229d4fcfac84"
         }
       ],
       "externalReferences": [
@@ -465,6 +509,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:411773a36bb0a15db4a73134e5f519c3abf9937c681be45d172dcd1f2829b4a3"
         }
       ],
       "externalReferences": [
@@ -495,6 +543,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:b247f0a184d5b4c2a8edc693bfdcb31edaa2d48d4fcfb81a5a71f7f0a0f2daeb"
         }
       ],
       "externalReferences": [
@@ -525,6 +577,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:6f7638ab4a958403482aa1b6cf166a890b6a7e2afa06c7b3f4f3c7b85a4d3af7"
         }
       ],
       "externalReferences": [
@@ -555,6 +611,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:997884a3896ff19326430c220053c936388a253290f64e906a959c125919ee6d"
         }
       ],
       "externalReferences": [
@@ -585,6 +645,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:f51be2cb48b4d79b10b4373cae903c2a1dd3b8be18d5b9abcf14b2dcca927407"
         }
       ],
       "externalReferences": [
@@ -615,6 +679,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:7184175f9ee7aca919bd50f2cb881eea3ed8e532b15f89361bcdd73a54693dfa"
         }
       ],
       "externalReferences": [
@@ -645,6 +713,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:bac4633a80f6c26d04ea6fb1ae191a8065fefb169e4716ea6daaac371a42ef69"
         }
       ],
       "externalReferences": [
@@ -675,6 +747,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:1bb3db6f71cff911e433990281630e376d414d9e5204821c4253239ac53c8e5b"
         }
       ],
       "externalReferences": [
@@ -705,6 +781,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:913650399e97f3c14a1dd73cc4e6df26a55f1634d756c45b413c0636ff17bf58"
         }
       ],
       "externalReferences": [
@@ -735,6 +815,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:4c3409554abca28bfe75483f6ecbe35d023217b4bfd0ec4a1e3e85dd029e50b5"
         }
       ],
       "externalReferences": [
@@ -765,6 +849,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:d2536ce4184ccffad1177c493afbd4cd715311abc57a8200992a61c7477e1086"
         }
       ],
       "externalReferences": [
@@ -795,6 +883,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:2dfd67e88e58504a078dfa371d2759a46c1ed56a98c0b55ccb7bde309799b127"
         }
       ],
       "externalReferences": [
@@ -825,6 +917,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:ef34bb28b1289a67bc890dd31aa3b147b65da89d6cb576d72efd763e3c2cb934"
         }
       ],
       "externalReferences": [
@@ -855,6 +951,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:8dabc3a91c52bfd4bb428ff58790b0b263a8e45342c4676a9c9b9d53f99d9f75"
         }
       ],
       "externalReferences": [
@@ -885,6 +985,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:32f51ccd4257d03d39836e6acfa7a7cfae31a551f7ca802779d2a1d587caa83d"
         }
       ],
       "externalReferences": [
@@ -915,6 +1019,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:09300388d6e3b3292147dd64347361986403b127d29544e7ec1e0373d7842aa2"
         }
       ],
       "externalReferences": [
@@ -945,6 +1053,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:94fa51b54abf5a1e0837c14b38967bb0118d06b73e68232218808cda46199f1e"
         }
       ],
       "externalReferences": [
@@ -975,6 +1087,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:805b72eff12f0587a20433c09c6190e7f630058eb9cd501b72f40eed74586540"
         }
       ],
       "externalReferences": [
@@ -1005,6 +1121,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:048f1ff30ef00741d29ca32ad2977e295335b4b6d8c1179f8e3cd0a12dac4ac8"
         }
       ],
       "externalReferences": [
@@ -1035,6 +1155,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:eea81272de6c43b8e08d310ad1fe21201f24388f896d6fdb6932e9698901d5ae"
         }
       ],
       "externalReferences": [
@@ -1065,6 +1189,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:28a921fc8c3040fefd958b41d500af5c2cb1daff71a8f49b646f9073fd4ceda6"
         }
       ],
       "externalReferences": [
@@ -1095,6 +1223,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:edd79c75b8b06ccfdc6505a5657d5cb0df68bb32e7618d8f704a8a1e0bfce33b"
         }
       ],
       "externalReferences": [
@@ -1125,6 +1257,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:34ac576592e5f1b4c8058ce343807ca1c89e0ce938bba9fa1e5c9e2b2f59ebb8"
         }
       ],
       "externalReferences": [
@@ -1155,6 +1291,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:354ad7c837c67568e7f1bfe02a9ea150e5b560411ce283f10b3fca73cf37faf8"
         }
       ],
       "externalReferences": [
@@ -1185,6 +1325,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:9da06767c4ca304f5da6004b99a5711594aaa82be64df3192fb393cf42b7078d"
         }
       ],
       "externalReferences": [
@@ -1215,6 +1359,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:cb7c8e1e4dabe4f1b55113888aa420a2f323fb44dfa7a206a6ab935eb7b67d44"
         }
       ],
       "externalReferences": [
@@ -1245,6 +1393,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:50126d9d091284a1b82b1f2596988ea11f1dadec53114410387726996a432507"
         }
       ],
       "externalReferences": [
@@ -1275,6 +1427,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:07fe3d638f742ab42122e80029758715b266410e13b15c232f16fffda1e617a1"
         }
       ],
       "externalReferences": [
@@ -1305,6 +1461,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:d3e34d1212fbb88dd97aad3e13b88c38256adb56dddc9a8675662d2d56af2abc"
         }
       ],
       "externalReferences": [
@@ -1339,6 +1499,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:870e01ba02efaf138c24ba80b484a8ce7f18afbceb732e5225ced724b89250f1"
         }
       ],
       "externalReferences": [
@@ -1379,6 +1543,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:ef1eaed454a10e2a70c86469829bf3efc2d2e54fbb9af0392a77ae85796e37d5"
         }
       ],
       "externalReferences": [
@@ -1413,6 +1581,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:9267cfb8523c43a6c706bc8e970f708f655b9f81020541b9b564ebdf8654542a"
         }
       ],
       "externalReferences": [
@@ -1453,6 +1625,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:0fc265987ee0c6e3e9e4c347e65b3ddc8db265c4435e6745be72b0a6d54186a7"
         }
       ],
       "externalReferences": [
@@ -1483,6 +1659,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:1df6e46b1a1b74d819f776d8c626a875c135980d3f1306d7ca25cb061b7945d8"
         }
       ],
       "externalReferences": [
@@ -1517,6 +1697,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:4282e2db11e56433b3955aa655bd60b4d81be0e290a579cf8c0b4dec23400262"
         }
       ],
       "externalReferences": [
@@ -1557,6 +1741,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:b686b3d54014b022db5d0c1042bfc9b32664c207a0a6095610b51e9d8a2f21ff"
         }
       ],
       "externalReferences": [
@@ -1591,6 +1779,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:6f78a7c951d8d3bc10be882378811dae9c3c99e73699a4b321f7d1d3586ec4a9"
         }
       ],
       "externalReferences": [
@@ -1635,6 +1827,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:31643711f417c64d2258e7a86b555792b9cf977c76f6f1ed6ff471f5bd702afd"
         }
       ],
       "externalReferences": [
@@ -1675,6 +1871,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:7d3e43978e23f98a0bb78639a334c14735c499ddbc734a7480b3922772fdd096"
         }
       ],
       "externalReferences": [
@@ -1709,6 +1909,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:93aed4139d0e9b62a2ad12bba8e041940c04e1fba16666f07bb46c0663f550fd"
         }
       ],
       "externalReferences": [
@@ -1753,6 +1957,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:9a8aab6172bc833bd8d8c6ac550f893b38236f4d60741abda4b5fd2b201440f0"
         }
       ],
       "externalReferences": [
@@ -1797,6 +2005,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:6ba374bfa38f9140b5119b5e400a5801c56fc851d92c3a74718c430fd3bcab56"
         }
       ],
       "externalReferences": [
@@ -1841,6 +2053,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:6ba374bfa38f9140b5119b5e400a5801c56fc851d92c3a74718c430fd3bcab56"
         }
       ],
       "externalReferences": [
@@ -1885,6 +2101,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:21ad4f6fbe9367bcf6bd0af4563c8953064210f530cdd86c969dff6c8d2b5045"
         }
       ],
       "externalReferences": [
@@ -1929,6 +2149,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:d0e49c90647ae62e62d9a7bdb60299b05141f158cb4057b6e8069607f2f5d046"
         }
       ],
       "externalReferences": [
@@ -1973,6 +2197,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:d0e49c90647ae62e62d9a7bdb60299b05141f158cb4057b6e8069607f2f5d046"
         }
       ],
       "externalReferences": [
@@ -2013,6 +2241,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:532b12489770dfe0b9b777274cd48936e9b4ededcc5519b17f4a0338ab75ac69"
         }
       ],
       "externalReferences": [
@@ -2043,6 +2275,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:f061c02d91408bc72d3745a6753735afc7a1eaf0df7611a3bd694cd1d8b97e73"
         }
       ],
       "externalReferences": [
@@ -2077,6 +2313,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:6f200bf3c56193a3cfb442ce5495a2c67aa8ffb93558f1f27b5750163e8ea2de"
         }
       ],
       "externalReferences": [
@@ -2117,6 +2357,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:c8f4e2944f13eb534ae639d75424e5a391bf035e4900fa375cb1a3d68cee4dd2"
         }
       ],
       "externalReferences": [
@@ -2147,6 +2391,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:44c70c18a014be68849c2d2525878049020949a91ea2357db333a058c47d0a29"
         }
       ],
       "externalReferences": [
@@ -2177,6 +2425,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:5dcb1f2fa8c20d9b69dfa1130069da117c918659c81f357c13c80ac99e01daf5"
         }
       ],
       "externalReferences": [
@@ -2211,6 +2463,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:f778bb10025918b8799090b77f521fd21cf1958c293fb379e5cea0efa331425e"
         }
       ],
       "externalReferences": [
@@ -2255,6 +2511,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:4c746748c34109e7d0bb42f2cd27608d71c87038fff3d73800b2625241722917"
         }
       ],
       "externalReferences": [
@@ -2299,6 +2559,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:16769b518e327d667c392cbd1a0ec5724241dd6797a3016493e95900550775d7"
         }
       ],
       "externalReferences": [
@@ -2343,6 +2607,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:e57346f212a0327e9b7216df320b73acd01e6526ccf4973560f0c47152fab882"
         }
       ],
       "externalReferences": [
@@ -2387,6 +2655,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:006e4a135f815ece361deda281176589fb333ac0c1f05505ee840ce3e99c8f80"
         }
       ],
       "externalReferences": [
@@ -2431,6 +2703,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:46eace93a1fa7d3d299025b428e24be438f745041215ac3f62a836c9f798b351"
         }
       ],
       "externalReferences": [
@@ -2471,6 +2747,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:870173b27b2e5e98defbd2eb22fc4e1fd259a754407fcfeaa6f9aab94fc539c2"
         }
       ],
       "externalReferences": [
@@ -2501,6 +2781,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:a1371e2fb10e53b0b690981d8e7d519a806de05b1369c2bfbb3be0cfe3a89a93"
         }
       ],
       "externalReferences": [
@@ -2531,6 +2815,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:a394fb575077bbeab3ed7bf77434d89b2d7741a9ef74ec5f8c401308477eabe7"
         }
       ],
       "externalReferences": [
@@ -2561,6 +2849,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:22492dbc71fb1c487f978c139da168484329b1d6d5525393a9a028543c0c4a2d"
         }
       ],
       "externalReferences": [
@@ -2595,6 +2887,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:b6eb03b4c22ee1286e7130e76dbb5ae1b6cddd3b5cf5d4994d8e9247dd319217"
         }
       ],
       "externalReferences": [
@@ -2635,6 +2931,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:665b3246446d9501d7384619771c07772f404d224be7be727f83711f43d4d6cf"
         }
       ],
       "externalReferences": [
@@ -2665,6 +2965,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:dc8b11220b0b3d5fa8d5102336884a5cc62434530a762d75ad714257a9bde546"
         }
       ],
       "externalReferences": [
@@ -2695,6 +2999,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:29f3d74fb4eac83f8e6f434f528d72d5961dd3d99ddad7e191ed1c031ddd8bd2"
         }
       ],
       "externalReferences": [
@@ -2725,6 +3033,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:09d16e6a1fdca248b0f58dfcb9f31188f30be6323498c53f64dc01e437350f74"
         }
       ],
       "externalReferences": [
@@ -2755,6 +3067,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:f5aa8235206b0b41a8cea990ba52718b3dd9aad9f62a23be7c48064b035c12a5"
         }
       ],
       "externalReferences": [
@@ -2785,6 +3101,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:3a001383fe4693145f0eb54c99801224a60c0be941213bed32448fe441b5125e"
         }
       ],
       "externalReferences": [
@@ -2815,6 +3135,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:40fb19c9339b33af25116d0a23cf6d89e08b0c29a632638d3b876494d273968f"
         }
       ],
       "externalReferences": [
@@ -2845,6 +3169,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:076645c34f9d27d713e12c71f91ff9877518cbaa5c01b707555093e396baae42"
         }
       ],
       "externalReferences": [
@@ -2875,6 +3203,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:aa195d892cc2f6b3930b11c7c7373985b085b802dc9a875a3b7551b285e4df75"
         }
       ],
       "externalReferences": [
@@ -2905,6 +3237,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:220bb3fdf151f98177bf8c4e8c5c723ec2416aecd4e637397d26a423c8b8b8c3"
         }
       ],
       "externalReferences": [
@@ -2935,6 +3271,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:77c2252aa93b807c3255774f2d2f5b75afb0e5dcb06aff6fa5a5a43da2d4fa42"
         }
       ],
       "externalReferences": [
@@ -2969,6 +3309,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:f114748bc704dbf15361d10f3ab04aa8b40fb3367e6f071c628a45a2a5e77dd3"
         }
       ],
       "externalReferences": [
@@ -3009,6 +3353,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:d432e76d3df0910fddbb1a14fdfd2f24376f830f7636e6f0e9bb9756e0e6a1f4"
         }
       ],
       "externalReferences": [
@@ -3039,6 +3387,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:3feaf933f9ea1f3fe4efb129c0daaf53e465336e8ecbb19ae73b2e50f67eb1e3"
         }
       ],
       "externalReferences": [
@@ -3069,6 +3421,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:82981f70da08d466d54290d922349343c71c6837a2d7ff53fedd2a758b8b7ade"
         }
       ],
       "externalReferences": [
@@ -3099,6 +3455,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:82981f70da08d466d54290d922349343c71c6837a2d7ff53fedd2a758b8b7ade"
         }
       ],
       "externalReferences": [
@@ -3129,6 +3489,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:22565d5fcaa7c538db5fef276d6c02868b6606288e9fcff91897a58ac7ebd4bb"
         }
       ],
       "externalReferences": [
@@ -3159,6 +3523,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:31029a127d2651d6c07918dcc2167241e758d20a8950678528f794384790abec"
         }
       ],
       "externalReferences": [
@@ -3189,6 +3557,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:89c19e0bb5008f7711c7bb8766e18b781fc53cc37b90117b61890945a62bfa2e"
         }
       ],
       "externalReferences": [
@@ -3219,6 +3591,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:0632154114d8eae55c2e7590adc2b18bee6897c2a3ea85182ec4edd7fea1f59c"
         }
       ],
       "externalReferences": [
@@ -3249,6 +3625,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:579bda3515809d31ae88519c28ed9e41568fe4ec84bb9a9831628316c1df0909"
         }
       ],
       "externalReferences": [
@@ -3279,6 +3659,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:f53e7bf0f84e35555499fa0e8bbf732a9c798e2dccdd991825fa1046347c889c"
         }
       ],
       "externalReferences": [
@@ -3309,6 +3693,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:e2c64c5c5c238370c05f09e2a256d3190619b4048cc651fb1e1fdbdff0a250d9"
         }
       ],
       "externalReferences": [
@@ -3339,6 +3727,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:1c7db3d330fb8d829e43680a2796320bd85e7a284dbbe54be8fab24afc8ecc68"
         }
       ],
       "externalReferences": [
@@ -3369,6 +3761,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:365bd8040f6d645ff6c5d462bfd0881ca5e1e81a49f4185a3845e73878037de8"
         }
       ],
       "externalReferences": [
@@ -3399,6 +3795,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:afb102c7de4f8897756627b46fa4e2716b4d08d9a560b1841487fea7ea6396e3"
         }
       ],
       "externalReferences": [
@@ -3429,6 +3829,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:cc937bfef3120db36ddcb274a9110dcb7cbe81f0a7192f1c532f1b83faebda3a"
         }
       ],
       "externalReferences": [
@@ -3459,6 +3863,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:73b2ceecdf39e84029dcdc353794386e6830ba72a80026f68cb9d7a4633e5b14"
         }
       ],
       "externalReferences": [
@@ -3489,6 +3897,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:1b9e2f36c7aec5747a2889143ef9898b5415a1f2e30b9fb860b41582f73d433b"
         }
       ],
       "externalReferences": [
@@ -3519,6 +3931,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:6250c9e1c8cef5452e065b5aaa2936900742478be5c856ccb72710c4d84d5408"
         }
       ],
       "externalReferences": [
@@ -3549,6 +3965,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:bcdcd3217949b7dd9199a177e4d67923feaf2332ec1e15f8decacab6c1a46f89"
         }
       ],
       "externalReferences": [
@@ -3579,6 +3999,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:92b049af5231634261cf2558276b6125fd6c45583008bc7148b3d0de7ba1f1ca"
         }
       ],
       "externalReferences": [
@@ -3609,6 +4033,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:c52f0c544927e451652d06d3b889155b8f7edcceeb458cc5bd273cb11037a883"
         }
       ],
       "externalReferences": [
@@ -3643,6 +4071,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:75f458e405f1540ccf5852f21e7a86b88498b8bebb5ca677dfcc05776629ecc7"
         }
       ],
       "externalReferences": [
@@ -3687,6 +4119,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:bbf52fca46f9aaf57fbd63cd8de1e01c7c9cb6b6ac234eca11cc673fe49819ed"
         }
       ],
       "externalReferences": [
@@ -3731,6 +4167,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:875a1198d1abf6e8c6d2e3ae82d0167e6f876a244a6763496f9d80b68fae0668"
         }
       ],
       "externalReferences": [
@@ -3771,6 +4211,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:a6a8d9a727210b9f309e2e4ae1b82bab681bb0fa8a968527d09a6d43698a37bb"
         }
       ],
       "externalReferences": [
@@ -3805,6 +4249,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:1ba4de4d0c16e074c7b6256f90aa9d47fcb6f7bba2b53a619797efaf023dbe36"
         }
       ],
       "externalReferences": [
@@ -3849,6 +4297,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:d9f44e783d978cd36acdbd8e911d01a9b34fcba8a485546f179742ac7c39e642"
         }
       ],
       "externalReferences": [
@@ -3893,6 +4345,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:e48546b60932491fdca7fa2cd935c6dab0a80e32904d1cc5023a7042c18fe8eb"
         }
       ],
       "externalReferences": [
@@ -3937,6 +4393,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:341fc0d50af89ddb7108fb38f554928455adac5ab4944db277066e7e445c6ce8"
         }
       ],
       "externalReferences": [
@@ -3977,6 +4437,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:d28509ee1a6f288e2c4fdbbfdbe1b4969a7caaccd9bcb4cfb08109653176c58a"
         }
       ],
       "externalReferences": [
@@ -4007,6 +4471,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:038d3636ca1500623d2a57a9f032f152b49ab69bfa6ed145f15539f56a109c1a"
         }
       ],
       "externalReferences": [
@@ -4037,6 +4505,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:4eb1fef04c93aec1e77468719cd7faab3a75f181902e4b52f0af068cd90e4e4d"
         }
       ],
       "externalReferences": [
@@ -4071,6 +4543,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:ac2a74c4f80f6666b17ff5e03d18d1f4ce005e17ddf499b4730311e7aab74b93"
         }
       ],
       "externalReferences": [
@@ -4111,6 +4587,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:7652a993e66f43eaa3a6e53635e7c3688cacccc91d250ac67c8f3149de0a3a68"
         }
       ],
       "externalReferences": [
@@ -4145,6 +4625,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:7cacc6656277641ed8796e72bf158b70c5d1603c21e4dbd6b76532c666d032a4"
         }
       ],
       "externalReferences": [
@@ -4189,6 +4673,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:bb7338026c0db5594d97a47c891baf63415eeccf4b226f3788a003577f588f9d"
         }
       ],
       "externalReferences": [
@@ -4229,6 +4717,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:dc3fb77beef0bce781a5da4a7c1727e3a4aeadffb5e9c4d2870a60c707e67de6"
         }
       ],
       "externalReferences": [
@@ -4259,6 +4751,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:8f163e4fe6cdd9ead992016e5e5f92d740a61f479d5ec4b9abc27583be05de30"
         }
       ],
       "externalReferences": [
@@ -4293,6 +4789,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:75630fcca7a92d5e30f3d01dc6d06900f615d961311fbb99d68700c92fc8f02c"
         }
       ],
       "externalReferences": [
@@ -4337,6 +4837,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:7405ad720a492143960b5c2fd2d83fa259f35bcf047266ae12dd8c96cf81d502"
         }
       ],
       "externalReferences": [
@@ -4377,6 +4881,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:f18b2309de5503b70d4af4d5560ac51806038b163c73fecd5ce0c1ffd3d54143"
         }
       ],
       "externalReferences": [
@@ -4411,6 +4919,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:3e76968a9e29ec16b6a9adb048fd23a16b667d0a62391ab744f68c2052c6500e"
         }
       ],
       "externalReferences": [
@@ -4455,6 +4967,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:cc2b6bf3f0352694cc8b4a53f420ef643f7774abdfba041cb65f13c993f20f7c"
         }
       ],
       "externalReferences": [
@@ -4499,6 +5015,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:2a06f4af9df15d13c433d0d72adcc6a8d7ac5d78f3fb33262a78488f6fbc765a"
         }
       ],
       "externalReferences": [
@@ -4543,6 +5063,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:3dd1a3852c29cbedc7b48b041b71c71b830af3462e470992e5d221e23b14e024"
         }
       ],
       "externalReferences": [
@@ -4583,6 +5107,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:08cfb2814d776cad4beef10b1a4b173dbdab28ab03878aa5c4e7acb261f1b172"
         }
       ],
       "externalReferences": [
@@ -4617,6 +5145,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:d2cdfc8032dc5c37adbae1c788eaceb1f8d25d44395e621c3a745798f52e7a01"
         }
       ],
       "externalReferences": [
@@ -4657,6 +5189,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:1c18ae019157e5de4750b620c6582d4c04d88e322a99173326884b2b62dee27c"
         }
       ],
       "externalReferences": [
@@ -4687,6 +5223,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:f543eb5a63ac638add1036aa05775b519ce9e8f9bb6a212ea59343a1cbeee4a6"
         }
       ],
       "externalReferences": [
@@ -4721,6 +5261,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:403da0294788e36615b04d8ae8fc3350e21b7bbc92003408a6007c0f38394084"
         }
       ],
       "externalReferences": [
@@ -4761,6 +5305,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:8cc0e9ae5728773f99312ba25f8b6638536e69a1bf7d046e4a4c2f2720c2ff67"
         }
       ],
       "externalReferences": [
@@ -4791,6 +5339,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:23dbfb3f2985bbdc9d535cdde3fffebccfcc264d02d4488f425e0557c087a475"
         }
       ],
       "externalReferences": [
@@ -4821,6 +5373,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:540b94b1dd2bd3f39978a805e2933757bfcc2fe678c78bff456a7f46690be0fd"
         }
       ],
       "externalReferences": [
@@ -4855,6 +5411,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:470add708f0b965af42828a75bf1bb8b5b85a75b1298eaa2c8ced79dbbe1081d"
         }
       ],
       "externalReferences": [
@@ -4895,6 +5455,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:76d45e8d703d987b3f61dea3a2dc2cb3c0161e797b43df1f9087d1fe37e2fd58"
         }
       ],
       "externalReferences": [
@@ -4929,6 +5493,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:5a9f16b258ee631e466cc955ddd8149a18931e9e64f75029e874cd5728b64824"
         }
       ],
       "externalReferences": [
@@ -4973,6 +5541,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:6ae6ff0c7bb1e8d7582bd09c56d19410d158c99c0e76b550bbb23a50f41b47b0"
         }
       ],
       "externalReferences": [
@@ -5013,6 +5585,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:91b540ec2f55bde24fafce517bac0d6ce2c5d9b499d1df1a5923721a86b0fdf9"
         }
       ],
       "externalReferences": [
@@ -5043,6 +5619,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:82981f70da08d466d54290d922349343c71c6837a2d7ff53fedd2a758b8b7ade"
         }
       ],
       "externalReferences": [
@@ -5077,6 +5657,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:6214bc6cdb6e7970797309a259cacbe95a735b5ba482a026d82a92b89339bf76"
         }
       ],
       "externalReferences": [
@@ -5117,6 +5701,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:b44088fa75ff9a9a27400e8da2d803fc44514dd457434eef35cf36a1eb64968a"
         }
       ],
       "externalReferences": [
@@ -5147,6 +5735,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:8f349739812f72d556adf5ef15fe6fc910a1236887f7141380a7640e4a555253"
         }
       ],
       "externalReferences": [
@@ -5177,6 +5769,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:16570a85db98df9dc577d3ca72d07064374ee9f51cab45e75dfc1580e5bf297d"
         }
       ],
       "externalReferences": [
@@ -5211,6 +5807,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:ee12c0d5fb407154613b987c7a14c8e012638a67ea9202155d0745f3a857426c"
         }
       ],
       "externalReferences": [
@@ -5251,6 +5851,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:560652512a80187fcd9118bf3868c9032508098abcbe7c56edb4a05609697fcd"
         }
       ],
       "externalReferences": [
@@ -5281,6 +5885,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:f5320d94f98a229485d289cd307713fa8a3d9a27c4d12a1441411d39f2f087ae"
         }
       ],
       "externalReferences": [
@@ -5315,6 +5923,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:af8db0c45d23be93b4f9969657f0919f727193f09d42c860351b000af0a65e01"
         }
       ],
       "externalReferences": [
@@ -5355,6 +5967,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:997fae967245868873e21883317cc403cb9671f049e084ae83bd4a0e22244666"
         }
       ],
       "externalReferences": [
@@ -5389,6 +6005,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:9d00bae394d5f5f4f39c76e4867da71ac5a9cbf6cd65903a5a61c0c3b3d6e553"
         }
       ],
       "externalReferences": [
@@ -5433,6 +6053,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:83129b3269838c62c9d3faa740ed6755d33c2d1a54e81409bb5765990561efe6"
         }
       ],
       "externalReferences": [
@@ -5477,6 +6101,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:ffe1211ec5a584fabf05a8f3772769cd7d5cdd06115c4838e9c15212d38ac7ff"
         }
       ],
       "externalReferences": [
@@ -5521,6 +6149,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:ed7a1dc0295e16b0baee55828c215514cfba2c1ca3989e8c40fe47ec419d21e1"
         }
       ],
       "externalReferences": [
@@ -5565,6 +6197,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:eb940a5ad183d860d5e9b1bd5e5748ce6caaec6c8e59c0fd5979fde26ef86259"
         }
       ],
       "externalReferences": [
@@ -5605,6 +6241,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:74771062f157f1308075f9211b0a5c00283c247183a867de56b333ef8bbcffd4"
         }
       ],
       "externalReferences": [
@@ -5635,6 +6275,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:a7c5b78d7a28ddae5946dada11c012c988ecacfd535b81d1063c7afec6ead766"
         }
       ],
       "externalReferences": [
@@ -5669,6 +6313,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:974a0cb5fab4da67e32935f955d31fe80427136ebb5fe0dfb400f5a735acc188"
         }
       ],
       "externalReferences": [
@@ -5713,6 +6361,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:41ba831036673546ebc5edb793c0ff4b43e07a7f3113e71d8c59874a7a101c8b"
         }
       ],
       "externalReferences": [
@@ -5753,6 +6405,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:35ff2ca3f802ecffadf586c4d5e7f165291d08ce3a8fc990f81dc1f155a26cb6"
         }
       ],
       "externalReferences": [
@@ -5787,6 +6443,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:2d768ccee26afe8ebbac14e7b77243ffaea5445bab4b78517ba08a72c580f9be"
         }
       ],
       "externalReferences": [
@@ -5827,6 +6487,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:7e5b7014211dbef36afd225d3b7e7396c57f4e0e0d94872bc71379853abf92c0"
         }
       ],
       "externalReferences": [
@@ -5857,6 +6521,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:780e79b99fb4a6aae7aff216f7fa27b0f53403395e61dfe231c7294f21542892"
         }
       ],
       "externalReferences": [
@@ -5887,6 +6555,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:afd197967c19f0b75bb2a6c34386123dec2b182503f1284ade77c8f9c9b56199"
         }
       ],
       "externalReferences": [
@@ -5917,6 +6589,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:2a7cdec9bff4d08376a1959f3c588e2760af934c2a6d00cd3ac52a61e2b33988"
         }
       ],
       "externalReferences": [
@@ -5947,6 +6623,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:3d86ecd24e17de7c6c61d7085ef8d041165bf3d1f63f6c587ff6bf2e91395997"
         }
       ],
       "externalReferences": [
@@ -5977,6 +6657,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:1dd2f229190d7d7656bdae3acf692d636716c2688913a9a135796ecb87b0e83e"
         }
       ],
       "externalReferences": [
@@ -6007,6 +6691,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:0ac1dd89099dcec5a2961b5f3ebbcea0b106d7e4f4ece79615eb4f9000c45a7e"
         }
       ],
       "externalReferences": [
@@ -6037,6 +6725,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:1c51ed560e1642cdf4454de8d018d8a8f56897d6a7bb4ed9bc7b5f066d0b0066"
         }
       ],
       "externalReferences": [
@@ -6067,6 +6759,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:3657bb7639f54eba50549748f3bda4a347552f7ac203c0fe5e162edf8db1700a"
         }
       ],
       "externalReferences": [
@@ -6097,6 +6793,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:82981f70da08d466d54290d922349343c71c6837a2d7ff53fedd2a758b8b7ade"
         }
       ],
       "externalReferences": [
@@ -6127,6 +6827,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:a022d77b373eed9de23840223787565ce86680cb18007db48287427761435548"
         }
       ],
       "externalReferences": [
@@ -6157,6 +6861,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:801991eaca27bd0e5c3148f49132fd1972a4271e828a57e37e2105e52d85cf6d"
         }
       ],
       "externalReferences": [
@@ -6187,6 +6895,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:fae28b101c4533f8fdfec80b99eb6feaf5806153dccec63eac7220179736a445"
         }
       ],
       "externalReferences": [
@@ -6217,6 +6929,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:65a9002e5bb4427819cf06aff02551728c56df04409f6b8eece2f392be4facfa"
         }
       ],
       "externalReferences": [
@@ -6247,6 +6963,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:1c19d2ff20dcee70b5a883118b0c033c385280829844406a438dd327fc6bcc1a"
         }
       ],
       "externalReferences": [
@@ -6277,6 +6997,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:68710fc614caffb69420dfb1433134e8917f75c78a7b84044b4b1479f4739698"
         }
       ],
       "externalReferences": [
@@ -6307,6 +7031,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:cd905c04b4a3dd066c754fd3ac9675aafbfda682df1260a69d74ec8b3ae43a0d"
         }
       ],
       "externalReferences": [
@@ -6337,6 +7065,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:def456c4a26d39efc98dc5d36a2dc6274ca889555481ae73aad6682c59e4aaa2"
         }
       ],
       "externalReferences": [
@@ -6367,6 +7099,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:41dd252754de92c0fad400cb1cc9f16faa6218940e31aed899acd06054e97be5"
         }
       ],
       "externalReferences": [
@@ -6397,6 +7133,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:25a727c3a0609c3c8daf77cd3e6bbb860e03eba3f3e8e43df9671653a50f06a3"
         }
       ],
       "externalReferences": [
@@ -6427,6 +7167,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:28fea3f6ed79bf220f8984a6a4491246c9308497043bde87acdba0190c971d2b"
         }
       ],
       "externalReferences": [
@@ -6457,6 +7201,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:bdb76d32807ed4da1a4406893d0bb7a9be0e4ef4dd1f9f45b36b5735eec02015"
         }
       ],
       "externalReferences": [
@@ -6487,6 +7235,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:425a61c579ded6ee1ea2c004f4fc5e39d77db7bc1a1134b0451768d57df2f022"
         }
       ],
       "externalReferences": [
@@ -6521,6 +7273,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:5e99134992da7c9960a2263e4054cff811795ad252aead010b4c0f6d316bbe58"
         }
       ],
       "externalReferences": [
@@ -6561,6 +7317,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:d8352f81f1c4c33a06d3c88f357abd04adbe53cc3fbe39b94b3b2ad8954a764b"
         }
       ],
       "externalReferences": [
@@ -6591,6 +7351,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:c5c63b0b6f08263dd418e2166729fff4306123969ffd99ce6dc2faa28f80b1b7"
         }
       ],
       "externalReferences": [
@@ -6625,6 +7389,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:99fce924fd5d28c1fa6f87efeab436f8f6f8d7eaceca711c5f10090293faef3a"
         }
       ],
       "externalReferences": [
@@ -6665,6 +7433,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:72433ea70e2dbc7dc727627adc242c4fee29b925f97de8592ee7a033d18375fb"
         }
       ],
       "externalReferences": [
@@ -6699,6 +7471,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:747b194b5edb4d3606088e6b021f88ff3e40596dfc163056ee3cf7791e55a6a7"
         }
       ],
       "externalReferences": [
@@ -6739,6 +7515,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:a9314030dfec2395baa21c8381762e3220f4408a199269dc0f9e38f681ca5e1d"
         }
       ],
       "externalReferences": [
@@ -6769,6 +7549,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:ca7584d2d51ab6bd32564dd3bff784f677c452ea1365a95f23076445c7b9b0b9"
         }
       ],
       "externalReferences": [
@@ -6803,6 +7587,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:f604b744ecd0db6a2c5008cd1484e13f608163e1ef0866292a4d0ed9c4bdd1ca"
         }
       ],
       "externalReferences": [
@@ -6843,6 +7631,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:fdb7278e15039ea3680374f6c26483e202e27d792863235698a93605f034f195"
         }
       ],
       "externalReferences": [
@@ -6873,6 +7665,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:020d719351c13e526de31f7bafdc6365b6a4870d34ba28d149c34c79b4c24260"
         }
       ],
       "externalReferences": [
@@ -6903,6 +7699,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:debaef5098e43d3a2da496b596b9b58804e1325c0513aa4039f9a0a851f9a411"
         }
       ],
       "externalReferences": [
@@ -6937,6 +7737,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:69b5554039a73551774a9b37478a2e1260a15144eb87d09889cb3697cbb58742"
         }
       ],
       "externalReferences": [
@@ -6981,6 +7785,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:ba6af58199cb4756114949ee65d1ceec1cd1b4406d4e10e846172f55a8a66d0c"
         }
       ],
       "externalReferences": [
@@ -7025,6 +7833,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:23e10ef94ba411e5c36b80ecd8a869fb03f5a2f983ad7138cdbf5625b3944173"
         }
       ],
       "externalReferences": [
@@ -7069,6 +7881,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:16797a8fcf9a44599ddd421a0a5b3f13833a6caf1a1f559689079ddbcd22d500"
         }
       ],
       "externalReferences": [
@@ -7113,6 +7929,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:1318a80b081c9ea1731e3abeb7028b8122814bbae6c6f8a89d029d99d8305d18"
         }
       ],
       "externalReferences": [
@@ -7157,6 +7977,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:6bfe05ae180ab37485d80c9ae931c202f1f1e33d25dddd0f4c0b7ba4c0a12be1"
         }
       ],
       "externalReferences": [
@@ -7201,6 +8025,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:58a0780b180b6ab1fd88f962bbae948ceb0af331694f34fa4b53a71e2eb27046"
         }
       ],
       "externalReferences": [
@@ -7241,6 +8069,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "False"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:e9b71b2176c5d7ec42dbd4daee5e683c6930e409fe77d9672530f22aed3b85c9"
         }
       ],
       "externalReferences": [
@@ -7275,6 +8107,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:29a42dbfad9e388de99c2e1f710016ccb9faeeedae465583c79f3aded97b0c53"
         }
       ],
       "externalReferences": [
@@ -7319,6 +8155,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:a960fe36362edb49504c76f7295db07c00012c4de0735e9c5fa511c9cbc3eb54"
         }
       ],
       "externalReferences": [
@@ -7359,6 +8199,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:d915e01a1b69e63220ef936eba675e73863bb6fbb68a9529f6417cdcfe082d2b"
         }
       ],
       "externalReferences": [
@@ -7393,6 +8237,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:190d0c8d6b4919ef3214a36653477f81aba9d5807ab60f6d273f17c9fd15e536"
         }
       ],
       "externalReferences": [
@@ -7437,6 +8285,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:d076d038a0643a883e6a84d97424dd37fba29180ab3f1a4d917faf7b2c1e1ed8"
         }
       ],
       "externalReferences": [
@@ -7481,6 +8333,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:b67f624bd98823429f5affc813b8e354eaa0746e8c619011eb85b4236927e2f0"
         }
       ],
       "externalReferences": [
@@ -7525,6 +8381,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:72861542834e3bfd62f6a1ed36c4dc2541f8ab72688b0e81e0cbf7e79e68b59a"
         }
       ],
       "externalReferences": [
@@ -7569,6 +8429,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:3fce3124e785bd0b2f5de92ce97f645517e00d99ff7a884047aa2faf57855c41"
         }
       ],
       "externalReferences": [
@@ -7613,6 +8477,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:e553da67a73a952055297c94f2f0337aa7f66fba5cd44a79d34b51997cce913e"
         }
       ],
       "externalReferences": [
@@ -7657,6 +8525,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:f52eeee118d96980ebc886f60094e096e37c700c3be463f105826a550bc3e002"
         }
       ],
       "externalReferences": [
@@ -7697,6 +8569,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:3ba492494632f0cd3cfaed214aab9302275ce6b11dda5b0f2653bdf031c5d3ac"
         }
       ],
       "externalReferences": [
@@ -7727,6 +8603,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:6d738c419544af74601771a00de8a605f28f25dd23718f85b92b66e8efd149d8"
         }
       ],
       "externalReferences": [
@@ -7761,6 +8641,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:6b63e86955bce65d7418ceaf9392c851b33ee362db14d79d2565e8cb5d3d14ab"
         }
       ],
       "externalReferences": [
@@ -7801,6 +8685,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:ac08bc377a00f203ce2e3a880e79a193f82b00df82ce1df71768718dc9dbeab2"
         }
       ],
       "externalReferences": [
@@ -7831,6 +8719,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:71927a6b5ee37b8a17c83144a91f761921c1a06490e7bcedd468956f6c6e6304"
         }
       ],
       "externalReferences": [
@@ -7861,6 +8753,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:1824749882c63b94050a4e631058ad221a888aed7f2a028c7030f3746848e99e"
         }
       ],
       "externalReferences": [
@@ -7891,6 +8787,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:4aebe322229a454f828ea74251149a71a2a97dd2d22613a319237967215c86f0"
         }
       ],
       "externalReferences": [
@@ -7921,6 +8821,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:50be75176d95badbad877c5635e189d94bbdc66c1b69d8fe1a4e98f2aa14992f"
         }
       ],
       "externalReferences": [
@@ -7955,6 +8859,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:eee9aeb0ef6a6bdb9bda30ff6e6af525fc6d3dc39a179046d4079873f254e043"
         }
       ],
       "externalReferences": [
@@ -7999,6 +8907,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:a54fb5b82e204728a3595caadebdfc5490b7911534281f549ba17df88efdb183"
         }
       ],
       "externalReferences": [
@@ -8043,6 +8955,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:a9cac8f394ef61e48a619a8ef9b3e7fc4d1211c2b9c2ac7bc52e5f6724a9c52f"
         }
       ],
       "externalReferences": [
@@ -8087,6 +9003,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:73182ea99537b4142d837a74f3c416b248028b96627d3f5ec4f6e96facdb0be8"
         }
       ],
       "externalReferences": [
@@ -8131,6 +9051,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:565470b799a2089df8fa2f0f3f2b0d12603443999abaa9057b6f806fbbfc1d1a"
         }
       ],
       "externalReferences": [
@@ -8175,6 +9099,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:7d989e703ec948f3429c0347c0c4a9d25c12a8befab1d89dfa021711f29549af"
         }
       ],
       "externalReferences": [
@@ -8219,6 +9147,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:ec535c51548359a555aff973f7ba24b705ac0020e5fc9ca6370a3507b9a977cb"
         }
       ],
       "externalReferences": [
@@ -8259,6 +9191,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:22a6f7ce218245ca47c89b2379ae3fa4804a077d2854137bccc80707e7fcbfe4"
         }
       ],
       "externalReferences": [
@@ -8293,6 +9229,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:e8e3039a5dc97eeaf82d26342eb32f050c45ffa9ffafcda1f944afa98c7f6e59"
         }
       ],
       "externalReferences": [
@@ -8333,6 +9273,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:1e04f739fe4b64d89fbacb7a22b0b1cac740f9a1c864edebc9d1d297ccada5fc"
         }
       ],
       "externalReferences": [
@@ -8367,6 +9311,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:f050c63dde070f1409e798ecbf649eb2e26d293d93dacc406275545c8b257c87"
         }
       ],
       "externalReferences": [
@@ -8411,6 +9359,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:b8e2ac14f65733ee1d75f45767985a4979fd029e39b8c5820d728139c11a0f70"
         }
       ],
       "externalReferences": [
@@ -8455,6 +9407,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:cc8addce5f4a84bd1f224a54334b0e52f4d0a6916ecaf1d5870f14be373388e8"
         }
       ],
       "externalReferences": [
@@ -8499,6 +9455,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:7f0bbfc363a2d0d0768c3109f060a4c060840fdde0407785b18361b93c6df07e"
         }
       ],
       "externalReferences": [
@@ -8543,6 +9503,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:f645caceabb35e995d98b624a9b2b21cede03c470f5378963d075c03bab5750c"
         }
       ],
       "externalReferences": [
@@ -8587,6 +9551,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:ee708a23926132ffee07955b15b924f16a4b839af5c394807d1b497357e544d8"
         }
       ],
       "externalReferences": [
@@ -8631,6 +9599,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:44f0fc5eba914797d4937309dd4c59ac5f3de3129783d142a62e101ebec09745"
         }
       ],
       "externalReferences": [
@@ -8671,6 +9643,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:ad06558648a3974b0d3a6ea3923c02b6c296ba7ba282c2a67839ef3801e9367f"
         }
       ],
       "externalReferences": [
@@ -8701,6 +9677,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:b97511222bfdd78234a63c6b0c06168aed077a8a84839069dc59702901d1cd64"
         }
       ],
       "externalReferences": [
@@ -8735,6 +9715,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:29b7bf9c438a0503c866f31045ebcae8a13b4434fd0ee2e79fd3f83ccf7392fc"
         }
       ],
       "externalReferences": [
@@ -8779,6 +9763,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:cdcd11f161d178d74a26c16e3a6ef2462c67eb4c04b2231d53bca8697dfb007d"
         }
       ],
       "externalReferences": [
@@ -8819,6 +9807,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:7e3137c6df14f527346aae730a0203abf9e15900a5def080ebffbf87664354fe"
         }
       ],
       "externalReferences": [
@@ -8849,6 +9841,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:48c823a17677820c382ca5cba2ae723181f7ca222b7106aa74535c1c034f9bb8"
         }
       ],
       "externalReferences": [
@@ -8883,6 +9879,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:557dc456c7168294475e770b0492a61a0accac40aca6c999076080595f7812ca"
         }
       ],
       "externalReferences": [
@@ -8927,6 +9927,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:c7d7feef8a43f9a67ffa4daf5355bf4e4bf4497c303ce4d09d6c8b4fdd9564e1"
         }
       ],
       "externalReferences": [
@@ -8967,6 +9971,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:ec2712af7b0f6bcb6d96757ead6ac102eb15696a1891f81939e864868662c77b"
         }
       ],
       "externalReferences": [
@@ -8997,6 +10005,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:a0a302f8bca78378fa1624c8d9017d6af95b645f60de283af227f1d3e537b2b9"
         }
       ],
       "externalReferences": [
@@ -9027,6 +10039,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:896e91f75e42484bdaf2dd7523c3d93444b08f4fb95e4811a8a9d4fecd19e5f2"
         }
       ],
       "externalReferences": [
@@ -9057,6 +10073,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:75312d02ebba25758475e9439f8b140948272d5e2f11a928284749f64fe6f541"
         }
       ],
       "externalReferences": [
@@ -9087,6 +10107,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:1560745ce2a7d69e97c29c67e2cc92bc5d94c9bc5df965f48577f44b2f1304c9"
         }
       ],
       "externalReferences": [
@@ -9117,6 +10141,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:8c8761756b181f4858d579e2e949b30f63ecb56276109181f0adec6e2bdcb91f"
         }
       ],
       "externalReferences": [
@@ -9147,6 +10175,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:50a5d35942992c385dfcd4c41b93fb5642c80331bce22925b384cba93b4b6e40"
         }
       ],
       "externalReferences": [
@@ -9177,6 +10209,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:e8a2b523fef70abbaa83f9eca48fe3407e29d9c3256014179c5e15b44c300f25"
         }
       ],
       "externalReferences": [
@@ -9207,6 +10243,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:638e73a07ead849a974994b8d5bcfd55f9f18ab0117e1e761eabab2df69b6f67"
         }
       ],
       "externalReferences": [
@@ -9237,6 +10277,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:1adf104f7580ad667e3fd08a7245e8e98baf69b64b40c539025cfb60f56e1cb2"
         }
       ],
       "externalReferences": [
@@ -9267,6 +10311,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:6683530352887a518e62c63767ea7cf2e9fd280188c5350f4991876947c97d00"
         }
       ],
       "externalReferences": [
@@ -9297,6 +10345,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:a12384a73f095372894773d5c5804483c36f2209fdb9e25e832991b428acdc7c"
         }
       ],
       "externalReferences": [
@@ -9327,6 +10379,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:1b4a9e065001569aa49c7d6614786836572de08a550fe745e8631425ff770882"
         }
       ],
       "externalReferences": [
@@ -9357,6 +10413,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:59e13aa8a4c9c919596c7025b4d3c271fb94ce5a831130bf477c798b4d3c6ff6"
         }
       ],
       "externalReferences": [
@@ -9391,6 +10451,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:f7ce4fa4fc70dfb4dff10b4652560c1efa1912881343a4381ac67ad6c21d6d27"
         }
       ],
       "externalReferences": [
@@ -9431,6 +10495,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:60c4b11d0687cda25d823c2895a3881d79547dc8a6feb63059c8eb62dd637970"
         }
       ],
       "externalReferences": [
@@ -9461,6 +10529,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:2c7e45a9078ba1b758d81124549f8ec97af5fcce4335366978022c202736d7b7"
         }
       ],
       "externalReferences": [
@@ -9491,6 +10563,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:94f58d30002bddd2a81bc647ccbba148b27a7881479d2fc72b33ce79f3e91e2a"
         }
       ],
       "externalReferences": [
@@ -9521,6 +10597,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:8a2fc280dcdbef53d22e29a298a0662d2a0997e87ded2c39d73918e922d0cf61"
         }
       ],
       "externalReferences": [
@@ -9551,6 +10631,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:7f63a3fdc0afe7069491dfaff247ba7a407c4132db16423355b40db6688aed7f"
         }
       ],
       "externalReferences": [
@@ -9581,6 +10665,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:38c274c24805081187fe91300bc12111fa54b8ce76a6292b614e2e6319d93066"
         }
       ],
       "externalReferences": [
@@ -9611,6 +10699,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:ee092b4d1e96bbb4bcd903f57121584602458fe09bf902f48795e5609976b2da"
         }
       ],
       "externalReferences": [
@@ -9641,6 +10733,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:187acef814ce9ecaca6dac7648661843e683d96cc0a98562da9b7ebc06cd1e3b"
         }
       ],
       "externalReferences": [
@@ -9671,6 +10767,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:729ba9c55008cb5c36e7d31bd2c01bbc3b562e24469d6b7aad8aac3df1cabb8f"
         }
       ],
       "externalReferences": [
@@ -9701,6 +10801,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:ca6d31794e1720c4c5174a6d417d34f614dd6a746979a100873c89ec3f8b55da"
         }
       ],
       "externalReferences": [
@@ -9731,6 +10835,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:c7c6af637008b76143e82b0fb5218ef2ed7e31f3106a8c21889eaa5e3d0c7b27"
         }
       ],
       "externalReferences": [
@@ -9761,6 +10869,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:93015b6954bb256fce2e438597708a6d7f3d760272cd4856c10dfde6d90d4428"
         }
       ],
       "externalReferences": [
@@ -9791,6 +10903,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:41f463235bb75a105b40f61282eda03838fefd3894410eec89db4f51d76962e4"
         }
       ],
       "externalReferences": [
@@ -9821,6 +10937,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:ca2b9e9c01b1520e5d7bd882ac52a7baa5c9a2ad5abce07be3b01ef1066d14ad"
         }
       ],
       "externalReferences": [
@@ -9851,6 +10971,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:e884fe9de07ebd46b343973d65e385d77e00d1552dd922eb593f5fe87277a4e6"
         }
       ],
       "externalReferences": [
@@ -9885,6 +11009,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:3152f6c998f46bbef8fba996f7e19b076e54f8ee81e41ce9fc436df11e56d341"
         }
       ],
       "externalReferences": [
@@ -9929,6 +11057,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:d29d8d1e970ecd874dfb3d43b6e162ed801ef2ca688c77ab8d7b7790fcb9562d"
         }
       ],
       "externalReferences": [
@@ -9973,6 +11105,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:1e44f22bb40db6e477d7c41b202ca14ab5ffa5a237f6ded8fb3762ba9e624ca0"
         }
       ],
       "externalReferences": [
@@ -10017,6 +11153,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:6ebdd10d578d01105d769e3c740c65657286959ac44e8474c4d04a1ca1690fe6"
         }
       ],
       "externalReferences": [
@@ -10061,6 +11201,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:32e6f92b70a5921f013a58db1447be84c60c0ff6650f59f524220930806ec83e"
         }
       ],
       "externalReferences": [
@@ -10101,6 +11245,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:3ac557a2d30c80bcd5ec8492ddc18cd9afd65f4342bd56b7bdccaf385dcfcfbd"
         }
       ],
       "externalReferences": [
@@ -10131,6 +11279,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:3287db0596393cf17fd5f0a372eec08abe5261e329cd550b6cd28a031eb347cb"
         }
       ],
       "externalReferences": [
@@ -10165,6 +11317,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:3b43c5a779ab32d31ad213505110b779142a40702d60bc6aaf89bec471e120a4"
         }
       ],
       "externalReferences": [
@@ -10205,6 +11361,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:56e06eb0540ba71731c9660e7ecca7e0c4866ac9aa6ec31e3e3131124facab6b"
         }
       ],
       "externalReferences": [
@@ -10235,6 +11395,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:c9f6e8cfa677bc6197297f32549de9f1244212ab6d535265f1c3756c2a24119c"
         }
       ],
       "externalReferences": [
@@ -10269,6 +11433,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:d2be2121197a7cd714d8963ad8ab08f6e45d88374759e0ee42612940e523d316"
         }
       ],
       "externalReferences": [
@@ -10313,6 +11481,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:2114639cf9634c8fa55c6dee245dd156bab7a8d1239bd1648ad267611824fa2c"
         }
       ],
       "externalReferences": [
@@ -10357,6 +11529,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:189a15ec16be38b18f4d38d75abadabdd68939808c809b170868ab3b198b560b"
         }
       ],
       "externalReferences": [
@@ -10401,6 +11577,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:19a2e0d8cf93d87d54a3a79890b0bff44ff8ba7b02106baa75ec574213aa8155"
         }
       ],
       "externalReferences": [
@@ -10445,6 +11625,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:e7f7d28ae87fc8fd0222d1711b682f2153459c7b909088fe83f83572dbc0a82d"
         }
       ],
       "externalReferences": [
@@ -10489,6 +11673,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:0db929b37488f4831ad63c326fbd35c0e9ad9c81137219fbe509a9c9fdfa103e"
         }
       ],
       "externalReferences": [
@@ -10533,6 +11721,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:b23f31601c502e8c691ebb48a180b27a18f8282a88add5f526a2aff856a35e79"
         }
       ],
       "externalReferences": [
@@ -10573,6 +11765,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:00576c20b66bc38a895b794ddd5ea1c6d2e1c91a74f150f0cd7203a1c80c53ae"
         }
       ],
       "externalReferences": [
@@ -10607,6 +11803,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:0580f66f18a845b1eafb26151df3e7856bc1cc89f64ec9a33167833d63b3568b"
         }
       ],
       "externalReferences": [
@@ -10651,6 +11851,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:68f6f19c135995d5959306ae89dcbd90e3bcc9cfa20e015afcab1c9a9bc83cc3"
         }
       ],
       "externalReferences": [
@@ -10695,6 +11899,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:b3c998a3bcb483dd158c943316dac2b9928d08553b6f8a0560d18af556c825c6"
         }
       ],
       "externalReferences": [
@@ -10739,6 +11947,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:8c56db3ed121634391f4a80fd971d6545040e1fb29306fc4b97f935d61134f0b"
         }
       ],
       "externalReferences": [
@@ -10783,6 +11995,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:13a3f3a3ee1317d1de440d8119224c5982e6b866a39cb380556d0ec7dfc8d742"
         }
       ],
       "externalReferences": [
@@ -10827,6 +12043,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:8179122d1395523efbbbc608fa439e8f372d826556a2e03636f4967223e28aeb"
         }
       ],
       "externalReferences": [
@@ -10871,6 +12091,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:7b3f7caffb576638e8bc90aebd45f8a56ddcd3869f245d989e0e01443b42091a"
         }
       ],
       "externalReferences": [
@@ -10915,6 +12139,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:7c256b99237f465290a440ecab22f3a234e7dc35babf8ce382513ed6d1048c49"
         }
       ],
       "externalReferences": [
@@ -10955,6 +12183,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:9d217c86451a6afa537ee4d43d60ff1bddf9c2d1b96ff0c70b0ce22d9f67acd2"
         }
       ],
       "externalReferences": [
@@ -10985,6 +12217,10 @@
         {
           "name": "edk2:isLibrary",
           "value": "True"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:8cad62e81b3eec99f7d08163a1f4999aeb272dd9133f6a51fa88a2adb57e70fd"
         }
       ],
       "externalReferences": [
@@ -11019,6 +12255,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:9c8b29c635eb50f2843f315e77b8e03b781d32c5d44a6e61f67d56df8e789be6"
         }
       ],
       "externalReferences": [
@@ -11063,6 +12303,10 @@
         {
           "name": "edk2:hashCanonicalForm",
           "value": "genfw-rebase-0"
+        },
+        {
+          "name": "edk2:sourceHash",
+          "value": "sha256:085b5dc05e2ea06a0181f2e0d4529068525db5756067dff4627cbae9bea676ce"
         }
       ],
       "externalReferences": [

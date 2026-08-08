@@ -164,11 +164,24 @@ _GUID_RE = re.compile(
     r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
 
 
+def _source_revision(sbom):
+    """The build-wide source revision (git commit) the image was built from — the
+    -Y SBOM generator records it on the document-root component as edk2:sourceRevision
+    ('git:<sha>'). This is the SLSA-provenance-style coarse source anchor, surfaced into
+    the gate input's provenance so the evidence records WHICH source produced the image,
+    complementing the per-module edk2:sourceHash. Empty (not fabricated) if absent."""
+    mc = (sbom.get("metadata", {}) or {}).get("component", {}) or {}
+    for p in (mc.get("properties") or []):
+        if p.get("name") == "edk2:sourceRevision" and p.get("value"):
+            return p.get("value")
+    return ""
+
+
 def _source_hash_present(c):
-    """OSF M-srchash: a real source-file hash rides in coSWID colloquial-version.
-    In the CycloneDX manifest that carrier is an explicit edk2:sourceHash property
-    (what --source-hashes would populate). Absent by default — the source tree is
-    not vendored here — so this MUST is honestly UNMET on the reference SBOM."""
+    """OSF M-srchash: a real source-file hash rides in coSWID colloquial-version. In the
+    CycloneDX manifest that carrier is an explicit edk2:sourceHash property — the -Y SBOM
+    generator now emits one per module (a SHA-256 over the module's INF [Sources] set). A
+    module with no readable source honestly carries none."""
     for p in (c.get("properties") or []):
         if p.get("name") == "edk2:sourceHash" and p.get("value"):
             return True
@@ -421,6 +434,7 @@ def main():
                         "firmware_subject": ("" if att_firmware == "" else "sha256:" + att_firmware)},
         "signature": {"verified": sig == "true", "identity": effective_builder},
         "provenance": {"builder_id": effective_builder, "source_repo": repo,
+                       "source_commit": _source_revision(sbom),
                        "slsa_verified": slsa_verified == "true", "slsa_level": slsa_level,
                        "file_subject": prov_file_sub, "firmware_subject": prov_firmware_sub},
         "reconcile": {"clean": clean, "missing": dflt(pred, "missing", []),

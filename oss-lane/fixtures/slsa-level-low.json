@@ -22,7 +22,7 @@
       "evaluated": true,
       "modules_total": 123,
       "guid_tag_id": 123,
-      "source_hash_present": 0
+      "source_hash_present": 123
     }
   },
   "attestation": {
@@ -39,7 +39,8 @@
     "slsa_verified": true,
     "slsa_level": 1,
     "file_subject": "sha256:3b1f0a9c8e2d4b6a7c5e9f01234567890abcdef1122334455667788990011aabb",
-    "firmware_subject": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37"
+    "firmware_subject": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37",
+    "source_commit": "git:eb53e5a75ebb3f153f64646e04bc69ffd499d463"
   },
   "reconcile": {
     "clean": true,

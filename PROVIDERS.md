@@ -14,7 +14,7 @@ is the truthful, useful finding, consistent with "&lt;1% of LVFS firmware ships 
 
 | Provider | SBOM | Format | Embedded | Identity | Source-hash | Byte-hash | Signed | Reconcile | Score |
 |---|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
-| **This project — OVMF + `-Y SBOM`** | ✅ | cyclonedx | ⛔ | ✅ | ⛔ | ◐ | ✅ | ✅ | **4.5** |
+| **This project — OVMF + `-Y SBOM`** | ✅ | cyclonedx | ⛔ | ✅ | ✅ | ◐ | ✅ | ✅ | **5.5** |
 | **Dell** (XPS13, via uswid) | ✅ | coswid | ✅ | ✅ | ◐ | ❔ | ❔ | ⛔ | **3.5** |
 | **Lenovo** (X1 Carbon, via uswid) | ✅ | coswid | ✅ | ✅ | ◐ | ❔ | ❔ | ⛔ | **3.5** |
 | Ubuntu OVMF prebuilt (`.deb`) | ⛔ | none | ⛔ | ⛔ | ⛔ | ⛔ | ⛔ | ⛔ | 0.0 |
@@ -44,14 +44,17 @@ is the truthful, useful finding, consistent with "&lt;1% of LVFS firmware ships 
   carries a **GUID tag-id**, and their code modules carry a **source-file hash in
   `colloquial-version`** — the OSF **M-srchash** MUST. Their microcode/CSME blobs do not (hence the
   ◐), which is honest: you can hash source you build, not an opaque blob.
-- **This project leads on the two things nobody else does:** a **signed SLSA VSA** and an
-  operator-side **shipped-byte reconcile**. Dell/Lenovo declare *what* a module is (id + source hash)
-  but ship no per-module *shipped-byte* hash, so an operator cannot catch a same-GUID byte swap from
-  their coSWID alone. That gap is exactly this project's thesis.
-- **The honest gap in our own reference:** we score **⛔ on source-hash** — the edk2 source tree is
-  not vendored here, so we emit no `edk2:sourceHash`. Dell/Lenovo beat us on that specific MUST. This
-  is the same gap the gate reports as the advisory `osf-source-hash` control (see
-  [`COMPLIANCE-MATRIX.md`](COMPLIANCE-MATRIX.md) §8) — the matrix and this comparison agree.
+- **This project leads on the three things nobody else combines:** a **signed SLSA VSA**, an
+  operator-side **shipped-byte reconcile**, and now a **full per-module source hash**. Dell/Lenovo
+  declare *what* a module is (id + source hash) but ship no per-module *shipped-byte* hash, so an
+  operator cannot catch a same-GUID byte swap from their coSWID alone. That gap is exactly this
+  project's thesis.
+- **We now MEET — and slightly surpass — Dell/Lenovo on source-hash.** The `-Y SBOM` generator emits
+  a real `edk2:sourceHash` (SHA-256 over each module's INF `[Sources]` set) for **123/123** modules
+  (full ✅), plus a document-level `edk2:sourceRevision` (git commit) also threaded into the gate's
+  provenance. Dell/Lenovo carry a source hash only on their *code* module, not the microcode/CSME
+  blobs (partial ◐). This closes what was our one honest gap: the `osf-source-hash` control (see
+  [`COMPLIANCE-MATRIX.md`](COMPLIANCE-MATRIX.md) §8) is now GREEN — the matrix and this comparison agree.
 - **Most of the ecosystem ships nothing.** Prebuilt OVMF, coreboot, and Intel FSP/microcode carry no
   SBOM at all (score 0.0). This is not a knock on their engineering — coreboot's reproducible builds
   are excellent — it is the transparency-artifact gap the whole effort exists to close.
@@ -60,15 +63,14 @@ is the truthful, useful finding, consistent with "&lt;1% of LVFS firmware ships 
 
 No shipped provider is the model to copy wholesale. The **ideal** combines what each does well:
 
-> **Dell/Lenovo's embedded coSWID + GUID identity + `colloquial-version` source hash**, carried
-> **inside** the image (OSF embedding), **plus this project's per-module shipped-byte hash + signed
-> SLSA VSA + operator-side reconcile.**
+> **Dell/Lenovo's embedded coSWID carried *inside* the image (OSF embedding), plus this project's
+> full per-module source hash + shipped-byte hash + signed SLSA VSA + operator-side reconcile.**
 
-That composite is the target this repo's reference is built toward. It already has the byte-hash +
-signed VSA + reconcile half; the concrete next step — **adopt a real `edk2:sourceHash`** so we meet
-the M-srchash MUST the way Dell/Lenovo do — is tracked as the advisory `osf-source-hash` control and
-the `--source-hashes` path in the emitter. Closing it would move our row to a clean lead on every
-dimension.
+That composite is the target this repo's reference is built toward — and it now has every piece
+**except one: embedding.** The reference emits a sidecar CycloneDX (with `edk2:sourceHash`,
+shipped-byte hashes, signed VSA, reconcile); the remaining step to a clean lead on *every* dimension
+is to carry that SBOM **embedded** in the PE `.sbom` section (the coSWID path via uSWID), the way
+Dell/Lenovo do. That is the last ⛔ in our row.
 
 ## Reproducing / extending
 

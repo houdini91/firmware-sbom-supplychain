@@ -63,11 +63,16 @@ with tempfile.TemporaryDirectory() as td:
     check("CLI ACCEPTs the clean bound release (matches the gate's ALLOW)", out["verdict"] == "ACCEPT")
 
     fwmap = {f["id"]: f for f in out["frameworks"]}
-    # the two frameworks whose advisory control is MISSING on clean must still pass
+    # SP 800-193 still carries an advisory-MISSING control (§4.3.1 Detection) yet must pass.
     check("SP 800-193 passes despite §4.3.1 advisory MISSING (2/3)",
           fwmap["sp-800-193"]["ok"] is True)
-    check("OSF embedded-SBOM passes despite source-hash advisory MISSING (1/2)",
-          fwmap["osf-embedded-sbom"]["ok"] is True)
+    # OSF embedded-SBOM is now FULLY satisfied — the reference carries a real per-module
+    # edk2:sourceHash, so osf-source-hash (M-srchash) is met, not advisory-pending.
+    osf_ctrls = {c["id"]: c["status"] for c in fwmap["osf-embedded-sbom"]["controls"]}
+    check("OSF embedded-SBOM fully satisfied (guid-identity + source-hash both PASS)",
+          fwmap["osf-embedded-sbom"]["ok"] is True
+          and osf_ctrls.get("osf-guid-identity") == "PASS"
+          and osf_ctrls.get("osf-source-hash") == "PASS")
     # and every framework is ok on a clean release
     check("every framework ok on a clean bound release",
           all(f["ok"] for f in out["frameworks"]))
