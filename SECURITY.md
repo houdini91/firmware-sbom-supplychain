@@ -24,6 +24,36 @@ Out of scope — the offline-demo `DEV_ASSUME_*` opt-ins (they are loudly warned
 conveniences, documented as such); missing runtime/measured-boot attestation (a documented future class of
 evidence, not a bug); anything already listed as an honest limitation in `FRAMEWORKS.md` / `DESIGN.md`.
 
+## Trust model & known ceilings
+
+The signed evidence graph proves **"CI signed these bytes, and they are internally consistent with the
+firmware anchor D"** — it does *not*, on its own, prove the bytes are a true measurement of real firmware.
+Stated plainly so no reader over-trusts a green gate:
+
+- **Pre-signing vs. post-signing attacker.** The byte-integrity keystone (and every other verdict:
+  reconcile / SBOM / VEX / CHIPSEC) is generated from committed `inputs/` and then D-anchored + signed by CI.
+  This defeats a **post-signing / in-transit / offline-re-run** attacker who rewrites `inputs/*.json` after
+  the fact (the loose file is ignored — the gate reads the signed, D-anchored bundle; see the forge tests in
+  `tests/pipeline-negative.sh`). It does **not** defeat an attacker who writes `inputs/` *before* the CI
+  signing step — CI would D-anchor and sign the forgery. That pre-signing surface is the SLSA build-provenance
+  layer's concern (the inputs are build outputs, not hand-edited artifacts), and is a **shared ceiling of the
+  entire evidence graph**, not specific to byte-integrity.
+- **The anchor D is self-asserted until a real image is measured.** `anchor_d` is the SBOM's own
+  `metadata.component` SHA-256. Under `DEV_ASSUME_FWIMAGE` (CI + demo), D is never checked against real
+  firmware bytes, so the firmware-D binding is **consistency, not ground truth** — an actor who controls the
+  SBOM sets D everywhere consistently. Only a real deploy-time measurement (`FW_IMAGE=<the .fd>`, which fires
+  the §4.3.1 `firmware-freshly-measured` report and pins `deployed == sbom == reconcile`) turns the binding
+  into ground truth. This is the documented SP 800-193 §4.3.1 ceiling.
+- **Signed-evidence enforcement is fail-closed in the real pipelines.** `run.sh` and CI set
+  `REQUIRE_SIGNED_EVIDENCE=1`, so a missing/empty `*_BUNDLE` env **aborts** rather than silently falling back
+  to an unsigned loose verdict (regression-tested: `require-signed-missing-bundle-ABORTS`). Ad-hoc local runs
+  without that flag still *work* but **loudly warn** on every loose fallback — the downgrade is never silent.
+- **Local `make demo` gives structural assurance only.** The pinned local `bin/cosign` is 2.5.2, which lacks
+  `attest-blob --statement`, so `run.sh` synthesizes an **unsigned** but correctly D-anchored bundle: it
+  exercises the signed-consumption path and proves the D-binding, but provides **no cryptographic assurance**
+  locally. The real keyless signature **and** its `cosign verify-blob-attestation` gate run in **CI**
+  (cosign 2.6.0). Treat a green local demo as a wiring check, not a trust anchor.
+
 ## Disclosure
 
 Because there is no deployed release, there is no embargo requirement — but I'll acknowledge a report promptly

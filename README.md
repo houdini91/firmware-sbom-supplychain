@@ -15,9 +15,12 @@
 
 </div>
 
-> **Threat model.** A compromised build step swaps a module's bytes, keeps its `FILE_GUID`, and re-signs the
-> image — the signature is valid and the inventory matches by ID; only the SBOM's declared **per-module hash**
-> disagrees. That gap is what this gate closes.
+> **Threat model.** *After* the build, a mid-chain actor — an IBV/ODM/OEM repack, or anyone with post-build
+> image access — swaps a module's bytes, keeps its `FILE_GUID`, and re-signs the image. The signature is valid
+> and the inventory matches by ID; only the **born-in-build** SBOM's declared **per-module hash** (generated
+> before the swap) disagrees. That gap is what this gate closes. It does **not** defend against a build step
+> that is *itself* compromised and produces both the trojaned bytes and the SBOM that describes them — that
+> hash would match; catching it is the SLSA build-provenance layer's job (see [SECURITY.md](SECURITY.md)).
 
 ## What it is
 

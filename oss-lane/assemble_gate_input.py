@@ -615,6 +615,28 @@ def main():
         fw_deployed = ""
         fw_freshly_measured = False
 
+    # Signed-evidence enforcement for the two image-derived keystones (byte-integrity,
+    # binary-hardening). REQUIRE_SIGNED_EVIDENCE=1 (set by run.sh + CI) makes the *_BUNDLE
+    # MANDATORY: a missing/empty one aborts fail-closed, so a dropped env can never silently
+    # downgrade to the unsigned loose file (the forge P0.1 closed). Off (ad-hoc/local dev),
+    # the loose fallback is allowed but ALWAYS warns — the downgrade is never silent.
+    require_signed = env("REQUIRE_SIGNED_EVIDENCE") == "1"
+
+    def _evidence_bundle(name):
+        b = env(name) or None
+        if not b:
+            if require_signed:
+                sys.exit("assemble_gate_input: %s is required when REQUIRE_SIGNED_EVIDENCE=1 — "
+                         "refusing to fall back to an UNSIGNED loose verdict (this is the "
+                         "byte-integrity forge P0.1 closed). Produce + pass the signed bundle." % name)
+            warnings.append("%s unset — verdict read from an UNSIGNED loose inputs/*.json "
+                            "(local-dev fallback, NOT production; set REQUIRE_SIGNED_EVIDENCE=1 "
+                            "to enforce the signed, D-anchored bundle)." % name)
+        return b
+
+    bi_bundle = _evidence_bundle("BYTE_INTEGRITY_BUNDLE")
+    bh_bundle = _evidence_bundle("BINARY_HARDENING_BUNDLE")
+
     gate_input = {
         "sbom": {"present": len(sbom.get("components", [])) > 0, "hash": "sha256:" + sbom_hash,
                  "integrity": integrity(sbom), "thirdparty": thirdparty(sbom),
@@ -643,12 +665,13 @@ def main():
         # from the SIGNED, firmware-D-anchored attestation (subject #1 firmware-image == the
         # anchor D = fw_sbom), NOT the loose inputs/*.json. This closes the last unsigned
         # image-derived verdict: an attacker with inputs/ write but no signing key can no
-        # longer forge modified:0. The loose *_JSON path stays only as a no-bundle local-dev
-        # fallback. anchor_d = fw_sbom (the SBOM metadata.component D the graph roots at).
-        "byte_integrity": byte_integrity_fact(env("BYTE_INTEGRITY_JSON"),
-                                              env("BYTE_INTEGRITY_BUNDLE") or None, fw_sbom),
-        "binary_hardening": binary_hardening_fact(env("BINARY_HARDENING_JSON"),
-                                                  env("BINARY_HARDENING_BUNDLE") or None, fw_sbom),
+        # longer forge modified:0. anchor_d = fw_sbom (the SBOM metadata.component D the graph
+        # roots at). The loose *_JSON path is a no-bundle fallback — but it silently re-opens
+        # the forge, so REQUIRE_SIGNED_EVIDENCE=1 (set by run.sh + CI) makes the bundle
+        # MANDATORY (fail-closed, mirroring the require("BUNDLE") reconcile precedent) and a
+        # loose fallback ALWAYS warns, so a dropped env can never quietly downgrade the keystone.
+        "byte_integrity": byte_integrity_fact(env("BYTE_INTEGRITY_JSON"), bi_bundle, fw_sbom),
+        "binary_hardening": binary_hardening_fact(env("BINARY_HARDENING_JSON"), bh_bundle, fw_sbom),
         "build_tools": {"present": bt["present"], "signature_verified": bt["signature_verified"],
                         "all_pinned": bt["all_pinned"], "unpinned": bt["unpinned"]},
     }

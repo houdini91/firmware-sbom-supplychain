@@ -81,7 +81,9 @@ dsse = {"payloadType": "application/vnd.in-toto+json",
 json.dump({"base64Signature": base64.b64encode(json.dumps(dsse).encode()).decode()}, open(sys.argv[2], "w"))
 PY
     echo "   ⚠ this cosign lacks attest-blob --statement (needs >= 2.6.0, which CI pins) — synthesized"
-    echo "     an UNSIGNED but D-anchored $out so the demo exercises the signed-consumption path"
+    echo "     an UNSIGNED but D-anchored $out so the demo exercises the signed-consumption path."
+    echo "     SECURITY: locally this gives STRUCTURAL-CONSISTENCY only (correct D-binding), NOT crypto"
+    echo "     assurance — the real keyless signature + verify-blob-attestation gate runs in CI (cosign 2.6.0)."
   fi
 }
 attest_evidence "$IN/byte-integrity.json"   "$BI_TYPE" byte-integrity.json   "$IN/byte-integrity.att.bundle"
@@ -120,6 +122,7 @@ SBOM="$SBOM" BUNDLE="$IN/sbom.att.bundle" SIG="$SIG" \
   DEV_ASSUME_IDENTITY="${DEV_ASSUME_IDENTITY:-1}" \
   DEV_ASSUME_SLSA="${DEV_ASSUME_SLSA:-1}" \
   CHIPSEC_JSON="${CHIPSEC_JSON:-$IN/chipsec.json}" \
+  REQUIRE_SIGNED_EVIDENCE=1 \
   BYTE_INTEGRITY_BUNDLE="${BYTE_INTEGRITY_BUNDLE:-$IN/byte-integrity.att.bundle}" \
   BINARY_HARDENING_BUNDLE="${BINARY_HARDENING_BUNDLE:-$IN/binary-hardening.att.bundle}" \
   BYTE_INTEGRITY_JSON="${BYTE_INTEGRITY_JSON:-$IN/byte-integrity.json}" \

@@ -223,6 +223,7 @@ jobs:
           BUILDER_ID="$BUILDER_ID" SOURCE_REPO="$SOURCE_REPO" \
           SLSA_VERIFIED=true \
           CHIPSEC_JSON=inputs/chipsec.json \
+          REQUIRE_SIGNED_EVIDENCE=1 \
           BYTE_INTEGRITY_BUNDLE=inputs/byte-integrity.att.bundle \
           BINARY_HARDENING_BUNDLE=inputs/binary-hardening.att.bundle \
           BYTE_INTEGRITY_JSON=inputs/byte-integrity.json \

@@ -167,6 +167,23 @@ run_bundle_case "loose-clean-forge-BLOCKED"     "$TMP/bi.modified.bundle" "$BI_F
 run_bundle_case "wrong-anchor-D-BLOCKED"        "$TMP/bi.wrongd.bundle"   "$BI_FORGED_CLEAN" "$TMP/bh.clean.bundle"    "$BH_LOOSE" deny
 # symmetry — binary-hardening loose forge blocked by its own signed (missing-NX) verdict.
 run_bundle_case "binhard-loose-forge-BLOCKED"   "$TMP/bi.clean.bundle"    "$BI_FORGED_CLEAN" "$TMP/bh.modified.bundle" "$BH_LOOSE" deny
+
+# ENFORCEMENT (P1a): with REQUIRE_SIGNED_EVIDENCE=1 (set by run.sh + CI), a MISSING bundle env is a
+# fail-closed ABORT — NOT a silent loose-file fallback. A dropped/empty env can no longer quietly
+# downgrade the keystone to the unsigned loose forge. Assert the assembler exits non-zero AND writes
+# no gate-input (sys.exit fires before the OUT write).
+rm -f "$TMP/req-gate.json"
+if env SBOM="$IN/sbom.cdx.json" BUNDLE="$BUNDLE" SIG=true GRYPE_JSON="$IN/grype.json" \
+     OUT="$TMP/req-gate.json" DEV_ASSUME_IDENTITY=1 DEV_ASSUME_SLSA=1 CHIPSEC_JSON="$IN/chipsec.json" \
+     REQUIRE_SIGNED_EVIDENCE=1 BYTE_INTEGRITY_JSON="$BI_FORGED_CLEAN" BINARY_HARDENING_JSON="$BH_LOOSE" \
+     BUILD_TOOLS_JSON="$IN/build-tools.cdx.json" DEV_ASSUME_BUILDTOOLS=1 DEV_ASSUME_CHAIN=1 DEV_ASSUME_FWIMAGE=1 \
+     bash "$ROOT/oss-lane/assemble-gate-input.sh" >/dev/null 2>&1; then
+  printf 'FAIL  %-38s assembler succeeded (expected abort)\n' "require-signed-missing-bundle-ABORTS"; fail=1
+elif [ -f "$TMP/req-gate.json" ]; then
+  printf 'FAIL  %-38s wrote a gate-input (expected none)\n' "require-signed-missing-bundle-ABORTS"; fail=1
+else
+  printf 'PASS  %-38s -> abort (fail-closed)\n' "require-signed-missing-bundle-ABORTS"
+fi
 echo "================================================"
 [ "$fail" -eq 0 ] && echo "ALL PASS" || echo "FAILURES"
 exit $fail
