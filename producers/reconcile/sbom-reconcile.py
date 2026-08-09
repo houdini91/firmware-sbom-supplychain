@@ -32,9 +32,14 @@ XIP_TYPES = {"SEC", "PEI_CORE", "PEIM"}
 
 
 def parse_fmmt(text):
-    """Return (fv_guids{guids}, ffs{guid:name}). ffs holds every non-pad FFS
-    file GUID; name is "" for USER_DEFINED/raw files FMMT does not label."""
-    fv_guids, ffs = set(), {}
+    """Return (fv_guids{guids}, ffs{guid:name}, counts{guid:occurrences}). ffs holds every
+    non-pad FFS file GUID; name is "" for USER_DEFINED/raw files FMMT does not label. counts
+    records HOW MANY times each GUID appears across ALL FVs — a GUID appearing >1 time is a
+    shadow-duplicate (two FFS files under one FILE_GUID), which a plain by-GUID map would
+    silently collapse. This is what lets the gate catch a trojan module hiding behind a
+    legitimate module's GUID (byte-integrity hashes one instance; the shadow would slip past)."""
+    from collections import Counter
+    fv_guids, ffs, counts = set(), {}, Counter()
     for line in text.splitlines():
         m = FV_RE.search(line)
         if m:
@@ -46,8 +51,9 @@ def parse_fmmt(text):
             name = (m.group(2) or "").strip()
             if g == PAD or name == "Ffs_pad":
                 continue
+            counts[g] += 1                           # count EVERY occurrence (do not dedupe)
             ffs.setdefault(g, name)                  # name may be "" (raw/USER_DEFINED)
-    return fv_guids, ffs
+    return fv_guids, ffs, counts
 
 
 def sha256_file(path):
@@ -69,9 +75,19 @@ def reconcile(sbom, fmmt_text, image_digest=None):
     declared_mod = {c["bom-ref"].lower(): c for c in comps if c.get("type") != "library"}
     declared_lib = [c for c in comps if c.get("type") == "library"]
 
-    fv_guids, ffs = parse_fmmt(fmmt_text)
+    fv_guids, ffs, guid_counts = parse_fmmt(fmmt_text)
     observed = set(ffs)
     dset = set(declared_mod)
+
+    # SHADOW-DUPLICATE GUID: a GUID that appears MORE THAN ONCE in the image. byte-integrity keys
+    # its re-hash by GUID and checks one instance, so a second (trojaned) FFS hiding under a
+    # legitimate module's FILE_GUID would slip past. A duplicate under a DECLARED GUID is the
+    # dangerous case (the shadow poses as a validated module); a duplicate under an undeclared GUID
+    # is also an integrity anomaly. Emitted so the gate's no-duplicate-guid report can DENY.
+    duplicate_guids = [
+        {"guid": g, "count": n, "name": ffs.get(g, ""), "declared": g in dset}
+        for g, n in sorted(guid_counts.items()) if n > 1
+    ]
 
     # Reconcile by GUID over ALL FFS files (named-ness is not identity).
     validated = sorted(dset & observed)
@@ -102,7 +118,7 @@ def reconcile(sbom, fmmt_text, image_digest=None):
         for g in validated if modtype(declared_mod[g]) in XIP_TYPES
     ]
 
-    clean = (len(missing) == 0 and len(suspicious) == 0)
+    clean = (len(missing) == 0 and len(suspicious) == 0 and len(duplicate_guids) == 0)
     return {
         "tool": "sbom-reconcile",
         "clean": clean,
@@ -120,9 +136,11 @@ def reconcile(sbom, fmmt_text, image_digest=None):
             "missing": len(missing),
             "added_structural": len(structural),
             "added_suspicious": len(suspicious),
+            "duplicate_guids": len(duplicate_guids),
             "modified": 0,
             "modified_skipped": len(modified_skipped),
         },
+        "duplicate_guids": duplicate_guids,
         "validated": validated,
         "missing": [{"guid": g, "name": declared_mod[g].get("name")} for g in missing],
         "added": added,

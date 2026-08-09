@@ -111,7 +111,9 @@ def _reconcile_fact(verdict_path):
     return {"clean": d.get("clean", False),
             "missing": d.get("missing", []), "added": d.get("added", []), "modified": d.get("modified", []),
             "declared": s.get("declared_modules", 0), "matched": s.get("validated", 0),
-            "missing_count": s.get("missing", 0), "undeclared_observed": s.get("added_suspicious", 0)}
+            "missing_count": s.get("missing", 0), "undeclared_observed": s.get("added_suspicious", 0),
+            "duplicate_guids": [x.get("guid") for x in d.get("duplicate_guids", [])],
+            "duplicate_count": s.get("duplicate_guids", 0)}
 
 
 def cmd_gate_input(reconcile_v, byte_v, out_path):

@@ -47,6 +47,12 @@
       "total": 311,
       "missing": [],
       "missing_count": 0
+    },
+    "osf": {
+      "evaluated": true,
+      "modules_total": 123,
+      "guid_tag_id": 123,
+      "source_hash_present": 123
     }
   },
   "attestation": {
@@ -73,7 +79,9 @@
     "declared": 123,
     "matched": 123,
     "missing_count": 0,
-    "undeclared_observed": 0
+    "undeclared_observed": 0,
+    "duplicate_guids": [],
+    "duplicate_count": 0
   },
   "cve": {
     "findings": [],

@@ -81,8 +81,10 @@
     "matched": 123,
     "missing_count": 0,
     "undeclared_observed": 0,
-    "duplicate_guids": [],
-    "duplicate_count": 0
+    "duplicate_guids": [
+      "9622e42c8e384a089e8f54f784652f6b"
+    ],
+    "duplicate_count": 1
   },
   "cve": {
     "findings": [],
@@ -106,7 +108,7 @@
     "sbom_digest": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37",
     "reconcile_digest": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37",
     "deployed_digest": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37",
-    "freshly_measured": true
+    "freshly_measured": false
   },
   "byte_integrity": {
     "ran": true,

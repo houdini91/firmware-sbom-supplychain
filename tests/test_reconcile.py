@@ -45,9 +45,28 @@ VIEW = "\n".join([
 ])
 
 # parse_fmmt
-fv, ffs = rc.parse_fmmt(VIEW)
+fv, ffs, counts = rc.parse_fmmt(VIEW)
 check("parse_fmmt: 1 FV, pad excluded, named+unnamed files kept",
       len(fv) == 1 and set(ffs) == {A, C, D} and ffs[A] == "ModuleA" and ffs[D] == "")
+check("parse_fmmt: counts every occurrence (no dedupe) — 1 each here",
+      counts[A] == 1 and counts[C] == 1 and counts[D] == 1)
+
+# SHADOW-DUPLICATE GUID: module A declared once, but present TWICE in the image (a trojan FFS
+# hiding under A's FILE_GUID). parse_fmmt must count 2, and reconcile must flag it + go NOT clean.
+DUP_VIEW = "\n".join([
+    "FvNameGuid: 11111111-1111-1111-1111-111111111111",
+    "File: %s / ModuleA" % A,
+    "File: %s / ModuleB" % B,
+    "File: %s / ModuleA-shadow" % A,   # SECOND FFS under A's GUID
+])
+_fv, _ffs, dcounts = rc.parse_fmmt(DUP_VIEW)
+check("parse_fmmt: shadow duplicate counted (A appears 2x, not collapsed)", dcounts[A] == 2)
+dv = rc.reconcile(SBOM, DUP_VIEW)
+dups = dv["duplicate_guids"]
+check("reconcile: duplicate GUID under a declared module is flagged",
+      len(dups) == 1 and dups[0]["guid"] == A and dups[0]["count"] == 2 and dups[0]["declared"] is True)
+check("reconcile: duplicate_guids summarised", dv["summary"]["duplicate_guids"] == 1)
+check("reconcile: NOT clean when a shadow-duplicate GUID is present", dv["clean"] is False)
 
 # reconcile classification
 v = rc.reconcile(SBOM, VIEW)

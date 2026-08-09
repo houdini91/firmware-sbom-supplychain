@@ -140,7 +140,8 @@
           "canonical": "component-integrity-check",
           "satisfied_by": [
             "component-integrity",
-            "component-byte-integrity"
+            "component-byte-integrity",
+            "no-duplicate-guid"
           ]
         },
         {
@@ -170,7 +171,8 @@
           "citation": "NIST SP 800-53 Rev 5 \u2014 CM-8(3)",
           "canonical": "unauthorized-component-detection",
           "satisfied_by": [
-            "reconcile-membership"
+            "reconcile-membership",
+            "no-duplicate-guid"
           ]
         },
         {

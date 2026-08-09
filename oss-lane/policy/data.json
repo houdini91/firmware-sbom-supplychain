@@ -22,6 +22,7 @@
     "_comment": "Machine-readable strength grade per verifier report, emitted on each report as evidenceGrade so a green report is never read as an unqualified proof. verified = independently re-derived from the shipped bytes or a verified signature (measurement/crypto). declared = the SBOM/attestation asserts it; we check the claim is present + well-formed, not that it is true of the running firmware. sample = CHIPSEC-derived on a QEMU/OVMF target (config-level posture, NOT hardware-rooted silicon). This is the STATIC grade; firmware.rego DOWNGRADES a 'verified' report to 'assumed' whenever the assembler marks it in input.assumed_reports — i.e. a DEV_ASSUME_* leg stood in for the real check this run (offline demo). So the offline VSA shows slsa-provenance/slsa-level-floor/provenance-identity/signer-identity-pinned/build-tools-signed/evidence-chain-bound as 'assumed', matching the loud warnings; in CI (real keyless signature + platform provenance) assumed_reports is empty and these stay 'verified'. NOTE component-integrity is 'declared' (it checks every module CARRIES a declared hash — presence); the byte re-derivation is the separate component-byte-integrity report (verified). firmware-digest-anchor is 'declared' (self-asserted anchor; the real measurement is firmware-freshly-measured=verified).",
     "reconcile": "verified",
     "reconcile-membership": "verified",
+    "no-duplicate-guid": "verified",
     "component-byte-integrity": "verified",
     "component-integrity": "declared",
     "attestation-signature": "verified",

@@ -26,7 +26,7 @@ trap 'rm -rf "$WORK"' EXIT
 for pair in "X:X-clean-vendor.json" "Y:Y-authentic-vulnerable.json" "Z:Z-tampered.json"; do
   col="${pair%%:*}"; file="${pair#*:}"
   "$OPA" eval -I -f json \
-    -d "$POLICY/firmware.rego" -d "$POLICY/data.json" -d "$POLICY/cve-allowlist.json" -d "$POLICY/initiatives.json" \
+    -d "$POLICY/firmware.rego" -d "$POLICY/data.json" -d "$POLICY/kev-catalog.json" -d "$POLICY/cve-allowlist.json" -d "$POLICY/initiatives.json" \
     'data.firmware.deploy' < "$FW/$file" \
     | python3 -c 'import json,sys; print(json.dumps(json.load(sys.stdin)["result"][0]["expressions"][0]["value"]))' \
     > "$WORK/$col.json"

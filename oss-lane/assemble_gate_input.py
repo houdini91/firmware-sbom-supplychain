@@ -666,7 +666,11 @@ def main():
                       "declared": dflt(summary, "declared_modules", 0),
                       "matched": dflt(summary, "validated", 0),
                       "missing_count": dflt(summary, "missing", 0),
-                      "undeclared_observed": dflt(summary, "added_suspicious", 0)},
+                      "undeclared_observed": dflt(summary, "added_suspicious", 0),
+                      # shadow-duplicate GUIDs: FFS files sharing one FILE_GUID (a trojan hiding
+                      # behind a legit module's identity). Names surfaced so the gate can name them.
+                      "duplicate_guids": [d.get("guid") for d in dflt(pred, "duplicate_guids", [])],
+                      "duplicate_count": dflt(summary, "duplicate_guids", 0)},
         "firmware": {"sbom_digest": fw_sbom, "reconcile_digest": fw_reconcile, "deployed_digest": fw_deployed,
                      "freshly_measured": fw_freshly_measured},
         "cve": cve_fact(env("GRYPE_JSON")),

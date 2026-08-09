@@ -1,7 +1,7 @@
 # Initiative manifests — framework → control → the verifier report(s) that satisfy it.
 #
 # This is the declarative layer over the enforcing gate (adopted from the Valint/Scribe
-# "initiative" model). The 34 always-emitted rego verifier_reports (plus firmware-freshly-measured,
+# "initiative" model). The 35 always-emitted rego verifier_reports (plus firmware-freshly-measured,
 # emitted only when a genuine flash-time FW_IMAGE measurement is supplied) stay the source of truth; this maps
 # them to framework control IDs so a run can report per-control, per-framework coverage
 # (and surface MISSING_EVIDENCE — a control whose satisfying report is absent from the VSA).
@@ -105,7 +105,7 @@ initiatives:
         description: "Perform an integrity check of the specified software/firmware at defined transitional states (here: each shipped component's bytes vs its declared hash)."
         citation: "NIST SP 800-53 Rev 5 — SI-7(1)"
         canonical: component-integrity-check
-        satisfied_by: [component-integrity, component-byte-integrity]
+        satisfied_by: [component-integrity, component-byte-integrity, no-duplicate-guid]
       - id: SI-7(15)
         name: "Code authentication by a trusted signer"
         description: "Implement cryptographic mechanisms to authenticate software/firmware before installation (a trusted, pinned signer identity)."
@@ -123,7 +123,7 @@ initiatives:
         description: "Detect the presence of unauthorized components (modules present in the image but not declared in the SBOM)."
         citation: "NIST SP 800-53 Rev 5 — CM-8(3)"
         canonical: unauthorized-component-detection
-        satisfied_by: [reconcile-membership]
+        satisfied_by: [reconcile-membership, no-duplicate-guid]
       - id: CM-14
         name: "Signed components"
         description: "Prevent installation of software/firmware components without verification that the component has been signed by a trusted source."

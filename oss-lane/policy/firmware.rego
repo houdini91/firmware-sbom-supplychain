@@ -76,6 +76,16 @@ _reconcile_membership if {
 	input.reconcile.undeclared_observed == 0
 }
 
+# SI-7(1) / CM-8(3): no shadow-duplicate FILE_GUID — no FILE_GUID appears more than once among the
+# carved FFS files. byte-integrity re-hashes ONE instance per GUID, so a second (trojaned) module
+# hiding under a legitimate module's GUID would slip past membership + byte-integrity; this closes
+# that shadow. Non-vacuous: only a claim when reconcile actually ran (declared > 0).
+default _no_duplicate_guid := false
+_no_duplicate_guid if {
+	input.reconcile.declared > 0
+	input.reconcile.duplicate_count == 0
+}
+
 # SI-7(1) / SR-4(3): byte-integrity — the shipped PE32 bytes of each CHECKED module
 # match the SBOM's declared hash (not merely "a hash is present"). This is the check
 # that catches a same-GUID trojan (a malicious module swapped in under the same
@@ -554,6 +564,11 @@ _core_reports := [
 		_reconcile_membership_msg,
 	),
 	_report(
+		"no-duplicate-guid", _no_duplicate_guid,
+		"no shadow-duplicate FILE_GUID — every carved FFS GUID appears once (no trojan hiding behind a declared module's GUID)",
+		_no_duplicate_guid_msg,
+	),
+	_report(
 		"component-integrity", _integrity_coverage,
 		"every hashable module carries a hash (or a reviewed exemption)",
 		_integrity_msg,
@@ -790,6 +805,7 @@ _remediation := {
 	"uefi-secure-boot-posture": "Provision + enforce UEFI Secure Boot (PK/KEK/db/dbx, SecureBoot=1, SetupMode=0) so CHIPSEC secureboot.variables PASSES; do not admit an image whose target does not enforce Secure Boot.",
 	"platform-protection-posture": "Fix the platform-protection gap so CHIPSEC bios_wp (flash write-protection, 800-147) and smm (SMM isolation, 800-193 §4.2.3) both PASS; a FAILED pillar is a real protection gap (bios_ts/smrr N/A on QEMU is expected).",
 	"reconcile-membership": "Reconcile the SBOM against the observed image so every declared module is present and no undeclared artifact appears; investigate any missing or suspicious module before shipping.",
+	"no-duplicate-guid": "The image carries two or more FFS files under one FILE_GUID — a shadow duplicate. Identify which instance is authentic (its bytes match the SBOM's declared hash) and remove the impostor; a second module under a declared GUID can hide from a per-GUID byte-integrity check.",
 	"osf-identity-shape": "Regenerate the embedded SBOM so every firmware module carries its FILE_GUID as a GUID-form tag-id (the OSF Firmware Embedded SBOM identity MUST); a module without a GUID tag-id cannot be identity-anchored and must not ship.",
 }
 
@@ -799,6 +815,17 @@ _provenance_msg := sprintf(
 	"built outside trusted builder/source: builder=%q source=%q",
 	[object.get(input, ["provenance", "builder_id"], ""), object.get(input, ["provenance", "source_repo"], "")],
 )
+
+# no-duplicate-guid: absent-input guard, then the shadow-duplicate finding (name the GUIDs).
+default _no_duplicate_guid_msg := "reconcile evidence absent or empty (declared=0) — cannot check for shadow-duplicate GUIDs"
+
+_no_duplicate_guid_msg := sprintf(
+	"shadow-duplicate FILE_GUID(s) — %d GUID(s) appear more than once in the image: %v — a byte-integrity check hashes one instance per GUID, so a second module hiding under a declared module's GUID would slip past. Investigate before shipping.",
+	[object.get(input, ["reconcile", "duplicate_count"], 0), sort(object.get(input, ["reconcile", "duplicate_guids"], []))],
+) if {
+	input.reconcile.declared > 0
+	input.reconcile.duplicate_count > 0
+}
 
 _cve_msg := "no CVE scan supplied (cve.scanned=false) — cannot assert 'no un-triaged critical CVEs'; a firmware that was never scanned is MISSING this evidence, not clean" if not input.cve.scanned
 

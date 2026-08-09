@@ -8,7 +8,7 @@ built OVMF image. Section 5 (the same-GUID trojan) is self-contained — it runs
 
 ## 1. The gate ALLOWs a clean release — 34 signed checks, each tagged with the control it earns
 
-A fixture carrying complete, valid evidence: the gate ANDs the **34 always-emitted** verifier reports
+A fixture carrying complete, valid evidence: the gate ANDs the **35 always-emitted** verifier reports
 and signs the VSA. On this reference release a 26th fires — `osf-source-provenance` — the conditional
 advisory report that appears only when every module carries a source hash (as the `-Y SBOM` generator
 now emits); it is non-gating, so a build without source hashes simply omits it.
@@ -201,7 +201,7 @@ RESULT: same-GUID byte swap — reconcile-membership PASSED, component-byte-inte
 ```
 
 The `… (19 other reports, all ✅) …` lines are the only elision — `make attack-demo`
-prints all 34 verifier reports in full both times. **The crux is the contrast:**
+prints all 35 verifier reports in full both times. **The crux is the contrast:**
 `reconcile-membership` PASSES the swap in both runs (the GUID is present); only
 `component-byte-integrity` flips from ✅ to ⛔, and that flip is what turns the gate's
 verdict from ALLOW to DENY.

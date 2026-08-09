@@ -27,6 +27,7 @@ expect swapped-sbom.json   deny
 expect unverified-provenance.json deny
 expect chipsec-fail.json    deny
 expect reconcile-mismatch.json deny
+expect duplicate-guid.json      deny
 expect unhashed-module.json deny
 expect high-unadjudicated.json deny
 expect thirdparty-missing.json deny

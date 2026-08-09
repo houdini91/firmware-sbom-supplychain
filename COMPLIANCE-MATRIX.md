@@ -12,8 +12,8 @@ result and is recorded here deliberately, not hidden.
 
 - **Gated** means the report is one of the `verifier_reports` ANDed into `allow`
   (`allow if { every r in verifier_reports { r.isSuccess } }`, `firmware.rego`). A clean release
-  emits **34** (33 unconditional core + the conditional `osf-source-provenance`, present when the
-  `-Y SBOM` carries a source hash); `firmware-freshly-measured` is the conditional 35th, emitted
+  emits **35** (34 unconditional core + the conditional `osf-source-provenance`, present when the
+  `-Y SBOM` carries a source hash); `firmware-freshly-measured` is the conditional 36th, emitted
   only when a real image is measured. If any gated report is `isSuccess:false`, the gate DENYs.
 - **Three-state per control** (`verify-initiative.py`): a control is **PASS** only when
   *every* report in its `satisfied_by` list is present **and** green; **FAIL** if a
@@ -117,11 +117,11 @@ coding), PW.7 (human code review), PW.8 (testing), PW.9 (secure-by-default confi
 | Control | Gated report(s) | Evidence read | Clean |
 |---|---|---|---|
 | SI-7 | `reconcile-membership`, `component-integrity` | every declared module observed; every hashable module hashed | ✅ |
-| SI-7(1) | `component-integrity`, `component-byte-integrity` | integrity checks over components; shipped bytes match declared hash | ✅ |
+| SI-7(1) | `component-integrity`, `component-byte-integrity`, `no-duplicate-guid` | integrity checks over components; shipped bytes match declared hash; no shadow-duplicate FILE_GUID | ✅ |
 | SI-7(15) | `signer-identity-pinned` | code authenticated by a trusted keyless signer (SAN allowlist) | ✅ |
 | SI-16 | `binary-hardening` | W^X-ready modules (declared NX_COMPAT posture) | ✅ |
 | CM-8 | `sbom-present`, `reconcile-membership`, `component-integrity` | component inventory exists, complete, hashed | ✅ |
-| CM-8(3) | `reconcile-membership` | unauthorized-component detection (no undeclared artifact in the image) | ✅ |
+| CM-8(3) | `reconcile-membership`, `no-duplicate-guid` | unauthorized-component detection (no undeclared artifact; no second FFS hiding under a declared module's FILE_GUID) | ✅ |
 | CM-14 | `signer-identity-pinned` | signed components | ✅ |
 | SR-4 | `slsa-level-floor` | provenance | ✅ |
 | SR-4(3) | `slsa-level-floor`, `evidence-chain-bound`, `reconcile-membership`, `firmware-digest-anchor`, `component-byte-integrity` | validate genuine + not altered, end to end | ✅ |

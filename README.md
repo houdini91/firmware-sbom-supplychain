@@ -129,7 +129,7 @@ the verdict travels with the bytes and anyone downstream can re-verify it.
     "verificationResult": "PASSED",
     "verifiedLevels": ["SLSA_BUILD_LEVEL_0"],   // ← the firmware SUBJECT's own build level is not verified
     "evidenceBuildLevel": "SLSA_BUILD_LEVEL_2", // ← the SBOM/attestation artifact's provenance IS L2 (scoped, not on the firmware)
-    "verifierReports":     [ /* 34 per-rule observations (always-emitted), each framework-tagged */ ],   // extension
+    "verifierReports":     [ /* 35 per-rule observations (always-emitted), each framework-tagged */ ],   // extension
     "controlAssessments":  [ /* 46 per-control findings across 8 frameworks, each cited */ ] // extension
   }
 }
@@ -137,7 +137,7 @@ the verdict travels with the bytes and anyone downstream can re-verify it.
 
 ## Framework &amp; control coverage
 
-34 always-emitted verifier reports resolve to **46 controls across 8 frameworks**.
+35 always-emitted verifier reports resolve to **46 controls across 8 frameworks**.
 
 Not every ✅ is equally strong: each report carries a machine-readable **`evidenceGrade`**, and the
 coverage tool prints a control's **weakest-link** grade. Of the 45 satisfied controls on an as-if-CI
@@ -191,7 +191,7 @@ make demo      # the full OSS lane end to end (needs cosign + grype)
 the byte-integrity un-rebase test). The **coSWID round-trip and the PEI/XIP BUG-1 regression need
 python-uswid** and only *run* under `make test-full` — under plain `make test` they are honestly skipped, not
 silently passed. The gate itself is
-[`oss-lane/policy/firmware.rego`](oss-lane/policy/firmware.rego) — **34 verifier reports** (plus a conditional 35th, `firmware-freshly-measured`) ANDed into a signed
+[`oss-lane/policy/firmware.rego`](oss-lane/policy/firmware.rego) — **35 verifier reports** (plus a conditional 36th, `firmware-freshly-measured`) ANDed into a signed
 SLSA VSA, each with an isolating negative fixture under [`oss-lane/fixtures/`](oss-lane/fixtures).
 
 A clean release ALLOWs; a same-GUID swap DENYs — the byte check catches what membership misses. **Real captured

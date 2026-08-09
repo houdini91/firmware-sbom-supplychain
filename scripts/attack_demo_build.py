@@ -127,7 +127,8 @@ def cmd_gate_input(verdict_path, out_path):
     base = json.load(open(os.path.join(ROOT, "oss-lane", "fixtures", "clean.json")))
     base["sbom"]["integrity"] = {"hashable_total": 1, "hashed": 1, "unhashed": [], "dxe_class_total": 1}
     base["reconcile"] = {"clean": True, "missing": [], "added": [], "modified": [],
-                         "declared": 1, "matched": 1, "missing_count": 0, "undeclared_observed": 0}
+                         "declared": 1, "matched": 1, "missing_count": 0, "undeclared_observed": 0,
+                         "duplicate_guids": [], "duplicate_count": 0}
     base["binary_hardening"] = {"ran": True, "dxe_class_checked": 1, "dxe_nx_compat": 1,
                                 "missing_nx_count": 0, "errored_count": 0, "unverifiable": []}
     base["byte_integrity"] = _byte_integrity_fact(verdict_path)
