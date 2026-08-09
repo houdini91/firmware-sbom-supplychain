@@ -4,8 +4,8 @@
 
 ***Prove a firmware image ships the exact code its signed bill of materials declares — and block a same-GUID trojan that signatures and inventories miss.***
 
-[![supply-chain](https://github.com/houdini91/firmware-sbom-supplychain/actions/workflows/supply-chain.yml/badge.svg)](https://github.com/houdini91/firmware-sbom-supplychain/actions/workflows/supply-chain.yml)
-[![pr-checks](https://github.com/houdini91/firmware-sbom-supplychain/actions/workflows/pr-checks.yml/badge.svg)](https://github.com/houdini91/firmware-sbom-supplychain/actions/workflows/pr-checks.yml)
+[![supply-chain](https://github.com/houdini91/firmware-sbom-supplychain/actions/workflows/supply-chain.yml/badge.svg?branch=main)](https://github.com/houdini91/firmware-sbom-supplychain/actions/workflows/supply-chain.yml)
+[![pr-checks](https://github.com/houdini91/firmware-sbom-supplychain/actions/workflows/pr-checks.yml/badge.svg?branch=main)](https://github.com/houdini91/firmware-sbom-supplychain/actions/workflows/pr-checks.yml)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/houdini91/firmware-sbom-supplychain/badge)](https://scorecard.dev/viewer/?uri=github.com/houdini91/firmware-sbom-supplychain)
 ![SLSA VSA](https://img.shields.io/badge/SLSA-VSA%20signed-0d9488)
 ![frameworks](https://img.shields.io/badge/8%20frameworks-46%20controls-475569)
