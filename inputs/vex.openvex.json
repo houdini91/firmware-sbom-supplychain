@@ -1,6 +1,6 @@
 {
   "@context": "https://openvex.dev/ns/v0.2.0",
-  "@id": "https://github.com/houdini91/firmware-sbom-supplychain/vex/ovmf-firmware",
+  "@id": "https://github.com/houdini91/uefi-supply-chain/vex/ovmf-firmware",
   "author": "houdini91",
   "role": "Firmware SBOM maintainer",
   "timestamp": "2026-07-30T00:00:00Z",

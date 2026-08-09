@@ -6,18 +6,18 @@ name: release
 # bundle as release assets. That makes the release independently verifiable:
 #
 #   cosign verify-blob \
-#     --certificate firmware-sbom-supplychain-<tag>.tar.gz.crt \
-#     --signature   firmware-sbom-supplychain-<tag>.tar.gz.sig \
-#     --certificate-identity-regexp 'https://github.com/houdini91/firmware-sbom-supplychain/.*' \
+#     --certificate uefi-supply-chain-<tag>.tar.gz.crt \
+#     --signature   uefi-supply-chain-<tag>.tar.gz.sig \
+#     --certificate-identity-regexp 'https://github.com/houdini91/uefi-supply-chain/.*' \
 #     --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-#     firmware-sbom-supplychain-<tag>.tar.gz
+#     uefi-supply-chain-<tag>.tar.gz
 #
 # It also generates SLSA build provenance (actions/attest-build-provenance) for the
 # tarball and ships the in-toto bundle (<artifact>.intoto.jsonl) as a release asset, so
 # consumers can verify what built the artifact and where:
 #
-#   gh attestation verify firmware-sbom-supplychain-<tag>.tar.gz \
-#     --repo houdini91/firmware-sbom-supplychain
+#   gh attestation verify uefi-supply-chain-<tag>.tar.gz \
+#     --repo houdini91/uefi-supply-chain
 #
 # That provenance is what takes OpenSSF Scorecard's Signed-Releases check from 8 → 10
 # (signed + provenance). All actions pinned by commit SHA.
@@ -54,9 +54,9 @@ jobs:
       - name: Build a reproducible source tarball
         run: |
           set -euo pipefail
-          ART="firmware-sbom-supplychain-${TAG}.tar.gz"
+          ART="uefi-supply-chain-${TAG}.tar.gz"
           # git archive is deterministic (no timestamps/uid) for a given tree.
-          git archive --format=tar.gz --prefix="firmware-sbom-supplychain-${TAG}/" -o "$ART" "$TAG"
+          git archive --format=tar.gz --prefix="uefi-supply-chain-${TAG}/" -o "$ART" "$TAG"
           sha256sum "$ART" | tee "$ART.sha256"
           echo "ART=$ART" >> "$GITHUB_ENV"
 

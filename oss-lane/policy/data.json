@@ -1,7 +1,7 @@
 {
   "expected": {
-    "builder_id": "https://github.com/houdini91/firmware-sbom-supplychain/.github/workflows/supply-chain.yml@refs/heads/main",
-    "source_repo": "https://github.com/houdini91/firmware-sbom-supplychain"
+    "builder_id": "https://github.com/houdini91/uefi-supply-chain/.github/workflows/supply-chain.yml@refs/heads/main",
+    "source_repo": "https://github.com/houdini91/uefi-supply-chain"
   },
   "hash_exempt": {
     "ResetVector": "Raw reset-vector blob (SEC reset vector), not a PE/COFF image, so the GenFw --rebase 0 canonical-hash path does not apply. Explicit reviewed exemption for the component-integrity rule, not a silent pass. Reviewer: houdini91, 2026-08-02."
@@ -13,7 +13,7 @@
     "_comment": "Reviewed exemptions for the binary-hardening gate \u2014 {\"ModuleName\": \"reason a DXE-class module genuinely cannot be scanned (e.g. a TE-only or compressed section) + reviewer + date\"}. Only DXE-class modules that could NOT be scanned are eligible; a missing-NX finding is a regression and is NEVER exemptable. EMPTY today: the reference build scans all declared DXE-class modules. Added ONLY after human review; anything un-scannable and NOT listed here fails the gate and is named."
   },
   "trusted_signer_identities": [
-    "https://github.com/houdini91/firmware-sbom-supplychain/.github/workflows/supply-chain.yml@refs/heads/main"
+    "https://github.com/houdini91/uefi-supply-chain/.github/workflows/supply-chain.yml@refs/heads/main"
   ],
   "kev_waivers": {
     "_comment": "Explicit EXEC-RISK VEX waivers for KEV findings \u2014 {\"CVE-...\": \"why this KEV CVE is not exploitable in THIS firmware, with reviewer+date\"}. This is SEPARATE from data.cve_allowlist: a plain not_affected there does NOT silence a KEV. A KEV entry is waived ONLY by a reviewed exec-risk justification here. EMPTY today."

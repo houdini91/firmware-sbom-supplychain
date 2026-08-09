@@ -86,4 +86,4 @@ Membership + byte-integrity are enforced; TE-format/compressed module sections a
 attestation are out of scope. Firmware-derived evidence is produced offline against the real `.fd` and consumed
 (not regenerated) by CI. Offline `DEV_ASSUME_*` opt-ins are loudly warned and never set in CI.
 
-[0.1.0]: https://github.com/houdini91/firmware-sbom-supplychain/releases/tag/v0.1.0
+[0.1.0]: https://github.com/houdini91/uefi-supply-chain/releases/tag/v0.1.0

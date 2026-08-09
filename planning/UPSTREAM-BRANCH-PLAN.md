@@ -15,7 +15,7 @@ research tree is operator-side and stays out. Ground truth from the repos on dis
 | In-tree form of it | edk2 fork PR #6 (`houdini91/edk2`, **remote — not on this machine**) | **YES** — the actual PR vehicle |
 | `validate.py`, `spdx_add_creator.py` | `edk2-sbom/` | Maybe (see §3) |
 | `reconcile.py` (consumer-side, needs `uefi-firmware-parser`) | `edk2-sbom/reconcile.py` | **NO** — operator-side |
-| byte-integrity, gate, VSA, two lanes, CHIPSEC, interop | `firmware-sbom-supplychain/` | **NO** — operator-side reference repo, MIT, never proposed upstream |
+| byte-integrity, gate, VSA, two lanes, CHIPSEC, interop | `uefi-supply-chain/` | **NO** — operator-side reference repo, MIT, never proposed upstream |
 
 **Critical grounding note:** the generator exists in **two forms** and they are not obviously in sync:
 1. A standalone, stdlib-only prototype at `edk2-sbom/` — **not a git repo** (no `.git`), licensed
@@ -68,7 +68,7 @@ Each commit: builds clean, one concern, imperative subject prefixed `BaseTools:`
   operator repo has demo keys on disk (`oss-lane/.keys/`, `valint-lane/.keys/*.pem`, `.key`/`.pub`).
   They are `.gitignore`d there; make sure none are copied into the edk2 branch.
 - **Personal/portfolio framing** — no "portfolio", no role-application or employer-submission language, no
-  `firmware-sbom-supplychain` repo URL in commit messages or the PR body. Cite only public #10507.
+  `uefi-supply-chain` repo URL in commit messages or the PR body. Cite only public #10507.
 
 ## 4. Licensing & DCO (edk2 hard requirements)
 
@@ -95,7 +95,7 @@ Each commit: builds clean, one concern, imperative subject prefixed `BaseTools:`
 - [ ] Every new file: `BSD-2-Clause-Patent` header + copyright line.
 - [ ] Every commit: `git commit -s` sign-off, real identity, `BaseTools:` subject prefix.
 - [ ] Exclusion list (§3) verified — grep the branch for `valint`, `reconcile`, `.pem`, `.key`, MIT,
-      `firmware-sbom-supplychain`, `portfolio` → zero hits.
+      `uefi-supply-chain`, `portfolio` → zero hits.
 - [ ] Patch series generated with `git format-patch` / `git send-email --dry-run`, maintainers from
       `Maintainers.txt` confirmed current.
 - [ ] The #10507 comment text finalized (one draft chosen, not both) and its claims reconciled.

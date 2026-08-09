@@ -64,8 +64,8 @@
     "identity": "https://github.com/evil/repo/.github/workflows/x.yml@refs/heads/main"
   },
   "provenance": {
-    "builder_id": "https://github.com/houdini91/firmware-sbom-supplychain/.github/workflows/supply-chain.yml@refs/heads/main",
-    "source_repo": "https://github.com/houdini91/firmware-sbom-supplychain",
+    "builder_id": "https://github.com/houdini91/uefi-supply-chain/.github/workflows/supply-chain.yml@refs/heads/main",
+    "source_repo": "https://github.com/houdini91/uefi-supply-chain",
     "slsa_verified": true,
     "slsa_level": 2,
     "file_subject": "sha256:3b1f0a9c8e2d4b6a7c5e9f01234567890abcdef1122334455667788990011aabb",

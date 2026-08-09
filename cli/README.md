@@ -37,7 +37,7 @@ tool assumes nothing), pass the cosign bundle and, ideally, the expected signer:
 ```
 fw-supplychain-verify --firmware OVMF.fd --vsa vsa.intoto.json \
   --verify-bundle vsa.sig.bundle \
-  --signer-identity https://github.com/houdini91/firmware-sbom-supplychain/.github/workflows/supply-chain.yml@refs/heads/main
+  --signer-identity https://github.com/houdini91/uefi-supply-chain/.github/workflows/supply-chain.yml@refs/heads/main
 ```
 
 A missing cosign, a bad signature, or an identity mismatch is a hard error.

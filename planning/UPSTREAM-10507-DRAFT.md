@@ -75,7 +75,7 @@ there's interest in the `-Y SBOM` direction. Thanks for reading.
 
 - **No repo link is hard-coded to the personal verification repo.** Per `DESIGN.md` ("Reference
   topology"), upstream-bound text should cite only the public anchor #10507 and the edk2 fork PR, never
-  the personal `firmware-sbom-supplychain` repo. Add the fork PR link (`houdini91/edk2` PR #6) only when
+  the personal `uefi-supply-chain` repo. Add the fork PR link (`houdini91/edk2` PR #6) only when
   that PR is confirmed reviewable + CI-considered (see branch plan). Do **not** paste the operator-repo URL.
 - **The reconcile/byte-integrity work is mentioned in one sentence, as motivation, not as a deliverable.**
   That matches the who-does-what boundary in `DESIGN.md`. Resist expanding it — see `UPSTREAM-RISKS.md`

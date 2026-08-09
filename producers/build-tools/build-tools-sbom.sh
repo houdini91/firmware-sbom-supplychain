@@ -43,7 +43,7 @@ jq -n --argjson actions "$actions" --argjson tools "$tools" --arg ts "$(date -u 
   bomFormat:"CycloneDX", specVersion:"1.6", version:1,
   metadata:{
     timestamp:$ts,
-    component:{ type:"application", name:"firmware-sbom-supplychain-pipeline",
+    component:{ type:"application", name:"uefi-supply-chain-pipeline",
                 "bom-ref":"pipeline", description:"CI toolchain that builds & verifies the firmware SBOM" },
     properties:[{name:"sbom:kind", value:"build-tools"}]
   },

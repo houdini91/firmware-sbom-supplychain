@@ -1,4 +1,4 @@
-# firmware-sbom-supplychain — entry points.
+# uefi-supply-chain — entry points.
 # `make help` lists targets. The self-contained targets (test, coverage) need
 # only opa + jq + python3(+PyYAML); the full demo also needs cosign + grype.
 

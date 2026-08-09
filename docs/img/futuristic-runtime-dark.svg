@@ -12,7 +12,7 @@
   <text x="40" y="86" font-size="12" font-weight="700" fill="#2dd4bf">ADMISSION TIME &#8212; artifacts at rest (implemented today)</text>
   <g font-size="12">
     <rect x="40" y="96" width="185" height="60" rx="10" fill="#94a3b8" fill-opacity="0.06" stroke="#94a3b8" stroke-width="1.5"/>
-    <text x="132" y="122" text-anchor="middle" font-weight="600" fill="#e2e8f0">Build image</text>
+    <text x="132" y="122" text-anchor="middle" font-weight="600" fill="#e2e8f0">Build firmware</text>
     <text x="132" y="140" text-anchor="middle" font-size="10.5" fill="#64748b">+ generate SBOM</text>
     <rect x="245" y="96" width="185" height="60" rx="10" fill="#94a3b8" fill-opacity="0.06" stroke="#94a3b8" stroke-width="1.5"/>
     <text x="337" y="122" text-anchor="middle" font-weight="600" fill="#e2e8f0">Sign + verify</text>

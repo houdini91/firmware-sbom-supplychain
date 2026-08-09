@@ -6,7 +6,7 @@ supply-chain integrity, so security reports are very welcome and taken seriously
 
 ## Reporting a vulnerability
 
-- **Preferred:** open a [GitHub private security advisory](https://github.com/houdini91/firmware-sbom-supplychain/security/advisories/new)
+- **Preferred:** open a [GitHub private security advisory](https://github.com/houdini91/uefi-supply-chain/security/advisories/new)
   (Security → Report a vulnerability). This keeps the report private until a fix is ready.
 - Please include: what's affected (file/function), how to reproduce, and the impact (e.g. "the gate can be made
   to ALLOW a tampered image because …").

@@ -1131,9 +1131,9 @@ control_assessments := [ca |
 # that same detail as an ADDITIONAL CDXA/SARIF attestation — another format over the
 # same engine + data, not a replacement (see planning/A2-A4-PLAN.md).
 vsa_predicate := {
-	"verifier": {"id": "https://github.com/houdini91/firmware-sbom-supplychain/oss-lane"},
+	"verifier": {"id": "https://github.com/houdini91/uefi-supply-chain/oss-lane"},
 	"resourceUri": object.get(input, ["artifact", "uri"], "firmware-sbom-attestation"),
-	"policy": {"uri": "https://github.com/houdini91/firmware-sbom-supplychain/blob/main/oss-lane/policy/firmware.rego"},
+	"policy": {"uri": "https://github.com/houdini91/uefi-supply-chain/blob/main/oss-lane/policy/firmware.rego"},
 	"verificationResult": _result,
 	# verifiedLevels applies to THIS VSA's subject — the firmware image D. The firmware's own
 	# build level is NOT verified (it is not built on a SLSA hosted builder), so the honest

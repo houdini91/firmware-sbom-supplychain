@@ -6,7 +6,7 @@
     "publisher": {
       "category": "vendor",
       "name": "houdini91",
-      "namespace": "https://github.com/houdini91/firmware-sbom-supplychain/vex/ovmf-firmware"
+      "namespace": "https://github.com/houdini91/uefi-supply-chain/vex/ovmf-firmware"
     },
     "tracking": {
       "id": "ovmf-firmware",
