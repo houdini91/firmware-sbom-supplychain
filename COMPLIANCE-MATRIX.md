@@ -248,6 +248,16 @@ controls upstream of the artifact this gate inspects.
   platform (`oss-lane/fixtures/chipsec-provisioned.json`). On an enrolled image
   `uefi-secure-boot-posture` is graded **verified** — a real varstore read, not a sample; a FAILED
   Secure Boot state on such a platform DENYs (`oss-lane/fixtures/chipsec-sb-failed.json`).
+- **Real red→green, on real firmware.** `oss-lane/fixtures/secboot-profile.json` is not synthetic: it
+  is a real OVMF rebuilt with `-D SECURE_BOOT_ENABLE` (image digest D′=`e8222a8e…`, distinct from the
+  DEBUG baseline `7965c317…`), Microsoft keys enrolled, **booted in QEMU and confirmed enforcing**
+  (`SetupMode=0`, `SecureBoot=1`, `SecureBootConfigDxe` loaded, and — unlike the baseline — **zero**
+  `AuthVariableLibInitialize() returns Unsupported`). Its evidence is re-derived by the real producers
+  against D′ (reconcile 120/120, byte-integrity 119/119, real leg-3 measurement of D′), and the gate
+  emits `✅ uefi-secure-boot-posture PASSED`. So the same real producer reports **advisory-MISSING** on
+  the un-provisioned baseline and **verified-PASSED** on the provisioned build — a measured red→green,
+  no faked values. The hardware-rooted checks (bios_wp/smm/spi/smrr/bios_ts) stay "verify on silicon"
+  even here — see [ADR 0001](docs/adr/0001-chipsec-is-a-deploy-time-collection-point.md).
 - **The authenticated BIOS-update mechanism — the core of 800-147 — is NOT assessed.** 800-147
   is primarily about a *signed capsule / authenticated update* path; we gate the
   flash-write-protection and Secure-Boot-enforcement pillars, not the update-authentication

@@ -1,0 +1,145 @@
+{
+  "sbom": {
+    "present": true,
+    "hash": "sha256:ee41fc0fd2db0f4fb2f93f2e77f60f6b844ac7121ef3716b64a5379f185c3c93",
+    "integrity": {
+      "hashable_total": 120,
+      "hashed": 119,
+      "unhashed": [
+        "ResetVector"
+      ],
+      "dxe_class_total": 107
+    },
+    "thirdparty": {
+      "total": 1,
+      "missing": []
+    },
+    "generation": {
+      "tool_present": true,
+      "context_present": true
+    },
+    "osf": {
+      "evaluated": true,
+      "modules_total": 120,
+      "guid_tag_id": 120,
+      "source_hash_present": 120
+    },
+    "baseline": {
+      "author_present": true,
+      "timestamp_present": true,
+      "supplier_present": true
+    },
+    "dependencies": {
+      "present": true,
+      "edges": 2809,
+      "dangling_count": 0,
+      "dangling": [],
+      "has_composition": true
+    },
+    "data_quality": {
+      "purl_checked": 1,
+      "purl_invalid": 0,
+      "bad_purls": [],
+      "license_checked": 302,
+      "license_invalid": 0,
+      "bad_licenses": []
+    },
+    "identity": {
+      "serial_present": true,
+      "completeness_declared": true,
+      "aggregate": "incomplete"
+    },
+    "component_supplier": {
+      "total": 302,
+      "missing": [],
+      "missing_count": 0
+    }
+  },
+  "attestation": {
+    "file_subject": "sha256:ee41fc0fd2db0f4fb2f93f2e77f60f6b844ac7121ef3716b64a5379f185c3c93",
+    "firmware_subject": "sha256:e8222a8e394e21d211fbebef8a3c2574cceb6d668122d50e8bafeb913bf62aa3"
+  },
+  "signature": {
+    "verified": true,
+    "identity": "https://github.com/houdini91/firmware-sbom-supplychain/.github/workflows/supply-chain.yml@refs/heads/main"
+  },
+  "provenance": {
+    "builder_id": "https://github.com/houdini91/firmware-sbom-supplychain/.github/workflows/supply-chain.yml@refs/heads/main",
+    "source_repo": "https://github.com/houdini91/firmware-sbom-supplychain",
+    "source_commit": "git:9782024c999826b5bfb98f094c593c9c4b1f74f4",
+    "slsa_verified": true,
+    "slsa_level": 2,
+    "file_subject": "sha256:ee41fc0fd2db0f4fb2f93f2e77f60f6b844ac7121ef3716b64a5379f185c3c93",
+    "firmware_subject": "sha256:e8222a8e394e21d211fbebef8a3c2574cceb6d668122d50e8bafeb913bf62aa3"
+  },
+  "reconcile": {
+    "clean": true,
+    "missing": [],
+    "added": [
+      {
+        "guid": "1b45cc0a-156a-428a-af62-49864da0e6e6",
+        "ffs_type": "apriori / FV structure",
+        "classification": "structural"
+      },
+      {
+        "guid": "9e21fd93-9c72-4c15-8c4b-e77f1db2d792",
+        "ffs_type": "apriori / FV structure",
+        "classification": "structural"
+      },
+      {
+        "guid": "fc510ee7-ffdc-11d4-bd41-0080c73c8881",
+        "ffs_type": "apriori / FV structure",
+        "classification": "structural"
+      }
+    ],
+    "modified": [],
+    "declared": 120,
+    "matched": 120,
+    "missing_count": 0,
+    "undeclared_observed": 0,
+    "duplicate_guids": [],
+    "duplicate_count": 0
+  },
+  "firmware": {
+    "sbom_digest": "sha256:e8222a8e394e21d211fbebef8a3c2574cceb6d668122d50e8bafeb913bf62aa3",
+    "reconcile_digest": "sha256:e8222a8e394e21d211fbebef8a3c2574cceb6d668122d50e8bafeb913bf62aa3",
+    "deployed_digest": "sha256:e8222a8e394e21d211fbebef8a3c2574cceb6d668122d50e8bafeb913bf62aa3",
+    "freshly_measured": true
+  },
+  "cve": {
+    "scanned": true,
+    "findings": []
+  },
+  "chipsec": {
+    "critical_passed": true,
+    "secure_boot": "PASSED",
+    "smm": "NOTAPPLICABLE",
+    "bios_wp": "NOTAPPLICABLE",
+    "bios_ts": "NOTAPPLICABLE",
+    "smrr": "NOTAPPLICABLE"
+  },
+  "byte_integrity": {
+    "ran": true,
+    "checked": 119,
+    "verified": 119,
+    "modified_count": 0,
+    "modified": [],
+    "unverifiable": [],
+    "skipped_count": 0
+  },
+  "binary_hardening": {
+    "ran": true,
+    "dxe_class_checked": 107,
+    "dxe_nx_compat": 107,
+    "missing_nx_count": 0,
+    "missing_nx": [],
+    "errored_count": 0,
+    "unverifiable": []
+  },
+  "build_tools": {
+    "present": true,
+    "signature_verified": true,
+    "all_pinned": true,
+    "unpinned": []
+  }
+}
