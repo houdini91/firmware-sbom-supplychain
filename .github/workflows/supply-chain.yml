@@ -100,6 +100,48 @@ jobs:
             echo "sig=false" >> "$GITHUB_OUTPUT"
           fi
 
+      # SECURITY: byte-integrity + binary-hardening were the ONLY image-derived verdicts NOT wrapped
+      # in a signed, firmware-D-anchored attestation — so an attacker with inputs/ write access but no
+      # signing key could rewrite byte-integrity.json to modified:0 for a trojaned image and the gate
+      # believed it. Sign them the SAME way as reconcile: a MULTI-SUBJECT Statement (subject #1
+      # firmware-image=D, subject #2 the verdict file's own H), attest-blob --statement signs it AS-IS.
+      # LEGACY bundle format on purpose (NO --new-bundle-format), exactly like the reconcile bundle: the
+      # shared assembler decodes this DSSE payload directly to read subject #1 (firmware D) + the verdict
+      # predicate, and reads the verdict FROM the signed bundle — never the loose inputs/*.json.
+      - name: Keyless attest byte-integrity + binary-hardening (subjects = firmware D + file H)
+        run: |
+          D="${{ steps.anchor.outputs.d }}"
+          BI_TYPE=https://firmware-sbom-supplychain/byte-integrity/v1
+          BH_TYPE=https://firmware-sbom-supplychain/binary-hardening/v1
+
+          ./producers/wrap.sh inputs/byte-integrity.json "$BI_TYPE" "$D" \
+            inputs/byte-integrity.json byte-integrity.json > inputs/byte-integrity.intoto.json
+          cosign attest-blob --yes \
+            --statement inputs/byte-integrity.intoto.json \
+            --bundle inputs/byte-integrity.att.bundle
+
+          ./producers/wrap.sh inputs/binary-hardening.json "$BH_TYPE" "$D" \
+            inputs/binary-hardening.json binary-hardening.json > inputs/binary-hardening.intoto.json
+          cosign attest-blob --yes \
+            --statement inputs/binary-hardening.intoto.json \
+            --bundle inputs/binary-hardening.att.bundle
+
+          # Standalone verifies (no `&&`) so a tampered bundle exits non-zero and FAILS the pipeline.
+          # --check-claims=false: subject #1 is the firmware image D, whose bytes are not present in CI
+          # (see DEV_ASSUME_FWIMAGE) — signature + keyless identity are still fully verified.
+          cosign verify-blob-attestation \
+            --certificate-identity "$BUILDER_ID" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            --type "$BI_TYPE" \
+            --check-claims=false --bundle inputs/byte-integrity.att.bundle
+          echo "✓ verified inputs/byte-integrity.att.bundle (subjects: firmware D + file H)"
+          cosign verify-blob-attestation \
+            --certificate-identity "$BUILDER_ID" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            --type "$BH_TYPE" \
+            --check-claims=false --bundle inputs/binary-hardening.att.bundle
+          echo "✓ verified inputs/binary-hardening.att.bundle (subjects: firmware D + file H)"
+
       # E1 (SBOM) + E4 (VEX) + E10 (CHIPSEC): wrap each as a MULTI-SUBJECT DSSE in-toto attestation
       # — subject #1 firmware-image=D (the shared evidence-graph anchor), subject #2 = that evidence
       # file's own digest H (tamper-after-signing). --new-bundle-format (Sigstore bundle) — these are
@@ -181,6 +223,8 @@ jobs:
           BUILDER_ID="$BUILDER_ID" SOURCE_REPO="$SOURCE_REPO" \
           SLSA_VERIFIED=true \
           CHIPSEC_JSON=inputs/chipsec.json \
+          BYTE_INTEGRITY_BUNDLE=inputs/byte-integrity.att.bundle \
+          BINARY_HARDENING_BUNDLE=inputs/binary-hardening.att.bundle \
           BYTE_INTEGRITY_JSON=inputs/byte-integrity.json \
           BINARY_HARDENING_JSON=inputs/binary-hardening.json \
           BUILD_TOOLS_JSON=inputs/build-tools.cdx.json BUILD_TOOLS_SIG=true \
@@ -203,7 +247,7 @@ jobs:
           # attestation (the evidence graph rooted at D). The digests are only known now (after
           # each blob was signed), so they are injected here rather than by the offline gate.
           inputs_json="$(
-            for b in sbom.cdx.att.bundle sbom.att.bundle vex.att.bundle chipsec.att.bundle build-tools.att.bundle; do
+            for b in sbom.cdx.att.bundle sbom.att.bundle vex.att.bundle chipsec.att.bundle build-tools.att.bundle byte-integrity.att.bundle binary-hardening.att.bundle; do
               [ -f "inputs/$b" ] || continue
               d="$(sha256sum "inputs/$b" | cut -d' ' -f1)"
               jq -n --arg u "inputs/$b" --arg d "$d" '{uri:$u, digest:{sha256:$d}}'

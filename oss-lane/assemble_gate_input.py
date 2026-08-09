@@ -372,19 +372,31 @@ def cve_fact(path):
     return {"scanned": scanned, "findings": cve_findings(path)}
 
 
-def byte_integrity_fact(path):
-    """R4: fold the byte-integrity producer's verdict into a gate fact. ran=False
-    when no image+edk2 was available to the producer (distinct from a clean run).
-    Surfaces skipped_count so the gate can refuse a vacuous pass (all modules
-    skipped / nothing verified) — a skip is NOT a pass."""
-    absent = {"ran": False, "checked": 0, "verified": 0, "modified_count": 0,
-              "skipped_count": 0, "unverifiable": []}
-    if not (path and os.path.isfile(path)):
-        return absent
-    try:
-        d = load_json(path)
-    except ValueError:
-        return absent
+def signed_predicate(bundle_path, anchor_d):
+    """Return a signed evidence bundle's `.predicate` ONLY IF its subject #1
+    (name=="firmware-image") digest.sha256 == the firmware anchor D. Returns None
+    — FAIL CLOSED, treated by the callers as not-ran — when the firmware-image subject
+    is absent or != D, so a bundle re-pointed at another image (subject D != the image),
+    or one carrying no firmware anchor, cannot feed the gate. decode_dsse() itself
+    fail-closes (sys.exit) on an undecodable bundle, so a tampered/garbled bundle aborts.
+
+    The signature + keyless identity of this bundle are verified upstream (cosign
+    verify-blob-attestation in run.sh / the CI VERIFY loop) — the same division of
+    labor as the reconcile bundle: crypto is checked by cosign, the D-binding here."""
+    stmt, _bundle = decode_dsse(bundle_path)
+    anchor = (anchor_d or "").replace("sha256:", "")
+    fw = ""
+    for s in (stmt.get("subject", []) or []):
+        if s.get("name") == "firmware-image":
+            fw = dflt(s.get("digest", {}) or {}, "sha256", "")
+            break
+    if not anchor or not fw or fw != anchor:
+        return None
+    pred = stmt.get("predicate")
+    return pred if isinstance(pred, dict) else None
+
+
+def _byte_integrity_derive(d):
     # NAMES of modules that could not be byte-verified (skipped OR errored) — surfaced so
     # the gate can name exactly what did not pass and check each against a reviewed
     # exemption list (data.byte_integrity_exempt); an unexpected one denies.
@@ -400,20 +412,34 @@ def byte_integrity_fact(path):
             "skipped_count": len(unverifiable)}
 
 
-def binary_hardening_fact(path):
-    """R8: fold the binary-hardening producer's verdict into a gate fact. ran=False
-    when no image+edk2 was available (distinct from a clean run). Surfaces the
-    DXE-class NX-compat coverage AND the DXE-class modules that could not be scanned
-    (unverifiable) so the gate can refuse a vacuous/under-covered pass and name exactly
-    what did not pass — an unexamined image is NOT a hardened one."""
-    absent = {"ran": False, "dxe_class_checked": 0, "dxe_nx_compat": 0,
-              "missing_nx_count": 0, "errored_count": 0, "unverifiable": []}
+def byte_integrity_fact(path, bundle_path=None, anchor_d=""):
+    """R4: fold the byte-integrity producer's verdict into a gate fact. ran=False
+    when no image+edk2 was available to the producer (distinct from a clean run).
+    Surfaces skipped_count so the gate can refuse a vacuous pass (all modules
+    skipped / nothing verified) — a skip is NOT a pass.
+
+    When BYTE_INTEGRITY_BUNDLE is set, the verdict MUST come from the SIGNED,
+    firmware-D-anchored bundle (subject #1 firmware-image == D): the loose file is
+    IGNORED, closing the forge where an attacker with inputs/ write access but no
+    signing key rewrites byte-integrity.json to modified:0. A bundle whose firmware
+    subject != D fails closed to not-ran (absent)."""
+    absent = {"ran": False, "checked": 0, "verified": 0, "modified_count": 0,
+              "skipped_count": 0, "unverifiable": []}
+    if bundle_path:
+        d = signed_predicate(bundle_path, anchor_d)
+        if d is None:
+            return absent  # unbound/mismatched signed verdict is NOT a pass (fail closed)
+        return _byte_integrity_derive(d)
     if not (path and os.path.isfile(path)):
         return absent
     try:
         d = load_json(path)
     except ValueError:
         return absent
+    return _byte_integrity_derive(d)
+
+
+def _binary_hardening_derive(d):
     # NAMES of DXE-class modules that could not be scanned (skipped OR errored). Only
     # DXE-class matters for the NX expectation, so non-DXE skips (PEI/SEC/TE) are not
     # "unverifiable" here. Each is checked against data.binary_hardening_exempt; an
@@ -431,6 +457,33 @@ def binary_hardening_fact(path):
             "missing_nx": missing_nx_names,  # NAMES of missing-NX DXE modules, so the gate can name them
             "errored_count": len(d.get("errored", []) or []),
             "unverifiable": unverifiable}
+
+
+def binary_hardening_fact(path, bundle_path=None, anchor_d=""):
+    """R8: fold the binary-hardening producer's verdict into a gate fact. ran=False
+    when no image+edk2 was available (distinct from a clean run). Surfaces the
+    DXE-class NX-compat coverage AND the DXE-class modules that could not be scanned
+    (unverifiable) so the gate can refuse a vacuous/under-covered pass and name exactly
+    what did not pass — an unexamined image is NOT a hardened one.
+
+    When BINARY_HARDENING_BUNDLE is set, the verdict MUST come from the SIGNED,
+    firmware-D-anchored bundle (subject #1 firmware-image == D): the loose file is
+    IGNORED, closing the same inputs/-write forge as byte_integrity_fact. A bundle
+    whose firmware subject != D fails closed to not-ran (absent)."""
+    absent = {"ran": False, "dxe_class_checked": 0, "dxe_nx_compat": 0,
+              "missing_nx_count": 0, "errored_count": 0, "unverifiable": []}
+    if bundle_path:
+        d = signed_predicate(bundle_path, anchor_d)
+        if d is None:
+            return absent  # unbound/mismatched signed verdict is NOT a pass (fail closed)
+        return _binary_hardening_derive(d)
+    if not (path and os.path.isfile(path)):
+        return absent
+    try:
+        d = load_json(path)
+    except ValueError:
+        return absent
+    return _binary_hardening_derive(d)
 
 
 # CHIPSEC sub-result module names the platform-posture reports read directly (mirrors how
@@ -586,8 +639,16 @@ def main():
                      "freshly_measured": fw_freshly_measured},
         "cve": cve_fact(env("GRYPE_JSON")),
         "chipsec": {"critical_passed": chipsec_passed, **chipsec_subs},
-        "byte_integrity": byte_integrity_fact(env("BYTE_INTEGRITY_JSON")),
-        "binary_hardening": binary_hardening_fact(env("BINARY_HARDENING_JSON")),
+        # byte-integrity / binary-hardening: when a BUNDLE env is set, the verdict is read
+        # from the SIGNED, firmware-D-anchored attestation (subject #1 firmware-image == the
+        # anchor D = fw_sbom), NOT the loose inputs/*.json. This closes the last unsigned
+        # image-derived verdict: an attacker with inputs/ write but no signing key can no
+        # longer forge modified:0. The loose *_JSON path stays only as a no-bundle local-dev
+        # fallback. anchor_d = fw_sbom (the SBOM metadata.component D the graph roots at).
+        "byte_integrity": byte_integrity_fact(env("BYTE_INTEGRITY_JSON"),
+                                              env("BYTE_INTEGRITY_BUNDLE") or None, fw_sbom),
+        "binary_hardening": binary_hardening_fact(env("BINARY_HARDENING_JSON"),
+                                                  env("BINARY_HARDENING_BUNDLE") or None, fw_sbom),
         "build_tools": {"present": bt["present"], "signature_verified": bt["signature_verified"],
                         "all_pinned": bt["all_pinned"], "unpinned": bt["unpinned"]},
     }

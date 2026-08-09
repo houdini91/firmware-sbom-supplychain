@@ -21,6 +21,8 @@ done
 KEYS="$HERE/.keys"
 SBOM="$IN/sbom.cdx.json"; VERDICT="$IN/reconcile-verdict.json"
 TYPE="https://firmware-sbom-supplychain/reconcile/v1"
+BI_TYPE="https://firmware-sbom-supplychain/byte-integrity/v1"
+BH_TYPE="https://firmware-sbom-supplychain/binary-hardening/v1"
 export COSIGN_PASSWORD=""
 
 echo "== 1. keypair =="
@@ -36,6 +38,54 @@ echo "== 3. verify-blob-attestation =="
 if "$COSIGN" verify-blob-attestation --key "$KEYS/cosign.pub" --type "$TYPE" \
      --bundle "$IN/sbom.att.bundle" "$SBOM" >/dev/null 2>&1; then SIG=true; else SIG=false; fi
 echo "   signature.verified = $SIG"
+
+echo "== 3b. attest byte-integrity + binary-hardening (subject #1 = firmware D) =="
+# SECURITY: byte-integrity/binary-hardening were the ONLY image-derived verdicts not wrapped in a
+# signed, firmware-D-anchored attestation — so an attacker with inputs/ write (no signing key) could
+# rewrite byte-integrity.json to modified:0 and the gate believed it. Now signed the SAME way reconcile
+# is in CI: wrap.sh builds a MULTI-SUBJECT in-toto Statement (subject #1 firmware-image=D, subject #2
+# the verdict file's own H), attest-blob --statement signs it AS-IS (LEGACY bundle, so the assembler can
+# decode the DSSE + read subject #1 D). The assembler reads the verdict FROM this bundle, not the loose file.
+#
+# attest-blob --statement needs cosign >= 2.6.0 (the version supply-chain.yml pins). If the local cosign
+# predates it (bin/ pins 2.5.2), fall back to the repo's established synth idiom (the same wrap.sh Statement
+# in a legacy .base64Signature envelope that tests/pipeline-negative.sh builds) so `make demo` still
+# exercises the D-anchored consumption path. The real signature + keyless identity are produced AND verified
+# in CI (supply-chain.yml pins cosign 2.6.0 and runs cosign verify-blob-attestation on each bundle).
+D="$(jq -r '.metadata.component.hashes[]? | select(.alg=="SHA-256") | .content' "$SBOM")"
+[ -n "$D" ] || { echo "error: no SHA-256 in metadata.component — cannot anchor byte-integrity/binary-hardening to D" >&2; exit 2; }
+COSIGN_HAS_STATEMENT=0
+"$COSIGN" attest-blob --help 2>&1 | grep -q -- '--statement' && COSIGN_HAS_STATEMENT=1
+
+attest_evidence() { # <predicate-file> <predicateType> <bound-name> <out-bundle>
+  local pred="$1" ptype="$2" name="$3" out="$4"
+  local stmt="$IN/${name}.intoto.json"
+  # wrap.sh: subject #1 firmware-image=D, subject #2 <name>=H (the predicate is the verdict itself)
+  "$ROOT/producers/wrap.sh" "$pred" "$ptype" "$D" "$pred" "$name" > "$stmt"
+  if [ "$COSIGN_HAS_STATEMENT" = "1" ]; then
+    "$COSIGN" attest-blob --yes --key "$KEYS/cosign.key" \
+      --statement "$stmt" --bundle "$out" >/dev/null
+    # subject #1 is the firmware image D, not present locally -> --check-claims=false (signature only);
+    # a deploy-time verifier holding the real .fd checks the subject-digest claim. Tampered bundle -> abort.
+    "$COSIGN" verify-blob-attestation --key "$KEYS/cosign.pub" --type "$ptype" \
+      --check-claims=false --bundle "$out" >/dev/null 2>&1 \
+      || { echo "error: cosign verify of $out FAILED (tampered bundle) — aborting" >&2; exit 4; }
+    echo "   signed + verified $out (subject #1 = firmware D)"
+  else
+    # Legacy synth: wrap the Statement in the .base64Signature DSSE envelope the assembler decodes.
+    python3 - "$stmt" "$out" <<'PY'
+import base64, json, sys
+stmt = open(sys.argv[1], "rb").read()
+dsse = {"payloadType": "application/vnd.in-toto+json",
+        "payload": base64.b64encode(stmt).decode(), "signatures": [{"sig": ""}]}
+json.dump({"base64Signature": base64.b64encode(json.dumps(dsse).encode()).decode()}, open(sys.argv[2], "w"))
+PY
+    echo "   ⚠ this cosign lacks attest-blob --statement (needs >= 2.6.0, which CI pins) — synthesized"
+    echo "     an UNSIGNED but D-anchored $out so the demo exercises the signed-consumption path"
+  fi
+}
+attest_evidence "$IN/byte-integrity.json"   "$BI_TYPE" byte-integrity.json   "$IN/byte-integrity.att.bundle"
+attest_evidence "$IN/binary-hardening.json" "$BH_TYPE" binary-hardening.json "$IN/binary-hardening.att.bundle"
 
 echo "== 4. CVE scan (grype over the SBOM) =="
 # F6: fail closed — a missing/broken scanner is NOT "found nothing". A scanner that produces a valid
@@ -70,6 +120,8 @@ SBOM="$SBOM" BUNDLE="$IN/sbom.att.bundle" SIG="$SIG" \
   DEV_ASSUME_IDENTITY="${DEV_ASSUME_IDENTITY:-1}" \
   DEV_ASSUME_SLSA="${DEV_ASSUME_SLSA:-1}" \
   CHIPSEC_JSON="${CHIPSEC_JSON:-$IN/chipsec.json}" \
+  BYTE_INTEGRITY_BUNDLE="${BYTE_INTEGRITY_BUNDLE:-$IN/byte-integrity.att.bundle}" \
+  BINARY_HARDENING_BUNDLE="${BINARY_HARDENING_BUNDLE:-$IN/binary-hardening.att.bundle}" \
   BYTE_INTEGRITY_JSON="${BYTE_INTEGRITY_JSON:-$IN/byte-integrity.json}" \
   BINARY_HARDENING_JSON="${BINARY_HARDENING_JSON:-$IN/binary-hardening.json}" \
   BUILD_TOOLS_JSON="${BUILD_TOOLS_JSON:-$IN/build-tools.cdx.json}" \

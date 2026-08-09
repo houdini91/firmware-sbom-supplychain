@@ -44,6 +44,8 @@ inputs/vex.att.bundle
 inputs/chipsec.att.bundle
 inputs/build-tools.att.bundle
 inputs/vsa.att.bundle
+inputs/byte-integrity.att.bundle
+inputs/binary-hardening.att.bundle
 
 # downloaded tool binary (not source)
 bin/sbom-convert
