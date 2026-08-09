@@ -22,7 +22,9 @@ runtime measured boot. Two consequences, stated up front so the evidence never o
    SMRR). The gate treats `NOTAPPLICABLE` as *not a failure* — it only requires the **applicable** critical
    modules to PASS. On real hardware the same runbook exercises the HW checks for real.
 2. CHIPSEC proves *protections are configured*; it does **not** produce a TPM quote or a golden RIM, so
-   SP 800-193 **Detection (§4.3)** and RATS **§8.1 Evidence** remain FUTURISTIC (see `../FRAMEWORKS.md`).
+   SP 800-193 **runtime** Detection (§4.3.x measured-boot) and RATS **§8.1 Evidence** remain FUTURISTIC
+   (see `../FRAMEWORKS.md`). The admission-time §4.3.1 leg *is* covered (advisory) by
+   `firmware-freshly-measured` + byte-integrity, not by CHIPSEC.
 
 ## Run it (you drive this)
 

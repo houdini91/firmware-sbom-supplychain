@@ -137,7 +137,7 @@ the actual code, which no offset-subtraction can paper over — so it still fail
 
 ## The bigger picture — the other checks
 
-Byte-integrity is the headline, but the release gate ANDs **19** signed checks. The three that matter most:
+Byte-integrity is the headline, but the release gate ANDs **31** signed checks (32 on the reference release). The three that matter most:
 
 - **Reconcile** — the project's name for the *membership* check above: carve the real image and confirm every
   declared module is **present** (and that nothing undeclared snuck in). "Are the right parts there?"

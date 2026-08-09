@@ -6,6 +6,16 @@ coherent milestones rather than shipped products.
 
 ## [Unreleased]
 
+### Changed
+- **Gate grew from 21 → 31 always-emitted verifier reports** (32 on the reference release incl. the
+  conditional `osf-source-provenance`); controls now **46 across 8 frameworks**. New reports: the signed
+  byte-integrity keystone, `no-duplicate-guid` (shadow-GUID detection), the CISA/BSI SBOM-metadata set
+  (author/timestamp/supplier/serial/completeness/component-supplier/dependencies/data-quality), and a
+  machine-readable `evidenceGrade` (verified/declared/sample/assumed) on every report.
+- **CHIPSEC is now real, not sample.** `secureboot.variables` is a real offline varstore read; the
+  hardware-rooted checks are a deploy-time advisory slot (ADR 0001). A real `-D SECURE_BOOT_ENABLE`
+  build proves the red→green (`secboot-profile.json`).
+
 ### Added
 - **byte-integrity production-hardening (the flagship control).** The verdict now emits a **full
   per-module manifest** (every verified module + method, alongside modified/skipped/errored); the gate

@@ -678,7 +678,7 @@ _core_reports := [
 	),
 	# CISA KEV (BOD 22-01): no shipped component carries a Known-Exploited CVE (unless an explicit
 	# exec-risk VEX waiver applies). HONESTY: KEV membership is by the DECLARED component version,
-	# not proven runtime exploitability; data.cisa_kev is a small illustrative seed.
+	# not proven runtime exploitability; data.cisa_kev is a real snapshot of the CISA KEV catalog (1,662 entries; make refresh-kev).
 	_report(
 		"no-kev-component", _no_kev,
 		"no shipped component carries a Known-Exploited CVE in the CISA KEV catalog (data.cisa_kev — a real feed snapshot, refresh with `make refresh-kev`) — or each is waived by an explicit exec-risk VEX justification (declared version, not runtime exploitability)",

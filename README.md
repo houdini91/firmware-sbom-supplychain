@@ -146,9 +146,10 @@ coverage tool prints a control's **weakest-link** grade. On a clean release **41
 satisfied** (the 4 CHIPSEC-only 800-147 / 800-193 §4.2 controls plus §4.3.1 are advisory-MISSING on the
 demo OVMF and not counted against coverage): **12 verified** (re-derived from shipped bytes / a
 verified signature) · **29 declared** (the SBOM/attestation asserts it — present + well-formed, not
-proven of the running firmware) · **0 sample** (the CHIPSEC config-level posture reports are ABSENT
-here — the demo OVMF is not Secure-Boot-provisioned; they emit as **sample** only on a platform that
-substantiates them, e.g. `chipsec-provisioned.json`). In an offline `make demo` the
+proven of the running firmware) · **0 sample** (the CHIPSEC posture reports are ABSENT here — the demo
+OVMF is not Secure-Boot-provisioned. When substantiated on a real platform, the Secure Boot varstore
+read is graded **verified** (`secboot-profile.json`, the real red→green), while the HW-config pillars
+`bios_wp`/`smm` read as config-level **sample** until run on silicon). In an offline `make demo` the
 `DEV_ASSUME_*` legs downgrade to a fourth grade, **assumed**, carried into the VSA so the machine
 grade matches the loud warnings — the gate never claims `verified` on evidence it didn't verify this
 run. See [COMPLIANCE-MATRIX.md](COMPLIANCE-MATRIX.md).

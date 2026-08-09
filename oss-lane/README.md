@@ -18,12 +18,12 @@ evidence (../inputs/) ──▶ assemble-gate-input.sh ──▶ gate-input.json
 
 | File | Role |
 |---|---|
-| [`policy/firmware.rego`](policy/firmware.rego) | **the gate** — 21 `verifier_reports`, ANDed into `allow`; emits the VSA predicate. Each report is tagged with the controls it satisfies. |
+| [`policy/firmware.rego`](policy/firmware.rego) | **the gate** — 31 always-emitted `verifier_reports`, ANDed into `allow`; emits the VSA predicate. Each report is tagged with the controls it satisfies. |
 | [`policy/data.json`](policy/data.json) | trust config: expected builder id / source repo, `hash_exempt`, `trusted_signer_identities`. |
 | [`assemble_gate_input.py`](assemble_gate_input.py) | derives the gate input from **verified** evidence (DSSE decode, cert-SAN identity, digests, CVE/VEX, firmware anchor). `assemble-gate-input.sh` is a thin shim over it. **Every fact comes from evidence; the policy only decides.** |
 | [`gate.sh`](gate.sh) | runs `opa eval`, prints the per-report result, and emits the signed VSA (with the firmware-image subject). |
 | [`verify-initiative.py`](verify-initiative.py) + [`initiatives/frameworks.yaml`](initiatives/frameworks.yaml) | map the reports to framework controls → per-framework `PASS / FAIL / MISSING_EVIDENCE`. |
-| [`fixtures/`](fixtures) | 40 gate-input **test vectors**: `clean.json` (ALLOW), `accepted-cve.json` (triaged ALLOW), `firmware-freshly-measured.json` (ALLOW — §4.3.1 measured), and 37 negative fixtures each isolating a report's failure mode. Driven by [`../tests/run.sh`](../tests/run.sh). |
+| [`fixtures/`](fixtures) | 44 gate-input **test vectors** — 5 ALLOW (`clean.json`; `accepted-cve.json` triaged; `firmware-freshly-measured.json` §4.3.1 measured; `chipsec-provisioned.json` + `secboot-profile.json` real Secure-Boot green) and 39 negative fixtures each isolating a report's failure mode. Driven by [`../tests/run.sh`](../tests/run.sh). |
 | [`compliance-map.md`](compliance-map.md) | the enforced-subset view + the two-lane story. |
 | [`run.sh`](run.sh) | the full local lane end-to-end (keygen → attest → verify → CVE → assemble → gate). |
 

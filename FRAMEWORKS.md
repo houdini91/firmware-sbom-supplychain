@@ -38,7 +38,7 @@ flowchart LR
 </picture>
 </div>
 
-- **Enforced today** — the deploy pipeline **hard-blocks the release** on **twenty-one always-emitted OPA verifier reports** (SBOM
+- **Enforced today** — the deploy pipeline **hard-blocks the release** on **thirty-one always-emitted OPA verifier reports** (SBOM
   present · attestation signature · SBOM↔subject binding · provenance identity · **SLSA L2 provenance** ·
   reconcile · CVE/VEX · **reconcile membership** (SI-7/CM-8(3)) · **component
   integrity** (SI-7(1)) · **VEX adjudication** (RV.1.1, high+critical) · **third-party identity** (CISA
@@ -70,7 +70,7 @@ framework  →  §control (exact ref)  →  evidence that proves it  →  status
 
 | Status | Meaning |
 |---|---|
-| **`ENFORCED`** | The release is **hard-blocked if this fails** — by one of the twenty-one always-emitted OPA `verifier_reports` in [`firmware.rego`](./oss-lane/policy/firmware.rego) *(gate)* (the three CHIPSEC posture reports gate too, but only when the target substantiates them — conditional/advisory otherwise); the `slsa-provenance` report is additionally backed by a CI hard-gate step *(CI)*, `gh attestation verify`. The mechanism is named per row. |
+| **`ENFORCED`** | The release is **hard-blocked if this fails** — by one of the thirty-one always-emitted OPA `verifier_reports` in [`firmware.rego`](./oss-lane/policy/firmware.rego) *(gate)* (the three CHIPSEC posture reports gate too, but only when the target substantiates them — conditional/advisory otherwise); the `slsa-provenance` report is additionally backed by a CI hard-gate step *(CI)*, `gh attestation verify`. The mechanism is named per row. |
 | **`EVIDENCE`** | We produce the artifact/field, but no gate rule checks it yet — the control is *satisfiable from what we emit*, just not *enforced*. |
 | **`PARTIAL`** | The evidence meets the control only in part; the named shortfall is in the note. |
 | **`PLANNED`** | A concrete, near-term artifact change (mostly SBOM enrichment + byte-integrity reconcile) would satisfy it. |
@@ -109,7 +109,7 @@ not asserted.
 > — the tamper-after-signing check), and `signer-identity-pinned` (the Fulcio cert SAN is in the trusted set). The
 > OIDC SAN is extracted from the cert and **checked**, not asserted.
 
-> **The trust anchor:** the twenty-one always-emitted gate reports are `sbom-present` (E1), `attestation-signature` (DSSE envelope),
+> **The trust anchor:** the thirty-one always-emitted gate reports are `sbom-present` (E1), `attestation-signature` (DSSE envelope),
 > `sbom-binding` (E1 file digest `H` ↔ attestation **file** subject `H`), `provenance-identity` (E2), `slsa-provenance` (E2, backed by the
 > `gh attestation verify` CI hard-gate), `reconcile` (E3), `cve-triage` (E4),
 > `reconcile-membership` (E3, SI-7/CM-8(3)), `component-integrity` (E1, SI-7(1)),
@@ -135,7 +135,14 @@ not asserted.
 > a generating tool with name+version and a build-time lifecycle phase; declared-not-proven, the same ceiling as
 > `vex-adjudicated`), `no-kev-component` (E4, CISA BOD 22-01 KEV — no shipped component carries a Known-Exploited CVE
 > unless an explicit exec-risk VEX waiver applies; KEV membership by *declared* component version, not runtime exploitability),
-> — the gate ANDs all twenty-one and emits E6. The **conditional** reports ride only when their evidence is
+> `no-duplicate-guid` (E3, SI-7(1)/CM-8(3) — no shadow-duplicate FILE_GUID hiding a second module behind a
+> declared one), `dependency-relationships` (E1, CISA/BSI — the `dependencies[]` graph is present + referentially
+> sound), `sbom-data-quality` (E1, NTIA — declared PURLs parse + licenses well-formed), `sbom-author`,
+> `sbom-timestamp`, `sbom-supplier` (E1, CISA 2026 required baseline metadata), `sbom-serial-number`
+> (E1, CISA 2026 SBOM-version `urn:uuid`), `sbom-completeness` (E1, CISA 2026 known-unknowns via
+> `compositions[].aggregate`), `component-supplier` (E1, CISA 2026 per-component Producer), and
+> `osf-identity-shape` (E1, OSF embedded-SBOM — every module's tag-id is GUID-form)
+> — the gate ANDs all thirty-one and emits E6. The **conditional** reports ride only when their evidence is
 > applicable, and are ABSENT (advisory, `allow` unaffected — an absent report is not ANDed) otherwise:
 > `firmware-freshly-measured` (SP 800-193 §4.3.1, admission-time/off-device) is emitted **only** when a genuine
 > flash-time `FW_IMAGE` measurement is supplied — in offline/CI `DEV_ASSUME_FWIMAGE` mode it is absent, so §4.3.1
