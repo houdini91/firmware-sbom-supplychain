@@ -139,6 +139,12 @@ the verdict travels with the bytes and anyone downstream can re-verify it.
 
 34 always-emitted verifier reports resolve to **46 controls across 8 frameworks**.
 
+Not every ✅ is equally strong: each report carries a machine-readable **`evidenceGrade`**, and the
+coverage tool prints a control's **weakest-link** grade. Of the 45 satisfied controls on a clean
+release: **15 verified** (re-derived from shipped bytes / a verified signature) · **26 declared**
+(the SBOM/attestation asserts it — present + well-formed, not proven of the running firmware) · **4
+sample** (CHIPSEC config-level posture on QEMU, not silicon). See [COMPLIANCE-MATRIX.md](COMPLIANCE-MATRIX.md).
+
 <div align="center">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/img/framework-coverage-dark.svg">

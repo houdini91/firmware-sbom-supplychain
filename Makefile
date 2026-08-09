@@ -34,6 +34,7 @@ test: ## Gate honesty tests (opa+jq) + assembler + byte-integrity unit tests + c
 	python3 tests/test_interop.py
 	$(or $(COSWID_PY),python3) tests/test_coswid.py $(COSWID_TEST_FLAGS)
 	python3 tests/test_initiatives_sync.py
+	OPA=$(or $(OPA),$(ROOT)bin/opa) python3 tests/test_evidence_grade.py
 	python3 tests/test_cli_verdict.py
 	bash tests/cosign-policy.sh
 

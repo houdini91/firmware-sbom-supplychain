@@ -22,11 +22,17 @@ except ImportError:
 
 PASS, FAIL, MISSING = "PASS", "FAIL", "MISSING_EVIDENCE"
 MARK = {PASS: "✅", FAIL: "⛔", MISSING: "❔"}
+# Evidence-strength ordering. A control is only as strong as its WEAKEST required report, so a
+# control's grade is the minimum over its satisfiers. verified = re-derived from shipped bytes / a
+# verified signature; declared = the SBOM/attestation asserts it (present + well-formed, not proven
+# true of the running firmware); sample = CHIPSEC config-level posture on QEMU, not silicon.
+GRADE_RANK = {"verified": 3, "declared": 2, "sample": 1}
+GRADE_TAG = {"verified": "verified", "declared": "declared", "sample": "sample (QEMU config)"}
 
 
 def load_reports(vsa_path):
-    """(name -> isSuccess, name -> remediation), from the VSA predicate's verifierReports
-    (or a raw gate value). Remediation rides only on failing reports."""
+    """(name -> isSuccess, name -> remediation, name -> evidenceGrade), from the VSA predicate's
+    verifierReports (or a raw gate value). Remediation rides only on failing reports."""
     with open(vsa_path) as f:
         doc = json.load(f)
     reports = (doc.get("predicate", {}).get("verifierReports")
@@ -34,7 +40,18 @@ def load_reports(vsa_path):
                or doc.get("verifier_reports") or [])
     present = {r["name"]: bool(r.get("isSuccess")) for r in reports if r.get("name")}
     remediation = {r["name"]: r.get("remediation", "") for r in reports if r.get("name") and r.get("remediation")}
-    return present, remediation
+    grade = {r["name"]: r.get("evidenceGrade", "declared") for r in reports if r.get("name")}
+    return present, remediation, grade
+
+
+def control_grade(control, grade):
+    """The weakest-link grade of a PASSED control: the minimum evidence strength across the
+    reports that satisfy it. None if a satisfier carries no grade (shouldn't happen)."""
+    ranks = [GRADE_RANK.get(grade.get(r), 2) for r in control.get("satisfied_by", [])]
+    if not ranks:
+        return None
+    worst = min(ranks)
+    return next(g for g, rk in GRADE_RANK.items() if rk == worst)
 
 
 def evaluate(control, present):
@@ -54,7 +71,7 @@ def main():
     ap.add_argument("--manifest", default=os.path.join(here, "initiatives", "frameworks.yaml"))
     args = ap.parse_args()
 
-    present, remediation = load_reports(args.vsa)
+    present, remediation, grade = load_reports(args.vsa)
     with open(args.manifest) as f:
         manifest = yaml.safe_load(f)
     initiatives = manifest.get("initiatives", {})
@@ -64,6 +81,7 @@ def main():
             sys.exit("unknown framework: %s" % args.framework)
 
     all_pass = True
+    grade_counts = {"verified": 0, "declared": 0, "sample": 0}
     print("Compliance coverage (from the signed VSA's verifier reports)\n")
     for key, ini in initiatives.items():
         rows, ok = [], True
@@ -86,10 +104,25 @@ def main():
                     note += "\n        → fix: " + " | ".join(fixes)
             if advisory and status != PASS:
                 note += " (advisory / roadmap — not counted against coverage)"
-            rows.append("    %s %-22s %s%s" % (MARK[status], c["id"], c["name"], note))
+            # A PASSED control's honesty tag: its weakest-link evidence grade, so a green ✅ backed
+            # by a declared/sample report is never read as an unqualified proof.
+            gtag = ""
+            if status == PASS:
+                g = control_grade(c, grade)
+                if g:
+                    grade_counts[g] += 1
+                    gtag = "  · %s" % GRADE_TAG[g]
+            rows.append("    %s %-22s %s%s%s" % (MARK[status], c["id"], c["name"], note, gtag))
         print("  %s %s  [%s]" % ("✅" if ok else "⛔", ini["name"], key))
         print("\n".join(rows) + "\n")
 
+    total_graded = sum(grade_counts.values())
+    print("Evidence grade of PASSED controls (weakest-link): "
+          "%d verified · %d declared · %d sample  (of %d)"
+          % (grade_counts["verified"], grade_counts["declared"], grade_counts["sample"], total_graded))
+    print("  verified = re-derived from shipped bytes / a verified signature · "
+          "declared = SBOM/attestation asserts it (present + well-formed, not proven of the running firmware) · "
+          "sample = CHIPSEC config-level posture on QEMU, not silicon.")
     print("=> %s" % ("ALL EVALUATED CONTROLS PASS" if all_pass else "SOME CONTROLS FAIL / MISSING EVIDENCE"))
     sys.exit(0 if all_pass else 1)
 

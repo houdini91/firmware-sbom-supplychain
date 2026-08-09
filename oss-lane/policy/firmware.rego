@@ -718,11 +718,19 @@ _controls_for(rep) := sort([t |
 	t := sprintf("%s:%s", [fwkey, ctrl.id])
 ])
 
+# evidenceGrade: machine-readable strength of the evidence behind this report, so a green
+# report is never read as an unqualified proof. verified = re-derived from the shipped bytes /
+# a verified signature; declared = the SBOM/attestation asserts it (present + well-formed, not
+# proven true of the running firmware); sample = CHIPSEC config-level posture on QEMU, not
+# silicon. Unmapped names default to "declared" — the conservative floor, never "verified".
+_grade_for(name) := object.get(data.evidence_grade, name, "declared")
+
 _report(name, ok, pass_msg, _fail) := {
 	"name": name,
 	"id": sprintf("firmware-sbom-supplychain/%s@v1", [name]), # versioned rule id (neutral namespace)
 	"isSuccess": true, "message": pass_msg,
 	"controls": _controls_for(name),
+	"evidenceGrade": _grade_for(name),
 } if ok
 
 _report(name, ok, _pass, fail_msg) := {
@@ -730,6 +738,7 @@ _report(name, ok, _pass, fail_msg) := {
 	"id": sprintf("firmware-sbom-supplychain/%s@v1", [name]),
 	"isSuccess": false, "message": fail_msg,
 	"controls": _controls_for(name),
+	"evidenceGrade": _grade_for(name),
 	"remediation": _remediation_for(name), # stable "how to fix" — emitted ONLY on a failing report
 } if not ok
 

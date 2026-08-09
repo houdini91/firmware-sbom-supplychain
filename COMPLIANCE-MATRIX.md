@@ -48,6 +48,23 @@ generator began emitting a real per-module `edk2:sourceHash`; it is now MET — 
 with no satisfying report reports MISSING_EVIDENCE, never a silent
 pass.
 
+**Not every ✅ is equally strong — evidence grade.** Each verifier report carries a machine-readable
+`evidenceGrade`, and `verify-initiative.py` prints a control's **weakest-link** grade so a green ✅ is
+never read as an unqualified proof. Of the 45 satisfied controls: **15 verified · 26 declared · 4
+sample**.
+- **verified** — re-derived from the shipped bytes or a verified signature (reconcile re-hash, the
+  byte-integrity keystone, `cosign` signatures, cross-subject binding).
+- **declared** — the SBOM/attestation *asserts* it and we check the claim is present + well-formed,
+  but not that it is true of the running firmware (most CISA/BSI metadata fields, KEV-by-version,
+  NX_COMPAT-declared hardening, the OSF shape/source-hash claims).
+- **sample** — CHIPSEC config-level posture on a QEMU/OVMF target, **not** hardware-rooted silicon
+  (the two 800-147 rows + the platform-protection maps).
+
+The grade is deliberate per report (`data.evidence_grade`), guarded by `tests/test_evidence_grade.py`
+(a new report cannot ship ungraded), and defaults to the conservative `declared` — never `verified`.
+Note: in the offline demo the `DEV_ASSUME_*` legs (SLSA / identity / build-tools / firmware-image)
+are **assumed**, not verified, and loudly warned; their `verified` grade reflects the real CI pipeline.
+
 ---
 
 ## 1 · SLSA v1.0 — Build track, Level 2
