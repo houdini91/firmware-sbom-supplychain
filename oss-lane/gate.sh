@@ -23,7 +23,7 @@ command -v jq >/dev/null 2>&1 || { echo "jq not found on PATH — required (http
 
 # load only the deploy policy + its data (NOT the whole dir — testdata/ and other packages would collide)
 result="$("$OPA" eval -I -f json \
-  -d "$POLICY/firmware.rego" -d "$POLICY/data.json" -d "$POLICY/cve-allowlist.json" -d "$POLICY/initiatives.json" \
+  -d "$POLICY/firmware.rego" -d "$POLICY/data.json" -d "$POLICY/kev-catalog.json" -d "$POLICY/cve-allowlist.json" -d "$POLICY/initiatives.json" \
   'data.firmware.deploy' < "$INPUT")"
 
 val="$(printf '%s' "$result" | jq -c '.result[0].expressions[0].value')"

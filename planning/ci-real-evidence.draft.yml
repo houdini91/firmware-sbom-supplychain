@@ -1,0 +1,455 @@
+# =============================================================================
+# DRAFT — NOT A LIVE WORKFLOW.  Review artifact for the manager.  See
+# planning/CI-REAL-EVIDENCE.md for the artifact-by-artifact "real vs. needs" map.
+#
+# Purpose: show how the SAME evidence graph the green .github/workflows/supply-chain.yml
+# signs and gates could be produced from a REAL firmware build in CI, instead of from
+# the committed sample/reference inputs (inputs/*.json, producers/chipsec/sample-results.json)
+# that the reference workflow consumes.
+#
+# This file lives under planning/ ON PURPOSE — it is a *.yml, not a *.yaml, and is not
+# under .github/workflows/, so GitHub Actions will NOT schedule it. Do not move it into
+# .github/workflows/ and do not let it replace supply-chain.yml (which must stay green).
+#
+# What changes vs. supply-chain.yml (everything else is deliberately identical so the
+# signing / assembler / gate / VSA / initiative legs are byte-for-byte the same code path):
+#   1. NEW build job `build-firmware`: checks out the edk2 FORK + submodules, builds
+#      OvmfPkgX64 DEBUG/GCC with `-Y SBOM` -> a REAL sbom.cdx.json + a REAL OVMF_CODE.fd.
+#   2. The real producers (sbom-reconcile / byte-integrity / binary-hardening) run against
+#      the BUILT .fd -> REAL verdicts, replacing the committed inputs/*.json.
+#   3. FW_IMAGE=<built OVMF_CODE.fd> so leg-3 is a REAL flash-time measurement
+#      (assemble_gate_input.py: freshly_measured=true), NOT DEV_ASSUME_FWIMAGE.
+#   4. LIVE CISA KEV feed replaces the data.cisa_kev seed (ephemeral in-runner jq-merge).
+#   5. grype stays real (anchore/scan-action, unchanged).
+#   6. CHIPSEC: an EXPERIMENTAL, config-level QEMU/OVMF run (honest NOTAPPLICABLE on the
+#      hardware-root modules) — see the chipsec job + CI-REAL-EVIDENCE.md for what genuinely
+#      cannot be produced without physical silicon.
+#
+# HARD PRECONDITION (see CI-REAL-EVIDENCE.md §"NEEDS: a pushed fork"): the `-Y SBOM`
+# generator lives in the edk2 fork PR #6 (houdini91/edk2), NOT upstream tianocore. This
+# workflow CANNOT run until that fork branch is pushed and the `-Y SBOM` BuildReport type
+# actually exists on it. Until then every downstream step has no real SBOM to consume.
+# =============================================================================
+name: firmware-supply-chain (REAL evidence — DRAFT)
+
+on:
+  workflow_dispatch:
+    inputs:
+      edk2_fork_repo:
+        description: "edk2 fork carrying the -Y SBOM generator (PR #6). MUST be pushed."
+        default: "houdini91/edk2"
+      edk2_fork_ref:
+        description: "branch/ref on the fork that carries the -Y SBOM BuildReport type"
+        default: "sbom-report-type"
+
+permissions:
+  contents: read
+
+env:
+  # Pinned toolchain tag. Recent edk2 uses GCC5 for the GCC family; confirm against the
+  # fork's BaseTools/Conf/tools_def.txt at wire-up time (older trees: GCC5; some: GCC).
+  EDK2_TOOLCHAIN: GCC5
+  EDK2_TARGET: DEBUG
+  EDK2_ARCH: X64
+  CISA_KEV_FEED: https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # JOB 1 — build REAL firmware + REAL SBOM from the edk2 fork.
+  # Produces artifacts consumed by attest-and-gate: the built OVMF_CODE.fd and the
+  # generator-emitted sbom.cdx.json. This is the "generate" side the reference repo
+  # deliberately does NOT own (README: "this repo is the verify side"); here we wire it
+  # in so the demo is reproducible from source rather than from committed evidence.
+  # ---------------------------------------------------------------------------
+  build-firmware:
+    runs-on: ubuntu-latest   # hosted OK for the build itself (~minutes, TCG not needed here)
+    outputs:
+      # sha256 of the built firmware image (leg-3 anchor) — surfaced for cross-job sanity.
+      fw_digest: ${{ steps.fw.outputs.d }}
+    steps:
+      # This repo (the verify side + the real producers under producers/).
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          path: supplychain
+
+      # The edk2 FORK that carries the -Y SBOM generator (NOT tianocore/edk2).
+      # NOTE: this WILL fail until the fork branch is pushed with PR #6's BuildReport.py
+      # SBOM report type. That push is the hard precondition for this whole workflow.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          repository: ${{ github.event.inputs.edk2_fork_repo || 'houdini91/edk2' }}
+          ref: ${{ github.event.inputs.edk2_fork_ref || 'sbom-report-type' }}
+          path: edk2
+          submodules: false   # init explicitly below so the failure mode is legible
+
+      - name: edk2 build prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential uuid-dev iasl nasm python3-distutils \
+                                  gcc-multilib g++-multilib
+          # pefile (byte-integrity / binary-hardening un-rebase + PE parsing) — hash-pinned
+          # exactly like the reference workflow installs the repo deps.
+          pip install --quiet --require-hashes -r supplychain/requirements.txt
+
+      - name: Init edk2 submodules (openssl / brotli / etc.)
+        working-directory: edk2
+        run: git submodule update --init   # required: OpenSSL etc. are submodules, build fails without
+
+      - name: Build BaseTools (GenFw + FMMT C binaries — needed by the producers too)
+        working-directory: edk2
+        run: |
+          make -C BaseTools
+          echo "✓ BaseTools built (GenFw, the C FMMT helpers, AutoGen)"
+
+      - name: Build OVMF DEBUG/GCC with the -Y SBOM generator (REAL sbom.cdx.json + REAL .fd)
+        working-directory: edk2
+        run: |
+          set -euo pipefail
+          source edksetup.sh
+          # -Y COMPILE_INFO is the AutoGen data the SBOM report type reuses (per PR #6 /
+          # planning/UPSTREAM-BRANCH-PLAN.md); -Y SBOM adds the CycloneDX report. -y sets the
+          # report file. The generator writes the CycloneDX SBOM as a sidecar — CONFIRM the
+          # exact emitted path against the fork's BuildReport.py; parameterized below.
+          build -p OvmfPkg/OvmfPkgX64.dsc -a "$EDK2_ARCH" -b "$EDK2_TARGET" -t "$EDK2_TOOLCHAIN" \
+                -y build-report.txt -Y COMPILE_INFO -Y SBOM
+          OUT="Build/OvmfX64/${EDK2_TARGET}_${EDK2_TOOLCHAIN}"
+          echo "OVMF_OUT=$OUT" >> "$GITHUB_ENV"
+          ls -l "$OUT/FV/"OVMF*.fd
+          # Locate the generator-emitted CycloneDX SBOM. The exact filename is defined by the
+          # fork's -Y SBOM report type (PR #6). Fail loudly if not found rather than fall back
+          # to the committed sample — the whole point is to consume the REAL one.
+          SBOM="$(find "$OUT" build-report* -name '*.cdx.json' -print -quit 2>/dev/null || true)"
+          [ -n "$SBOM" ] || { echo "::error::-Y SBOM produced no *.cdx.json — confirm the fork's report-type output path"; exit 1; }
+          echo "SBOM_SRC=$SBOM" >> "$GITHUB_ENV"
+          echo "✓ real SBOM at $SBOM"
+
+      - name: Stage the real evidence inputs (built SBOM + built image)
+        run: |
+          set -euo pipefail
+          # Overwrite the CHECKED-OUT copy of inputs/sbom.cdx.json with the freshly built one.
+          # This mutates the ephemeral runner checkout only — it is NOT a commit to the repo.
+          cp "edk2/$SBOM_SRC" supplychain/inputs/sbom.cdx.json
+          # OVMF_CODE.fd is the code image the SBOM's metadata.component digest anchors (D).
+          cp "edk2/$OVMF_OUT/FV/OVMF_CODE.fd" supplychain/inputs/OVMF_CODE.fd
+          echo "✓ staged real sbom.cdx.json + OVMF_CODE.fd"
+
+      - name: Firmware image digest (sanity: must equal the SBOM metadata.component D)
+        id: fw
+        working-directory: supplychain
+        run: |
+          set -euo pipefail
+          FW="$(sha256sum inputs/OVMF_CODE.fd | cut -d' ' -f1)"
+          D="$(jq -r '.metadata.component.hashes[]? | select(.alg=="SHA-256") | .content' inputs/sbom.cdx.json)"
+          echo "d=$FW" >> "$GITHUB_OUTPUT"
+          # HONEST CAVEAT: the generator's metadata.component digest and the file we hash for
+          # leg-3 MUST be the same image, or the firmware-digest-anchor legs diverge and the
+          # gate DENIES (correctly). If they differ here, the -Y SBOM generator hashed a
+          # different artifact (e.g. full OVMF.fd vs OVMF_CODE.fd) — reconcile that, do NOT
+          # paper over it. Warn, do not fail, so reviewers can see the mismatch.
+          [ "$FW" = "$D" ] && echo "✓ built .fd digest == SBOM metadata.component D ($FW)" \
+            || echo "::warning::built OVMF_CODE.fd ($FW) != SBOM metadata.component D ($D) — align the generator's hashed image with the deployed image"
+
+      # Real firmware producers, against the BUILT .fd (not committed evidence):
+      #   - carve.sh: FMMT carve + sbom-reconcile.py -> inputs/reconcile-verdict.json
+      #   - byte-integrity.py -> inputs/byte-integrity.json
+      #   - binary-hardening.py -> inputs/binary-hardening.json
+      - name: Real reconcile (FMMT carve of the built image) -> reconcile-verdict.json
+        working-directory: supplychain
+        run: |
+          set -euo pipefail
+          # carve.sh regenerates inputs/reconcile-verdict.json from a REAL FMMT carve + hash
+          # of the image (image_digest = leg-2 anchor). It is NOT canned.
+          EDK2="$GITHUB_WORKSPACE/edk2" ./producers/reconcile/carve.sh inputs/OVMF_CODE.fd
+
+      - name: Real byte-integrity (shipped PE32 bytes vs SBOM) -> byte-integrity.json
+        working-directory: supplychain
+        run: |
+          # ~6 min (FMMT per-module extract + un-rebase). Mirrors `make byte-integrity`.
+          python3 producers/reconcile/byte-integrity.py \
+            --sbom inputs/sbom.cdx.json \
+            --image inputs/OVMF_CODE.fd \
+            --edk2 "$GITHUB_WORKSPACE/edk2" \
+            -o inputs/byte-integrity.json || true   # producer exits non-zero on 'modified'; the GATE adjudicates, not this step
+
+      - name: Real binary-hardening (PE DllCharacteristics posture) -> binary-hardening.json
+        working-directory: supplychain
+        run: |
+          python3 producers/reconcile/binary-hardening.py \
+            --sbom inputs/sbom.cdx.json \
+            --image inputs/OVMF_CODE.fd \
+            --edk2 "$GITHUB_WORKSPACE/edk2" \
+            -o inputs/binary-hardening.json || true
+
+      - name: Upload the REAL evidence bundle for the gate job
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: real-evidence
+          path: |
+            supplychain/inputs/sbom.cdx.json
+            supplychain/inputs/OVMF_CODE.fd
+            supplychain/inputs/reconcile-verdict.json
+            supplychain/inputs/byte-integrity.json
+            supplychain/inputs/binary-hardening.json
+          if-no-files-found: error
+
+  # ---------------------------------------------------------------------------
+  # JOB 2 (EXPERIMENTAL) — config-level CHIPSEC against a QEMU/OVMF boot.
+  # This is the ONLY honest way to get *any* real chipsec output in hosted CI, and it is
+  # limited: hosted runners have no KVM, so QEMU runs under TCG (slow, pure emulation), and
+  # QEMU does not faithfully emulate the SPI flash controller / descriptor / SMRR MSRs /
+  # top-swap that the HARDWARE-ROOT critical modules read. Those come back NOTAPPLICABLE —
+  # which to-predicate.py correctly treats as "not a failure, not a pass". So this job can
+  # produce a REAL secureboot.variables / config-visible result, but CANNOT substantiate
+  # spi_lock / spi_desc / smrr / bios_ts on emulation. See CI-REAL-EVIDENCE.md.
+  #
+  # Marked continue-on-error: it is a best-effort experimental lane, not a gate dependency.
+  # If it yields nothing usable, the gate job falls back to the committed chipsec sample and
+  # SAYS SO (it does not pretend the emulated run measured hardware).
+  # ---------------------------------------------------------------------------
+  chipsec-qemu:
+    needs: build-firmware
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4
+        with:
+          name: real-evidence
+          path: inputs
+      - name: QEMU + chipsec-in-guest (config-level only; HW-root modules -> NOTAPPLICABLE)
+        run: |
+          sudo apt-get update && sudo apt-get install -y qemu-system-x86 ovmf
+          echo "SKETCH (see CI-REAL-EVIDENCE.md §CHIPSEC):"
+          echo " 1. Boot the BUILT inputs/OVMF_CODE.fd in QEMU q35 under TCG with a minimal"
+          echo "    Linux guest that has chipsec installed (initramfs or a small cloud image)."
+          echo " 2. In the guest: python chipsec_main.py -m common.secureboot.variables \\"
+          echo "                     -m common.smm -m common.bios_wp --json chipsec.raw.json"
+          echo "    (Secure Boot must be PROVISIONED in the OVMF varstore for the SB module to"
+          echo "     be meaningful; otherwise it reports SB disabled — still a real, honest result.)"
+          echo " 3. Copy chipsec.raw.json back to the host (virtfs/9p or a serial capture)."
+          echo " HW-root critical modules (spi_lock/spi_desc/smrr/bios_ts/top-swap) are"
+          echo " NOTAPPLICABLE on QEMU — do NOT assert them PASS. Real values need silicon."
+          # If a chipsec.raw.json was captured, convert it; else emit nothing and let the gate
+          # job fall back to the committed sample WITH the honest 'not hardware-measured' label.
+          if [ -f chipsec.raw.json ]; then
+            python3 producers/chipsec/to-predicate.py chipsec.raw.json -o inputs/chipsec.json
+          fi
+      - name: Upload chipsec result (if any)
+        if: hashFiles('inputs/chipsec.json') != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: chipsec-real
+          path: inputs/chipsec.json
+
+  # ---------------------------------------------------------------------------
+  # JOB 3 — the SAME sign / assemble / gate / VSA / initiative pipeline as
+  # supply-chain.yml, but over the REAL evidence produced above.
+  # Every cosign / wrap.sh / assemble / gate / verify-initiative step below is copied from
+  # supply-chain.yml so the evidence graph is identical; only the INPUTS changed from
+  # committed to built, and DEV_ASSUME_FWIMAGE is dropped for a real FW_IMAGE.
+  # ---------------------------------------------------------------------------
+  attest-and-gate:
+    needs: [build-firmware, chipsec-qemu]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write        # keyless OIDC signing
+      packages: write
+      attestations: write
+    env:
+      PRED_TYPE: https://firmware-sbom-supplychain/reconcile/v1
+      BUILDER_ID: https://github.com/${{ github.repository }}/.github/workflows/ci-real-evidence.draft.yml@${{ github.ref }}
+      SOURCE_REPO: https://github.com/${{ github.repository }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Pull the REAL evidence produced by build-firmware
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4
+        with:
+          name: real-evidence
+          path: inputs   # overwrites the committed inputs/*.json with the built ones
+
+      - name: Pull the experimental chipsec result (optional)
+        continue-on-error: true
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4
+        with:
+          name: chipsec-real
+          path: inputs
+
+      - name: Install OPA (pinned + SHA-verified)   # verbatim from supply-chain.yml
+        run: |
+          curl -fsSL -o /usr/local/bin/opa https://openpolicyagent.org/downloads/v1.18.2/opa_linux_amd64_static
+          echo "9903e5125ac281104f2c4b7371d10cc3b74a98933743fcbfc174f9bf0ab20de8  /usr/local/bin/opa" | sha256sum -c -
+          chmod +x /usr/local/bin/opa
+
+      - uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac # v3
+        with:
+          cosign-release: v2.6.0
+
+      # LIVE CISA KEV feed -> replace the data.cisa_kev seed in the EPHEMERAL runner copy of
+      # oss-lane/policy/data.json (jq-merge; NOT a commit). This is exactly the "refresh from
+      # the live feed" the seed's own _comment invites. Fail closed if the feed is unreachable
+      # rather than silently gate on the stale seed.
+      - name: Refresh data.cisa_kev from the LIVE CISA KEV feed
+        run: |
+          set -euo pipefail
+          curl -fsSL "$CISA_KEV_FEED" -o kev.json
+          jq -e '.vulnerabilities | length > 0' kev.json >/dev/null
+          LIVE="$(jq '[.vulnerabilities[] | {cve: .cveID}]' kev.json)"
+          # keep the seed's leading _comment entry, replace the data with the live catalog
+          jq --argjson live "$LIVE" '.cisa_kev = ([.cisa_kev[0]] + $live)' \
+            oss-lane/policy/data.json > data.tmp && mv data.tmp oss-lane/policy/data.json
+          echo "✓ data.cisa_kev refreshed from live feed: $(echo "$LIVE" | jq length) KEV CVEs"
+
+      - name: SLSA build provenance for the SBOM (platform-generated, SLSA L2)
+        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4.1.1
+        with:
+          subject-path: inputs/sbom.cdx.json
+
+      - name: Verify the SLSA provenance (hard gate)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh attestation verify inputs/sbom.cdx.json --repo "${{ github.repository }}"
+
+      - name: Derive the firmware image digest D (evidence-graph anchor)
+        id: anchor
+        run: |
+          D="$(jq -r '.metadata.component.hashes[]? | select(.alg=="SHA-256") | .content' inputs/sbom.cdx.json)"
+          [ -n "$D" ] || { echo "no SHA-256 in metadata.component — cannot anchor" >&2; exit 1; }
+          echo "d=$D" >> "$GITHUB_OUTPUT"
+          echo "✓ firmware image digest D = sha256:$D"
+
+      # --- from here down, identical to supply-chain.yml, over the REAL reconcile verdict ---
+      - name: Keyless attest the reconcile verdict (subjects = firmware D + SBOM-file H)
+        run: |
+          ./producers/wrap.sh inputs/reconcile-verdict.json "$PRED_TYPE" "${{ steps.anchor.outputs.d }}" \
+            inputs/sbom.cdx.json sbom.cdx.json > inputs/reconcile.intoto.json
+          cosign attest-blob --yes --statement inputs/reconcile.intoto.json --bundle inputs/sbom.att.bundle
+
+      - name: Keyless verify the attestation
+        id: verify
+        run: |
+          if cosign verify-blob-attestation \
+              --certificate-identity "$BUILDER_ID" \
+              --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+              --type "$PRED_TYPE" --check-claims=false --bundle inputs/sbom.att.bundle; then
+            echo "sig=true"  >> "$GITHUB_OUTPUT"
+          else
+            echo "sig=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Wrap + keyless-attest the evidence graph (SBOM / VEX / CHIPSEC), subjects = D + file H
+        run: |
+          D="${{ steps.anchor.outputs.d }}"
+          ./producers/wrap.sh inputs/sbom.cdx.json https://cyclonedx.org/bom "$D" \
+            inputs/sbom.cdx.json sbom.cdx.json > inputs/sbom.intoto.json
+          cosign attest-blob --yes --new-bundle-format --statement inputs/sbom.intoto.json --bundle inputs/sbom.cdx.att.bundle
+
+          python3 producers/interop/to-csaf.py inputs/vex.openvex.json -o inputs/vex.csaf.json
+          CSAF_D="$(sha256sum inputs/vex.csaf.json | cut -d' ' -f1)"
+          jq --arg d "$CSAF_D" '. + {"references":[{"type":"csaf","path":"inputs/vex.csaf.json","digest":{"sha256":$d}}]}' \
+            inputs/vex.openvex.json > inputs/vex.pred.json
+          ./producers/wrap.sh inputs/vex.pred.json https://openvex.dev/ns "$D" \
+            inputs/vex.openvex.json vex.openvex.json > inputs/vex.intoto.json
+          cosign attest-blob --yes --new-bundle-format --statement inputs/vex.intoto.json --bundle inputs/vex.att.bundle
+
+          # E10 — CHIPSEC: prefer the experimental QEMU result if the chipsec-qemu job produced
+          # one; else fall back to the committed OVMF/QEMU sample. Either way to-predicate.py
+          # keeps HW-root NOTAPPLICABLE honest. The committed sample is a config-level SAMPLE,
+          # NOT a hardware measurement — see CI-REAL-EVIDENCE.md.
+          CHIPSEC_RAW=producers/chipsec/sample-results.json
+          [ -f inputs/chipsec.json ] && CHIPSEC_PRED=inputs/chipsec.json \
+            || python3 producers/chipsec/to-predicate.py "$CHIPSEC_RAW" -o inputs/chipsec.pred.json
+          CHIPSEC_PRED="${CHIPSEC_PRED:-inputs/chipsec.pred.json}"
+          CHIPSEC_PT="$(jq -r .predicateType "$CHIPSEC_PRED")"
+          ./producers/wrap.sh "$CHIPSEC_PRED" "$CHIPSEC_PT" "$D" "$CHIPSEC_PRED" chipsec-posture > inputs/chipsec.intoto.json
+          cosign attest-blob --yes --new-bundle-format --statement inputs/chipsec.intoto.json --bundle inputs/chipsec.att.bundle
+
+          for b in sbom.cdx.att.bundle vex.att.bundle chipsec.att.bundle; do
+            cosign verify-blob-attestation \
+              --certificate-identity "$BUILDER_ID" \
+              --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+              --check-claims=false --new-bundle-format --bundle "inputs/$b" \
+              && echo "✓ verified inputs/$b"
+          done
+
+      - name: CVE scan (grype via anchore/scan-action)   # unchanged — already real
+        id: scan
+        uses: anchore/scan-action@1638637db639e0ade3258b51db49a9a137574c3e # v6
+        with:
+          sbom: inputs/sbom.cdx.json
+          output-format: json
+          fail-build: false
+          severity-cutoff: critical
+
+      - name: Collect scan results
+        run: cp "${{ steps.scan.outputs.json }}" inputs/grype.json
+
+      - name: Build-tools SBOM (inventory + keyless-attest the CI toolchain, subject = D)
+        run: |
+          ./producers/build-tools/build-tools-sbom.sh inputs/build-tools.cdx.json
+          ./producers/wrap.sh inputs/build-tools.cdx.json https://cyclonedx.org/bom "${{ steps.anchor.outputs.d }}" \
+            inputs/build-tools.cdx.json build-tools.cdx.json > inputs/build-tools.intoto.json
+          cosign attest-blob --yes --new-bundle-format --statement inputs/build-tools.intoto.json --bundle inputs/build-tools.att.bundle
+          cosign verify-blob-attestation \
+            --certificate-identity "$BUILDER_ID" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            --type https://cyclonedx.org/bom --check-claims=false --new-bundle-format --bundle inputs/build-tools.att.bundle
+
+      # THE KEY DIFFERENCE: FW_IMAGE=<built OVMF_CODE.fd> so leg-3 is a REAL measurement.
+      # DEV_ASSUME_FWIMAGE is DROPPED — assemble_gate_input.py hashes the real file and sets
+      # firmware.freshly_measured=true, so the gate emits the firmware-freshly-measured report
+      # (SP 800-193 §4.3.1) that the DEV_ASSUME path deliberately withholds.
+      - name: Assemble gate input from verified REAL evidence, then gate
+        run: |
+          SBOM=inputs/sbom.cdx.json \
+          BUNDLE=inputs/sbom.att.bundle \
+          SIG=${{ steps.verify.outputs.sig }} \
+          BUILDER_ID="$BUILDER_ID" SOURCE_REPO="$SOURCE_REPO" \
+          SLSA_VERIFIED=true \
+          CHIPSEC_JSON=inputs/chipsec.json \
+          BYTE_INTEGRITY_JSON=inputs/byte-integrity.json \
+          BINARY_HARDENING_JSON=inputs/binary-hardening.json \
+          BUILD_TOOLS_JSON=inputs/build-tools.cdx.json BUILD_TOOLS_SIG=true \
+          PROVENANCE_SUBJECT="sha256:$(sha256sum inputs/sbom.cdx.json | cut -d' ' -f1)" \
+          FW_IMAGE=inputs/OVMF_CODE.fd \
+          GRYPE_JSON=inputs/grype.json OUT=inputs/gate-input.json \
+          bash oss-lane/assemble-gate-input.sh
+          echo "--- freshly_measured (must be true now) ---"; jq '.firmware' inputs/gate-input.json
+          VSA_OUT=inputs/vsa.intoto.json OPA=/usr/local/bin/opa ./oss-lane/gate.sh inputs/gate-input.json
+
+      - name: Framework coverage from the signed VSA (initiative layer)
+        run: |
+          pip install --quiet --require-hashes -r requirements.txt
+          python3 oss-lane/verify-initiative.py --vsa inputs/vsa.intoto.json
+
+      - name: Sign the gate verdict (SLSA VSA) keyless, with inputAttestations
+        run: |
+          inputs_json="$(
+            for b in sbom.cdx.att.bundle sbom.att.bundle vex.att.bundle chipsec.att.bundle build-tools.att.bundle; do
+              [ -f "inputs/$b" ] || continue
+              d="$(sha256sum "inputs/$b" | cut -d' ' -f1)"
+              jq -n --arg u "inputs/$b" --arg d "$d" '{uri:$u, digest:{sha256:$d}}'
+            done | jq -s '.'
+          )"
+          VSA_H="$(sha256sum inputs/vsa.intoto.json | cut -d' ' -f1)"
+          jq --argjson ia "$inputs_json" --arg h "$VSA_H" '
+              .predicate.inputAttestations = $ia
+            | .subject += [{"name":"vsa.intoto.json","digest":{"sha256":$h}}]' \
+            inputs/vsa.intoto.json > inputs/vsa.intoto.tmp && mv inputs/vsa.intoto.tmp inputs/vsa.intoto.json
+          cosign attest-blob --yes --new-bundle-format --statement inputs/vsa.intoto.json --bundle inputs/vsa.att.bundle
+          cosign verify-blob-attestation \
+            --certificate-identity "$BUILDER_ID" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            --type https://slsa.dev/verification_summary/v1 \
+            --check-claims=false --new-bundle-format --bundle inputs/vsa.att.bundle
+          echo "✓ gate verdict signed + verified as a portable SLSA VSA (subject=D, over REAL evidence)"
+
+      - name: Upload the signed REAL evidence graph
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: signed-evidence-graph
+          path: |
+            inputs/*.att.bundle
+            inputs/vsa.intoto.json
+            inputs/gate-input.json

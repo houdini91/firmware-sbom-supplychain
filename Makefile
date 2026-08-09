@@ -90,3 +90,7 @@ byte-integrity: ## Regenerate byte-integrity: make byte-integrity EDK2=<tree> IM
 clean: ## Remove generated local artifacts (keys, gate inputs, VSAs)
 	rm -f inputs/gate-input.json inputs/sbom.att.bundle inputs/build-tools.cdx.json $(VSA) inputs/grype.json
 	rm -rf oss-lane/.keys
+
+.PHONY: refresh-kev
+refresh-kev: ## Refresh data.cisa_kev from the live CISA KEV catalog (needs network)
+	bash scripts/refresh-kev.sh

@@ -433,7 +433,7 @@ _no_kev if {
 _kev_msg := "no CVE scan supplied (cve.scanned=false) — cannot assert 'no Known-Exploited component'; unscanned is MISSING this evidence, not KEV-free" if not input.cve.scanned
 
 _kev_msg := sprintf(
-	"CISA KEV: %d shipped component(s) carry a Known-Exploited CVE with no exec-risk VEX waiver: %v — matched against the configured data.cisa_kev set (a seed, refresh from the live CISA KEV feed), by DECLARED component version not proven runtime exploitability",
+	"CISA KEV: %d shipped component(s) carry a Known-Exploited CVE with no exec-risk VEX waiver: %v — matched against the CISA KEV catalog (data.cisa_kev, a real feed snapshot — refresh with `make refresh-kev`), by DECLARED component version not proven runtime exploitability",
 	[count(_kev_hits), sort([s | some c in _kev_hits; s := sprintf("%s in %q", [c.id, c.component])])],
 ) if input.cve.scanned
 
@@ -646,7 +646,7 @@ _core_reports := [
 	# not proven runtime exploitability; data.cisa_kev is a small illustrative seed.
 	_report(
 		"no-kev-component", _no_kev,
-		"no shipped component carries a Known-Exploited CVE in the configured data.cisa_kev set (a seed — refresh from the live CISA KEV feed) — or each is waived by an explicit exec-risk VEX justification (declared version, not runtime exploitability)",
+		"no shipped component carries a Known-Exploited CVE in the CISA KEV catalog (data.cisa_kev — a real feed snapshot, refresh with `make refresh-kev`) — or each is waived by an explicit exec-risk VEX justification (declared version, not runtime exploitability)",
 		_kev_msg,
 	),
 	# UEFI Secure Boot posture — reads the EXISTING chipsec secureboot.variables result.

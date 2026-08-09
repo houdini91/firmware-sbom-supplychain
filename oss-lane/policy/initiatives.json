@@ -467,7 +467,7 @@
         {
           "id": "cisa-kev",
           "name": "CISA KEV: no shipped component on the Known Exploited Vulnerabilities catalog",
-          "description": "No SBOM component declares a CVE that is on the CISA Known Exploited Vulnerabilities (KEV) catalog, unless that CVE carries an explicit exec-risk VEX waiver. BOD 22-01 requires federal agencies to remediate KEV entries on an accelerated timeline; a plain not_affected VEX does NOT silence a KEV finding. HONESTY: KEV membership is matched against the component's DECLARED version (SBOM/grype evidence), not proven runtime exploitability, and data.cisa_kev is a small illustrative seed \u2014 refresh it from the live CISA KEV feed.",
+          "description": "No SBOM component declares a CVE that is on the CISA Known Exploited Vulnerabilities (KEV) catalog, unless that CVE carries an explicit exec-risk VEX waiver. BOD 22-01 requires federal agencies to remediate KEV entries on an accelerated timeline; a plain not_affected VEX does NOT silence a KEV finding. HONESTY: KEV membership is matched against the component's DECLARED version (SBOM/grype evidence), not proven runtime exploitability. data.cisa_kev is a REAL snapshot of the CISA KEV catalog (refresh with `make refresh-kev`).",
           "citation": "CISA BOD 22-01 \u2014 Known Exploited Vulnerabilities Catalog",
           "canonical": "known-exploited-vulnerabilities",
           "satisfied_by": [
