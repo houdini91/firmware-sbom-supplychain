@@ -26,8 +26,9 @@ MARK = {PASS: "✅", FAIL: "⛔", MISSING: "❔"}
 # control's grade is the minimum over its satisfiers. verified = re-derived from shipped bytes / a
 # verified signature; declared = the SBOM/attestation asserts it (present + well-formed, not proven
 # true of the running firmware); sample = CHIPSEC config-level posture on QEMU, not silicon.
-GRADE_RANK = {"verified": 3, "declared": 2, "sample": 1}
-GRADE_TAG = {"verified": "verified", "declared": "declared", "sample": "sample (QEMU config)"}
+GRADE_RANK = {"verified": 4, "declared": 3, "sample": 2, "assumed": 1}
+GRADE_TAG = {"verified": "verified", "declared": "declared", "sample": "sample (QEMU config)",
+             "assumed": "assumed (DEV_ASSUME — not verified this run)"}
 
 
 def load_reports(vsa_path):
@@ -47,7 +48,7 @@ def load_reports(vsa_path):
 def control_grade(control, grade):
     """The weakest-link grade of a PASSED control: the minimum evidence strength across the
     reports that satisfy it. None if a satisfier carries no grade (shouldn't happen)."""
-    ranks = [GRADE_RANK.get(grade.get(r), 2) for r in control.get("satisfied_by", [])]
+    ranks = [GRADE_RANK.get(grade.get(r), GRADE_RANK["declared"]) for r in control.get("satisfied_by", [])]
     if not ranks:
         return None
     worst = min(ranks)
@@ -81,7 +82,7 @@ def main():
             sys.exit("unknown framework: %s" % args.framework)
 
     all_pass = True
-    grade_counts = {"verified": 0, "declared": 0, "sample": 0}
+    grade_counts = {"verified": 0, "declared": 0, "sample": 0, "assumed": 0}
     print("Compliance coverage (from the signed VSA's verifier reports)\n")
     for key, ini in initiatives.items():
         rows, ok = [], True
@@ -117,12 +118,17 @@ def main():
         print("\n".join(rows) + "\n")
 
     total_graded = sum(grade_counts.values())
+    assumed_tail = ("" if grade_counts["assumed"] == 0
+                    else " · %d assumed" % grade_counts["assumed"])
     print("Evidence grade of PASSED controls (weakest-link): "
-          "%d verified · %d declared · %d sample  (of %d)"
-          % (grade_counts["verified"], grade_counts["declared"], grade_counts["sample"], total_graded))
+          "%d verified · %d declared · %d sample%s  (of %d)"
+          % (grade_counts["verified"], grade_counts["declared"], grade_counts["sample"],
+             assumed_tail, total_graded))
     print("  verified = re-derived from shipped bytes / a verified signature · "
           "declared = SBOM/attestation asserts it (present + well-formed, not proven of the running firmware) · "
-          "sample = CHIPSEC config-level posture on QEMU, not silicon.")
+          "sample = CHIPSEC config-level posture on QEMU, not silicon"
+          + (" · assumed = a DEV_ASSUME_* leg stood in for a real check this run (offline demo)"
+             if grade_counts["assumed"] else "") + ".")
     print("=> %s" % ("ALL EVALUATED CONTROLS PASS" if all_pass else "SOME CONTROLS FAIL / MISSING EVIDENCE"))
     sys.exit(0 if all_pass else 1)
 

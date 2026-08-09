@@ -16,7 +16,9 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.join(HERE, "..")
 OPA = os.environ.get("OPA", os.path.join(ROOT, "bin", "opa"))
-VALID = {"verified", "declared", "sample"}
+VALID = {"verified", "declared", "sample", "assumed"}  # "assumed" = a verified report downgraded
+# for a DEV_ASSUME_* run (input.assumed_reports); the all-facts-true fixtures below never assume, so
+# the emitted grade equals the static data.evidence_grade there.
 
 
 def gate_vsa(fixture):

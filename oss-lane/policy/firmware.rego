@@ -722,8 +722,27 @@ _controls_for(rep) := sort([t |
 # report is never read as an unqualified proof. verified = re-derived from the shipped bytes /
 # a verified signature; declared = the SBOM/attestation asserts it (present + well-formed, not
 # proven true of the running firmware); sample = CHIPSEC config-level posture on QEMU, not
-# silicon. Unmapped names default to "declared" — the conservative floor, never "verified".
-_grade_for(name) := object.get(data.evidence_grade, name, "declared")
+# silicon; assumed = a DEV_ASSUME_* opt-in stood the evidence in for a real check THIS run
+# (offline demo) — downgraded from its static grade so the machine grade matches the loud
+# warnings. Unmapped names default to "declared" — the conservative floor, never "verified".
+_static_grade(name) := object.get(data.evidence_grade, name, "declared")
+
+# Downgrade a would-be "verified" report to "assumed" when this run assumed its evidence via a
+# DEV_ASSUME_* leg (input.assumed_reports, emitted by the assembler). In CI / on the all-facts-true
+# fixtures assumed_reports is empty, so grades are unchanged.
+_grade_for(name) := "assumed" if {
+	_static_grade(name) == "verified"
+	name in object.get(input, "assumed_reports", [])
+}
+
+_grade_for(name) := _static_grade(name) if {
+	not _assumed_verified(name)
+}
+
+_assumed_verified(name) if {
+	_static_grade(name) == "verified"
+	name in object.get(input, "assumed_reports", [])
+}
 
 _report(name, ok, pass_msg, _fail) := {
 	"name": name,

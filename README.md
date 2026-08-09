@@ -140,10 +140,13 @@ the verdict travels with the bytes and anyone downstream can re-verify it.
 34 always-emitted verifier reports resolve to **46 controls across 8 frameworks**.
 
 Not every ✅ is equally strong: each report carries a machine-readable **`evidenceGrade`**, and the
-coverage tool prints a control's **weakest-link** grade. Of the 45 satisfied controls on a clean
-release: **15 verified** (re-derived from shipped bytes / a verified signature) · **26 declared**
+coverage tool prints a control's **weakest-link** grade. Of the 45 satisfied controls on an as-if-CI
+release: **12 verified** (re-derived from shipped bytes / a verified signature) · **29 declared**
 (the SBOM/attestation asserts it — present + well-formed, not proven of the running firmware) · **4
-sample** (CHIPSEC config-level posture on QEMU, not silicon). See [COMPLIANCE-MATRIX.md](COMPLIANCE-MATRIX.md).
+sample** (CHIPSEC config-level posture on QEMU, not silicon). In an offline `make demo` the
+`DEV_ASSUME_*` legs downgrade to a fourth grade, **assumed**, carried into the VSA so the machine
+grade matches the loud warnings — the gate never claims `verified` on evidence it didn't verify this
+run. See [COMPLIANCE-MATRIX.md](COMPLIANCE-MATRIX.md).
 
 <div align="center">
 <picture>

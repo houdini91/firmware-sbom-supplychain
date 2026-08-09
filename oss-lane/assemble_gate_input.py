@@ -506,11 +506,17 @@ def main():
     sig = require("SIG"); out_path = require("OUT")
     builder = env("BUILDER_ID"); repo = env("SOURCE_REPO")
     warnings = []
+    # Report names whose evidence was ASSUMED this run via a DEV_ASSUME_* opt-in (offline demo).
+    # Emitted into the gate input as assumed_reports so the rego downgrades their evidenceGrade from
+    # "verified" to "assumed" — the machine-readable grade then matches the loud warnings, instead of
+    # over-claiming "verified" on evidence we did not actually verify this run. Empty in CI (real
+    # signature + provenance) and for the all-facts-true fixtures.
+    assumed_reports = []
 
     # SLSA L2 floor
     slsa_verified = env("SLSA_VERIFIED", "false")
     if slsa_verified != "true" and env("DEV_ASSUME_SLSA") == "1":
-        slsa_verified = "true"; warnings.append(
+        slsa_verified = "true"; assumed_reports += ["slsa-provenance", "slsa-level-floor"]; warnings.append(
             "DEV_ASSUME_SLSA=1 — SLSA L2 provenance ASSUMED for local demo, not platform-verified "
             "(CI verifies it via gh attestation verify)")
     slsa_level = 2 if slsa_verified == "true" else 0
@@ -528,7 +534,7 @@ def main():
     # Build-tools posture
     bt_sig = env("BUILD_TOOLS_SIG", "false")
     if bt_sig != "true" and env("DEV_ASSUME_BUILDTOOLS") == "1":
-        bt_sig = "true"; warnings.append(
+        bt_sig = "true"; assumed_reports += ["build-tools-signed"]; warnings.append(
             "DEV_ASSUME_BUILDTOOLS=1 — build-tools signature ASSUMED for local demo, not verified "
             "(CI verifies it via cosign verify-blob of the build-tools bundle)")
     bt = build_tools(env("BUILD_TOOLS_JSON"), bt_sig == "true")
@@ -562,6 +568,7 @@ def main():
         effective_builder = signer_id
     elif env("DEV_ASSUME_IDENTITY") == "1":
         effective_builder = builder
+        assumed_reports += ["provenance-identity", "signer-identity-pinned"]
         warnings.append("DEV_ASSUME_IDENTITY=1 — builder identity ASSUMED, not cryptographically "
                         "verified (CI keyless verifies it for real)")
     else:
@@ -592,6 +599,7 @@ def main():
     prov_file_sub = env("PROVENANCE_SUBJECT")
     if not prov_file_sub and env("DEV_ASSUME_CHAIN") == "1":
         prov_file_sub = "sha256:" + sbom_hash
+        assumed_reports += ["evidence-chain-bound"]
         warnings.append("DEV_ASSUME_CHAIN=1 — provenance FILE subject ASSUMED = SBOM file digest H for "
                         "local demo (CI extracts it from the verified attestation)")
     prov_firmware_sub = fw_sbom  # DEV_ASSUME-class: E2 is single-subject H; D is the anchor mapping
@@ -627,8 +635,10 @@ def main():
         if not b:
             if require_signed:
                 sys.exit("assemble_gate_input: %s is required when REQUIRE_SIGNED_EVIDENCE=1 — "
-                         "refusing to fall back to an UNSIGNED loose verdict (this is the "
-                         "byte-integrity forge P0.1 closed). Produce + pass the signed bundle." % name)
+                         "refusing to fall back to the loose inputs/*.json (this is the byte-integrity "
+                         "forge P0.1 closed). This is a bundle-PRESENCE requirement; the bundle's "
+                         "signature is verified out-of-band by cosign verify-blob-attestation in "
+                         "run.sh/CI. Produce + pass the D-anchored bundle." % name)
             warnings.append("%s unset — verdict read from an UNSIGNED loose inputs/*.json "
                             "(local-dev fallback, NOT production; set REQUIRE_SIGNED_EVIDENCE=1 "
                             "to enforce the signed, D-anchored bundle)." % name)
@@ -674,6 +684,12 @@ def main():
         "binary_hardening": binary_hardening_fact(env("BINARY_HARDENING_JSON"), bh_bundle, fw_sbom),
         "build_tools": {"present": bt["present"], "signature_verified": bt["signature_verified"],
                         "all_pinned": bt["all_pinned"], "unpinned": bt["unpinned"]},
+        # Machine-readable honesty carry-through (previously stderr-only): the DEV_ASSUME_* /
+        # loose-fallback caveats travel INTO the artifact, so a consumer of the gate input / VSA
+        # sees them without the ephemeral stdout. assumed_reports drives the evidenceGrade
+        # downgrade in firmware.rego (verified -> assumed for any report assumed this run).
+        "warnings": warnings,
+        "assumed_reports": sorted(set(assumed_reports)),
     }
 
     with open(out_path, "w") as f:
