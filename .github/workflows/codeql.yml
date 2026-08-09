@@ -40,17 +40,17 @@ jobs:
       WORKFLOW_REF: https://github.com/${{ github.repository }}/.github/workflows/codeql.yml@${{ github.ref }}
     steps:
       - name: Checkout (this repo)
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Initialize CodeQL (python)
-        uses: github/codeql-action/init@a2983b8bed1923f44751c5c43237f479442827b3 # v3.37.4
+        uses: github/codeql-action/init@5595ccaf912efad79be6eef63a5619ff05969be3 # v4.37.6
         with:
           languages: python
           build-mode: none
           queries: security-extended
 
       - name: Analyze (python)
-        uses: github/codeql-action/analyze@a2983b8bed1923f44751c5c43237f479442827b3 # v3.37.4
+        uses: github/codeql-action/analyze@5595ccaf912efad79be6eef63a5619ff05969be3 # v4.37.6
         with:
           category: "/language:python"
           # Write the SARIF to a known path (in addition to the Security-tab upload)
@@ -59,7 +59,7 @@ jobs:
           upload: always
 
       - name: Publish Python SARIF artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: codeql-sarif-python
           path: sarif-results/*.sarif
@@ -69,7 +69,7 @@ jobs:
       # Mirrors supply-chain.yml's keyless cosign pattern: sign-blob --yes --bundle
       # over the produced SARIF, then verify-blob against this workflow's OIDC cert.
       - name: Install cosign
-        uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac # v3
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
 
       - name: Keyless-sign the SARIF as signed evidence
         run: |
@@ -146,7 +146,7 @@ jobs:
       EDK2_REF: edk2-stable202402
     steps:
       - name: Checkout the pinned edk2 fork (source under test)
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: ${{ env.EDK2_REPO }}
           ref: ${{ env.EDK2_REF }}
@@ -156,7 +156,7 @@ jobs:
           persist-credentials: false
 
       - name: Initialize CodeQL (c-cpp, scoped via config)
-        uses: github/codeql-action/init@a2983b8bed1923f44751c5c43237f479442827b3 # v3.37.4
+        uses: github/codeql-action/init@5595ccaf912efad79be6eef63a5619ff05969be3 # v4.37.6
         with:
           languages: c-cpp
           build-mode: none
@@ -164,14 +164,14 @@ jobs:
           config-file: ./.github/codeql/codeql-config.yml
 
       - name: Analyze (c-cpp)
-        uses: github/codeql-action/analyze@a2983b8bed1923f44751c5c43237f479442827b3 # v3.37.4
+        uses: github/codeql-action/analyze@5595ccaf912efad79be6eef63a5619ff05969be3 # v4.37.6
         with:
           category: "/language:c-cpp"
           output: sarif-results
           upload: always
 
       - name: Publish edk2 C SARIF artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: codeql-sarif-edk2-cpp
           path: sarif-results/*.sarif
@@ -181,7 +181,7 @@ jobs:
       # Mirrors supply-chain.yml's keyless cosign pattern: sign-blob --yes --bundle
       # over the produced SARIF, then verify-blob against this workflow's OIDC cert.
       - name: Install cosign
-        uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac # v3
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
 
       - name: Keyless-sign the SARIF as signed evidence
         run: |
