@@ -1,7 +1,7 @@
 # Initiative manifests — framework → control → the verifier report(s) that satisfy it.
 #
 # This is the declarative layer over the enforcing gate (adopted from the Valint/Scribe
-# "initiative" model). The 21 always-emitted rego verifier_reports (plus firmware-freshly-measured,
+# "initiative" model). The 34 always-emitted rego verifier_reports (plus firmware-freshly-measured,
 # emitted only when a genuine flash-time FW_IMAGE measurement is supplied) stay the source of truth; this maps
 # them to framework control IDs so a run can report per-control, per-framework coverage
 # (and surface MISSING_EVIDENCE — a control whose satisfying report is absent from the VSA).

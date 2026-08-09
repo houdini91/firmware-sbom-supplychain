@@ -8,7 +8,7 @@ built OVMF image. Section 5 (the same-GUID trojan) is self-contained — it runs
 
 ## 1. The gate ALLOWs a clean release — 34 signed checks, each tagged with the control it earns
 
-A fixture carrying complete, valid evidence: the gate ANDs the **33 always-emitted** verifier reports
+A fixture carrying complete, valid evidence: the gate ANDs the **34 always-emitted** verifier reports
 and signs the VSA. On this reference release a 26th fires — `osf-source-provenance` — the conditional
 advisory report that appears only when every module carries a source hash (as the `-Y SBOM` generator
 now emits); it is non-gating, so a build without source hashes simply omits it.
@@ -44,7 +44,7 @@ now emits); it is non-gating, so a build without source hashes simply omits it.
    ✅ component-supplier: every enumerated component carries a supplier.name (CISA 2026 Component Producer, per-component — distinct from the document supplier)  [cra-bsi-cisa:cisa-component-producer]
    ✅ dependency-relationships: SBOM declares a dependency graph (CycloneDX dependencies[]) and it is referentially sound — every dependsOn points at a real component (presence + integrity, not completeness)  [cra-bsi-cisa:cisa-dependencies]
    ✅ sbom-data-quality: SBOM data quality: every declared purl parses and every declared license is well-formed (SPDX-id-shaped / expression / name) — correctness of present identifiers, not full SPDX-list membership  [cra-bsi-cisa:cisa-data-quality]
-   ✅ no-kev-component: no shipped component carries a Known-Exploited CVE in the configured data.cisa_kev set (a seed — refresh from the live CISA KEV feed) — or each is waived by an explicit exec-risk VEX justification (declared version, not runtime exploitability)  [cra-bsi-cisa:cisa-kev, sp-800-53:RA-5]
+   ✅ no-kev-component: no shipped component carries a Known-Exploited CVE in the configured data.cisa_kev set (a real CISA KEV catalog snapshot, 1,662 entries — refresh with make refresh-kev) — or each is waived by an explicit exec-risk VEX justification (declared version, not runtime exploitability)  [cra-bsi-cisa:cisa-kev, sp-800-53:RA-5]
    ✅ uefi-secure-boot-posture: UEFI Secure Boot provisioned + enforcing (CHIPSEC secureboot.variables PASSED) — SAMPLE/ILLUSTRATIVE chipsec.json on OVMF/QEMU, config-level posture not a live hardware-rooted run  [nist-800-147:800-147B-secure-boot]
    ✅ platform-protection-posture: platform protections verified (CHIPSEC bios_wp flash write-protection + smm SMM isolation PASSED; bios_ts/smrr N/A on QEMU) — SAMPLE/ILLUSTRATIVE chipsec.json, config-level posture not physical silicon  [nist-800-147:800-147-flash-wp, sp-800-193:4.2.3]
    ✅ osf-identity-shape: OSF embedded-SBOM identity shape verified: every firmware module's tag-id (bom-ref) is in GUID form — a manifest-level SHAPE check, NOT proof the value is a live UEFI FILE_GUID carved from the image (a UUID from any tool passes the shape); parsing the coSWID from the shipped PE to confirm the FILE_GUID remains roadmapped  [osf-embedded-sbom:osf-guid-identity]
@@ -201,7 +201,7 @@ RESULT: same-GUID byte swap — reconcile-membership PASSED, component-byte-inte
 ```
 
 The `… (19 other reports, all ✅) …` lines are the only elision — `make attack-demo`
-prints all 33 verifier reports in full both times. **The crux is the contrast:**
+prints all 34 verifier reports in full both times. **The crux is the contrast:**
 `reconcile-membership` PASSES the swap in both runs (the GUID is present); only
 `component-byte-integrity` flips from ✅ to ⛔, and that flip is what turns the gate's
 verdict from ALLOW to DENY.

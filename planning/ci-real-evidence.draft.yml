@@ -133,7 +133,7 @@ jobs:
           cp "edk2/$OVMF_OUT/FV/OVMF_CODE.fd" supplychain/inputs/OVMF_CODE.fd
           echo "✓ staged real sbom.cdx.json + OVMF_CODE.fd"
 
-      - name: Firmware image digest (sanity: must equal the SBOM metadata.component D)
+      - name: "Firmware image digest (sanity: must equal the SBOM metadata.component D)"
         id: fw
         working-directory: supplychain
         run: |

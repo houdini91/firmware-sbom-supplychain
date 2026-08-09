@@ -10,7 +10,7 @@ result and is recorded here deliberately, not hidden.
 
 ## How to read this
 
-- **Gated** means the report is one of the 33 always-emitted `verifier_reports` that are
+- **Gated** means the report is one of the 34 always-emitted `verifier_reports` that are
   ANDed into `allow` (`allow if { every r in verifier_reports { r.isSuccess } }`,
   `firmware.rego:601`). If any gated report is `isSuccess:false`, the gate DENYs.
 - **Three-state per control** (`verify-initiative.py`): a control is **PASS** only when
@@ -169,12 +169,15 @@ controls upstream of the artifact this gate inspects.
   disclosure duty, security-update obligation, and market-surveillance requirements are
   organizational/legal and outside a build gate's evidence.
 - **BSI TR-03183-2** mandates additional SBOM fields (author, timestamp, supplier, full
-  dependency relationships). We assert component id / hash / license / tool / context; we do
-  **not** yet assert author/timestamp/supplier as gated fields — a candidate for the next cycle.
+  dependency relationships) — these **are** gated: `sbom-author`, `sbom-timestamp`,
+  `sbom-supplier`, and `dependency-relationships` (which parses the emitted dependency graph),
+  alongside component id / hash / license / tool / context. What remains outside scope is the
+  organizational/process half of TR-03183-2 (operator obligations), not SBOM fields.
 - **Declared-not-proven ceiling:** `cisa-generation-tool`/`-context` and `no-kev-component`
   assert what the SBOM *declares* (a tool name, a lifecycle phase, a component version), not
   that the declared tool produced these bytes or that the version is runtime-exploitable. KEV
-  membership is by declared version; `data.cisa_kev` is a small illustrative seed.
+  membership is by declared version, matched against a real snapshot of the CISA KEV catalog
+  (`data.cisa_kev`, 1,662 entries — refresh with `make refresh-kev`), not a hand-picked seed.
 
 ## 7 · NIST SP 800-147 / 147B + UEFI Secure Boot
 
@@ -247,8 +250,8 @@ an honest gate:
    actually ran (`cve.scanned`); a zeroed reconcile block (`declared==0`) does not satisfy
    `reconcile-membership`. Without a scan/reconcile these controls report **not-satisfied**
    (fail-closed), never "clean" — parity with the `byte_integrity.ran` / `binary_hardening`
-   coverage guards. `no-kev-component` matches against the configured `data.cisa_kev` **seed**
-   (refresh from the live feed), and `osf-identity-shape` is a GUID-**shape** check (a UUID from
+   coverage guards. `no-kev-component` matches against a real CISA KEV catalog snapshot
+   (`data.cisa_kev`, 1,662 entries; `make refresh-kev`), and `osf-identity-shape` is a GUID-**shape** check (a UUID from
    any tool passes; it does not prove the value is a live UEFI FILE_GUID). These are stated in the
    report messages, not just here.
 
