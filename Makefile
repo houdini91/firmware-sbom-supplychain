@@ -36,6 +36,7 @@ test: ## Gate honesty tests (opa+jq) + assembler + byte-integrity unit tests + c
 	python3 tests/test_initiatives_sync.py
 	OPA=$(or $(OPA),$(ROOT)bin/opa) python3 tests/test_evidence_grade.py
 	python3 tests/test_cli_verdict.py
+	OPA=$(or $(OPA),$(ROOT)bin/opa) bash tests/pipeline-negative.sh
 	bash tests/cosign-policy.sh
 
 .PHONY: test-full
