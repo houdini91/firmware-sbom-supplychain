@@ -130,8 +130,13 @@ SBOM="$SBOM" BUNDLE="$IN/sbom.att.bundle" SIG="$SIG" \
   BUILD_TOOLS_JSON="${BUILD_TOOLS_JSON:-$IN/build-tools.cdx.json}" \
   DEV_ASSUME_BUILDTOOLS="${DEV_ASSUME_BUILDTOOLS:-1}" \
   DEV_ASSUME_CHAIN="${DEV_ASSUME_CHAIN:-1}" \
+  FW_IMAGE="${FW_IMAGE:-}" \
   DEV_ASSUME_FWIMAGE="${DEV_ASSUME_FWIMAGE:-1}" \
   bash "$HERE/assemble-gate-input.sh"
+# leg-3: if FW_IMAGE=<the deployed .fd> is passed, the assembler HASHES it (a genuine flash-time
+# measurement) → firmware-freshly-measured fires → SP 800-193 §4.3.1 satisfied (46/46). Without it,
+# DEV_ASSUME_FWIMAGE copies leg-3 from the build self-claim and §4.3.1 stays advisory-MISSING (45/46,
+# honest). FW_IMAGE takes precedence over DEV_ASSUME_FWIMAGE in the assembler.
 
 echo "== 7. gate =="
 "$HERE/gate.sh" "$IN/gate-input.json"

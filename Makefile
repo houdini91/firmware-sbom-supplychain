@@ -58,7 +58,7 @@ verify: ## Consumer CLI on your firmware: make verify FW=<image.fd> VSA=<vsa.jso
 	cli/fw-supplychain-verify --firmware "$(FW)" $(if $(VSA),--vsa "$(VSA)",)
 
 .PHONY: demo
-demo: ## Full OSS lane end to end (needs cosign + grype + opa)
+demo: ## Full OSS lane end to end (needs cosign + grype + opa). Add FW_IMAGE=<deployed .fd> for a REAL leg-3 flash-time measurement (SP 800-193 §4.3.1 -> 46/46); without it §4.3.1 stays advisory (45/46).
 	bash oss-lane/run.sh
 
 .PHONY: reconcile
