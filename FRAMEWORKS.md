@@ -38,12 +38,15 @@ flowchart LR
 </picture>
 </div>
 
-- **Enforced today** — the deploy pipeline **hard-blocks the release** on **twenty-four OPA verifier reports** (SBOM
+- **Enforced today** — the deploy pipeline **hard-blocks the release** on **twenty-one always-emitted OPA verifier reports** (SBOM
   present · attestation signature · SBOM↔subject binding · provenance identity · **SLSA L2 provenance** ·
-  reconcile · CVE/VEX · **CHIPSEC platform posture** · **reconcile membership** (SI-7/CM-8(3)) · **component
+  reconcile · CVE/VEX · **reconcile membership** (SI-7/CM-8(3)) · **component
   integrity** (SI-7(1)) · **VEX adjudication** (RV.1.1, high+critical) · **third-party identity** (CISA
   License/PURL, S2C2F SCA-2) · **build-tools signed** (SSDF PO.3.2 / S2C2F REB-3)). The SLSA-L2 one is additionally backed by the
-  `gh attestation verify` CI hard-gate. These are the controls we can defend as *actually enforced*, not merely
+  `gh attestation verify` CI hard-gate. **CHIPSEC platform posture** gates too, but is **conditional + advisory**:
+  it is emitted (and hard-blocks) only when the target substantiates it with a real PASS/FAIL — on the demo OVMF
+  (Secure Boot not provisioned, no HW root of trust) it is `NOTAPPLICABLE`, ABSENT, and advisory-MISSING, never a
+  passing sample. These are the controls we can defend as *actually enforced*, not merely
   mapped. The remaining planned rules are tracked in [`POLICY-EXPANSION.md`](planning/POLICY-EXPANSION.md).
 - **Satisfiable from evidence we already emit** — many named controls across SLSA, NIST SSDF/800-53/800-161,
   OpenSSF S2C2F, the CISA/NTIA SBOM elements, EU CRA, BSI TR-03183-2, and NIST 800-190 are met or partly met by
@@ -67,7 +70,7 @@ framework  →  §control (exact ref)  →  evidence that proves it  →  status
 
 | Status | Meaning |
 |---|---|
-| **`ENFORCED`** | The release is **hard-blocked if this fails** — by one of the twenty-four always-emitted OPA `verifier_reports` in [`firmware.rego`](./oss-lane/policy/firmware.rego) *(gate)*; the `slsa-provenance` report is additionally backed by a CI hard-gate step *(CI)*, `gh attestation verify`. The mechanism is named per row. |
+| **`ENFORCED`** | The release is **hard-blocked if this fails** — by one of the twenty-one always-emitted OPA `verifier_reports` in [`firmware.rego`](./oss-lane/policy/firmware.rego) *(gate)* (the three CHIPSEC posture reports gate too, but only when the target substantiates them — conditional/advisory otherwise); the `slsa-provenance` report is additionally backed by a CI hard-gate step *(CI)*, `gh attestation verify`. The mechanism is named per row. |
 | **`EVIDENCE`** | We produce the artifact/field, but no gate rule checks it yet — the control is *satisfiable from what we emit*, just not *enforced*. |
 | **`PARTIAL`** | The evidence meets the control only in part; the named shortfall is in the note. |
 | **`PLANNED`** | A concrete, near-term artifact change (mostly SBOM enrichment + byte-integrity reconcile) would satisfy it. |
@@ -85,11 +88,11 @@ not asserted.
 | **E2** | **SLSA Build L2 provenance** | `slsa.dev/provenance/v1` | build origin is authentic (platform-generated) | GitHub `attest-build-provenance`, **verified green in CI** with `gh attestation verify` | `slsa-provenance` *(gate)* backed by `gh attestation verify` *(CI)*; `provenance-identity` *(gate, identity)* |
 | **E3** | **Reconcile verdict + byte-integrity** | custom in-toto predicates | shipped bytes match the declared components | FMMT-carved FFS vs SBOM by GUID (**123/123 membership**) **plus byte-integrity: 122 of the 123 modules'** shipped PE32 bytes match the declared SHA-256 (R4 — DXE direct, XIP/PEI via un-rebase canonicalization; the 123rd, `ResetVector`, is a raw blob with no PE32, covered by membership); a same-GUID swap is caught | `reconcile` + `component-byte-integrity` *(gate)* |
 | **E4** | **CVE + VEX** | grype JSON + **OpenVEX** (in-toto `openvex.dev/ns`, subjects = firmware `D` + OpenVEX file `H`) | no un-triaged critical vulnerability ships | scan over E1 + OpenVEX triage allowlist; the BSI **CSAF** view is **collapsed into a reference inside the OpenVEX attestation** (not a second VEX attestation) | `cve-triage` *(gate)* |
-| **E6** | **Policy verdict (VSA)** | **`slsa.dev/verification_summary/v1`** (in-toto/DSSE), subject = firmware digest `D` | the gate's verdict, as portable signed evidence | Standard SLSA VSA (`verificationResult`, `verifiedLevels:[SLSA_BUILD_LEVEL_0]` on the firmware subject; real L2 scoped to `evidenceBuildLevel`) with the rich detail as **extensions**: `verifierReports[]` (33 always-emitted observations, each framework-tagged; two more — `firmware-freshly-measured`, `osf-source-provenance` — ride only when a genuine flash-time measurement / a real source-file hash is supplied) + **`controlAssessments[]`** (46 per-control findings across 8 frameworks — `satisfied`/`not-satisfied`/`missing-evidence`, each carrying `description`/`citation`/`satisfied_by`/`missing_evidence`). in-toto/SLSA predicates are extensible: a SLSA-VSA consumer reads the standard summary, ours reads the detail. A later CDXA/SARIF rendering is an *added format over the same data* | output artifact |
+| **E6** | **Policy verdict (VSA)** | **`slsa.dev/verification_summary/v1`** (in-toto/DSSE), subject = firmware digest `D` | the gate's verdict, as portable signed evidence | Standard SLSA VSA (`verificationResult`, `verifiedLevels:[SLSA_BUILD_LEVEL_0]` on the firmware subject; real L2 scoped to `evidenceBuildLevel`) with the rich detail as **extensions**: `verifierReports[]` (31 always-emitted observations, each framework-tagged; the conditional reports — `firmware-freshly-measured`, `osf-source-provenance`, and the three CHIPSEC posture reports `chipsec-posture` / `uefi-secure-boot-posture` / `platform-protection-posture` — ride only when their evidence is applicable: a genuine flash-time measurement, a real source-file hash, or a target that substantiates the CHIPSEC posture with a real PASS/FAIL) + **`controlAssessments[]`** (46 per-control findings across 8 frameworks — `satisfied`/`not-satisfied`/`missing-evidence`, each carrying `description`/`citation`/`satisfied_by`/`missing_evidence`). in-toto/SLSA predicates are extensible: a SLSA-VSA consumer reads the standard summary, ours reads the detail. A later CDXA/SARIF rendering is an *added format over the same data* | output artifact |
 | **E7** | **Build-tools SBOM** | CycloneDX + SHA-pins | the *build* toolchain is inventoried + signed | CI actions/tools, SHA-pinned + keyless-signed; **direct only, not transitive** | `build-tools-signed` *(gate)* |
 | **E8** | **SAST report** | CodeQL SARIF (keyless-signed) | static code-analysis findings | `codeql-sast` workflow — `python` (this repo's tooling, **0 findings**) on push + scoped edk2 `c-cpp` (NetworkPkg) on dispatch; **green in CI**, Security-tab uploaded, keyless-signed, and **severity-gated** (fails ≥7.0) | `codeql-sast` severity gate *(CI)* |
 | **E9** | **OpenSSF Scorecard** | Scorecard SARIF (keyless-signed) | repo security-posture score | `scorecard-analysis` workflow — push + weekly; Security-tab uploaded, published to the OpenSSF API (badge), keyless-signed. Posture evidence (R5) | — (soft evidence, deliberately not a hard gate) |
-| **E10** | **CHIPSEC posture** | in-toto predicate | platform-firmware protections | `producers/chipsec` — CHIPSEC modules vs the OVMF/QEMU target → `critical_passed` (applicable critical modules PASS; `NOTAPPLICABLE` HW-root checks excluded). Config assessment, not runtime measured boot (R3) | `chipsec-posture` *(gate)* |
+| **E10** | **CHIPSEC posture** | in-toto predicate | platform-firmware protections | `producers/chipsec` — a real producer (`secureboot-from-varstore.py`) reads the OVMF varstore: on the demo (Secure Boot **not provisioned**, no HW root of trust) every module is `NOTAPPLICABLE`, so the three posture reports are **conditional + advisory** (ABSENT on demo, emitted + gating only on a substantiating platform). Config assessment, not runtime measured boot (R3) | `chipsec-posture` / `uefi-secure-boot-posture` / `platform-protection-posture` *(gate, conditional/advisory)* |
 | **E11** | **Binary-hardening posture** | in-toto predicate | shipped modules declare exploit-mitigation compatibility | `producers/reconcile/binary-hardening.py` — reads each carved PE32's `DllCharacteristics`: **106/106 DXE-class modules NX_COMPAT** (W^X-ready), all keep relocations. **`DYNAMIC_BASE`/`GUARD_CF`/`HIGH_ENTROPY_VA` = 0 across the image** — reported honestly (edk2 does no load-address ASLR; NX is enforced by the DXE image-protection policy, so this is *declared posture*, not runtime enforcement) (R8) | `binary-hardening` *(gate)* |
 
 > **Multi-subject binding.** Every attestation WE build (E1, E3, E4, E6, E7, E10) is a `cosign attest-blob
@@ -106,9 +109,9 @@ not asserted.
 > — the tamper-after-signing check), and `signer-identity-pinned` (the Fulcio cert SAN is in the trusted set). The
 > OIDC SAN is extracted from the cert and **checked**, not asserted.
 
-> **The trust anchor:** the twenty-four always-emitted gate reports are `sbom-present` (E1), `attestation-signature` (DSSE envelope),
+> **The trust anchor:** the twenty-one always-emitted gate reports are `sbom-present` (E1), `attestation-signature` (DSSE envelope),
 > `sbom-binding` (E1 file digest `H` ↔ attestation **file** subject `H`), `provenance-identity` (E2), `slsa-provenance` (E2, backed by the
-> `gh attestation verify` CI hard-gate), `reconcile` (E3), `cve-triage` (E4), `chipsec-posture` (E10),
+> `gh attestation verify` CI hard-gate), `reconcile` (E3), `cve-triage` (E4),
 > `reconcile-membership` (E3, SI-7/CM-8(3)), `component-integrity` (E1, SI-7(1)),
 > `component-byte-integrity` (E3, SI-7(1)/SR-4(3) — the shipped PE32 bytes of each byte-checkable module match
 > the SBOM's declared hash; catches a same-GUID swap; XIP/PEI modules verified via un-rebase canonicalization (122 of 123 modules); reported
@@ -132,13 +135,17 @@ not asserted.
 > a generating tool with name+version and a build-time lifecycle phase; declared-not-proven, the same ceiling as
 > `vex-adjudicated`), `no-kev-component` (E4, CISA BOD 22-01 KEV — no shipped component carries a Known-Exploited CVE
 > unless an explicit exec-risk VEX waiver applies; KEV membership by *declared* component version, not runtime exploitability),
-> `uefi-secure-boot-posture` (E10, NIST 800-147B + UEFI Spec §32 — CHIPSEC `secureboot.variables` provisioned + enforcing) and
-> `platform-protection-posture` (E10, NIST 800-147 flash write-protection + 800-193 §4.2.3 SMM — CHIPSEC `bios_wp` + `smm`;
-> `bios_ts`/`smrr` N/A on QEMU) — the gate ANDs all twenty-four and emits E6. A **conditional** twenty-fifth report,
-> `firmware-freshly-measured` (SP 800-193 §4.3.1, admission-time/off-device), is emitted **only** when a genuine
-> flash-time `FW_IMAGE` measurement is supplied; in offline/CI `DEV_ASSUME_FWIMAGE` mode it is absent, so §4.3.1
-> is honestly MISSING_EVIDENCE and `allow` is unaffected (an absent report is not ANDed) — the demo never claims
-> on-device detection. The
+> — the gate ANDs all twenty-one and emits E6. The **conditional** reports ride only when their evidence is
+> applicable, and are ABSENT (advisory, `allow` unaffected — an absent report is not ANDed) otherwise:
+> `firmware-freshly-measured` (SP 800-193 §4.3.1, admission-time/off-device) is emitted **only** when a genuine
+> flash-time `FW_IMAGE` measurement is supplied — in offline/CI `DEV_ASSUME_FWIMAGE` mode it is absent, so §4.3.1
+> is honestly MISSING_EVIDENCE and the demo never claims on-device detection; and the three CHIPSEC posture reports
+> `chipsec-posture` (E10, SP 800-193 §4.2), `uefi-secure-boot-posture` (E10, NIST 800-147B + UEFI Spec §32 —
+> CHIPSEC `secureboot.variables`) and `platform-protection-posture` (E10, NIST 800-147 flash write-protection +
+> 800-193 §4.2.3 SMM — CHIPSEC `bios_wp` + `smm`; `bios_ts`/`smrr` N/A on QEMU) are emitted **only** when the
+> target substantiates them with a real PASS/FAIL — the demo OVMF is not Secure-Boot-provisioned, so a real
+> producer reads them as `NOTAPPLICABLE` and all three are ABSENT (the 800-147 / 800-193 §4.2 controls are then
+> advisory-MISSING, not a passing sample); they emit and gate on a provisioned platform. The
 > `component-integrity` rule passes only with an explicit reviewed `data.hash_exempt` entry (ResetVector), never a
 > relaxed threshold.
 
@@ -386,11 +393,11 @@ enforcement it asks for is still futuristic.)*
 
 | Ref | Ask | New evidence required | Status | Note |
 |---|---|---|:--:|---|
-| **§4.2.1** Protection and Update of Mutable Code | only authenticated firmware updates apply | E5, E2, **E10** (CHIPSEC `bios_wp`/`bios_ts`) | **PARTIAL** *(gate: chipsec-posture)* | CHIPSEC BIOS write-protection is *config-level* on the OVMF/**QEMU** target with **no hardware root of trust**, and the demo's `chipsec.json` is **sample data**, not a live run — evidence-shaped, not enforced platform resiliency. E5+E2 prove the update image is authentic; on-device RTU + runtime enforcement remains futuristic. |
+| **§4.2.1** Protection and Update of Mutable Code | only authenticated firmware updates apply | E5, E2, **E10** (CHIPSEC `bios_wp`/`bios_ts`) | **ADVISORY** *(gate: chipsec-posture, conditional)* | CHIPSEC BIOS write-protection is *config-level* and the demo OVMF/**QEMU** target has **no hardware root of trust**, so a real producer reads `bios_wp` as `NOTAPPLICABLE` — the report is ABSENT and this maps as advisory-MISSING, **not** a passing sample. E5+E2 prove the update image is authentic; on a substantiating platform the CHIPSEC posture emits and gates. On-device RTU + runtime enforcement remains futuristic. |
 | **§4.3.1** Detection of Corrupted Code | detect corruption vs an authorized reference | measured-boot measurement + golden RIM, on-device | **FUTURISTIC ◐ analog** | Runtime twin of E3 reconcile — E3 compares *build outputs to SBOM*, not *running firmware to a reference*. |
 | **§4.3.2** Detection of Corrupted Critical Data | detect critical-data corruption vs reference | as above | **FUTURISTIC** | — |
 | **§4.4.1 / §4.4.2** Recovery of Mutable Code / of Critical Data | auto-recover to a known-good state | golden recovery image + on-device RTRec | **FUTURISTIC** | We can *supply* a signed known-good image (E2/E5); the recovery mechanism is runtime-only. |
-| **§4.2.2** Protection of immutable code | write-protected/immutable regions | **E10** (CHIPSEC `bios_wp`; `spi_desc`/`spi_lock` are hardware-root) | **PARTIAL** *(gate: chipsec-posture)* | On the OVMF/**QEMU** target the applicable config check is `bios_wp` (BIOS write-protect); the SPI descriptor/lock checks require real silicon and honestly report **N/A** (not pass). §4.2.2 is config-level only here; hardware-enforced runtime integrity remains futuristic. |
+| **§4.2.2** Protection of immutable code | write-protected/immutable regions | **E10** (CHIPSEC `bios_wp`; `spi_desc`/`spi_lock` are hardware-root) | **ADVISORY** *(gate: chipsec-posture, conditional)* | On the demo OVMF/**QEMU** target `bios_wp` and the SPI descriptor/lock checks are all `NOTAPPLICABLE` (no silicon root of trust), so the report is ABSENT and this maps as advisory-MISSING, not a pass. On a substantiating platform `bios_wp` gates as config-level posture; hardware-enforced runtime integrity remains futuristic. |
 | **§4.2.3 / §4.2.4** Runtime protection of code / critical data | hardware-enforced runtime integrity | hardware mechanism + runtime evidence | **FUTURISTIC** | CHIPSEC `smm`/`smrr` config checks are indicative, but true runtime integrity needs on-device measurement. |
 
 ### IETF RATS — RFC 9334 (roles §4.1; conceptual messages §8.x; topological models §5.x)

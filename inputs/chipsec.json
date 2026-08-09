@@ -1,14 +1,14 @@
 {
   "predicateType": "https://firmware-sbom-supplychain/chipsec-posture/v1",
   "target": "OVMF/QEMU (platform-configuration assessment)",
-  "critical_passed": true,
+  "critical_passed": false,
   "summary": {
     "total": 8,
-    "passed": 3,
+    "passed": 0,
     "failed": 0,
-    "not_applicable": 4,
+    "not_applicable": 7,
     "warning": 1,
-    "critical_applicable": 3,
+    "critical_applicable": 0,
     "critical_failed": []
   },
   "results": [
@@ -19,17 +19,17 @@
     },
     {
       "module": "common.bios_wp",
-      "result": "PASSED",
+      "result": "NOTAPPLICABLE",
       "critical": true
     },
     {
       "module": "common.secureboot.variables",
-      "result": "PASSED",
+      "result": "NOTAPPLICABLE",
       "critical": true
     },
     {
       "module": "common.smm",
-      "result": "PASSED",
+      "result": "NOTAPPLICABLE",
       "critical": true
     },
     {

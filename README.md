@@ -129,7 +129,7 @@ the verdict travels with the bytes and anyone downstream can re-verify it.
     "verificationResult": "PASSED",
     "verifiedLevels": ["SLSA_BUILD_LEVEL_0"],   // ← the firmware SUBJECT's own build level is not verified
     "evidenceBuildLevel": "SLSA_BUILD_LEVEL_2", // ← the SBOM/attestation artifact's provenance IS L2 (scoped, not on the firmware)
-    "verifierReports":     [ /* 35 per-rule observations (always-emitted), each framework-tagged */ ],   // extension
+    "verifierReports":     [ /* 32 per-rule observations on a clean release (31 always-emitted + osf-source-provenance; the 3 CHIPSEC posture reports are conditional/advisory), each framework-tagged */ ],   // extension
     "controlAssessments":  [ /* 46 per-control findings across 8 frameworks, each cited */ ] // extension
   }
 }
@@ -137,13 +137,18 @@ the verdict travels with the bytes and anyone downstream can re-verify it.
 
 ## Framework &amp; control coverage
 
-35 always-emitted verifier reports resolve to **46 controls across 8 frameworks**.
+31 always-emitted verifier reports (plus conditional/advisory reports — `firmware-freshly-measured`,
+`osf-source-provenance`, and the three CHIPSEC posture reports, each emitted only when its evidence is
+applicable) resolve to **46 controls across 8 frameworks**.
 
 Not every ✅ is equally strong: each report carries a machine-readable **`evidenceGrade`**, and the
-coverage tool prints a control's **weakest-link** grade. Of the 45 satisfied controls on an as-if-CI
-release: **12 verified** (re-derived from shipped bytes / a verified signature) · **29 declared**
-(the SBOM/attestation asserts it — present + well-formed, not proven of the running firmware) · **4
-sample** (CHIPSEC config-level posture on QEMU, not silicon). In an offline `make demo` the
+coverage tool prints a control's **weakest-link** grade. On a clean release **41 controls are
+satisfied** (the 4 CHIPSEC-only 800-147 / 800-193 §4.2 controls plus §4.3.1 are advisory-MISSING on the
+demo OVMF and not counted against coverage): **12 verified** (re-derived from shipped bytes / a
+verified signature) · **29 declared** (the SBOM/attestation asserts it — present + well-formed, not
+proven of the running firmware) · **0 sample** (the CHIPSEC config-level posture reports are ABSENT
+here — the demo OVMF is not Secure-Boot-provisioned; they emit as **sample** only on a platform that
+substantiates them, e.g. `chipsec-provisioned.json`). In an offline `make demo` the
 `DEV_ASSUME_*` legs downgrade to a fourth grade, **assumed**, carried into the VSA so the machine
 grade matches the loud warnings — the gate never claims `verified` on evidence it didn't verify this
 run. See [COMPLIANCE-MATRIX.md](COMPLIANCE-MATRIX.md).
@@ -160,10 +165,10 @@ run. See [COMPLIANCE-MATRIX.md](COMPLIANCE-MATRIX.md).
 | **SLSA v1.0** — Build L2 | 3 | `provenance-exists`, `provenance-authentic`, `subject-binding` | `slsa-provenance`, `slsa-level-floor` |
 | **NIST SSDF** (SP 800-218) | 7 | `PS.2.1`, `PO.3.2`, `PW.4.4`, `PW.6.2`, `RV.1.1` | `attestation-signature`, `build-tools-signed`, `cve-triage` |
 | **NIST SP 800-53** Rev 5 | 10 | `SI-7`, `SI-7(1)`, `SI-7(15)`, `SI-16`, `CM-8`, `CM-8(3)`, `SR-4(3)`, `RA-5` | `reconcile-membership`, `component-byte-integrity`, `signer-identity-pinned`, `no-kev-component` |
-| **NIST SP 800-193** (Protection) | 3 | `§4.2` protection, `§4.2.3` SMM, `§4.3.1` detection *(advisory)* | `chipsec-posture`, `platform-protection-posture` |
+| **NIST SP 800-193** (Protection) | 3 | `§4.2` protection *(advisory)*, `§4.2.3` SMM *(advisory)*, `§4.3.1` detection *(advisory)* | `chipsec-posture`, `platform-protection-posture` |
 | **OpenSSF S2C2F** v2 | 4 | `SCA-1`, `SCA-2`, `REB-3`, `AUD-3` | `cve-triage`, `thirdparty-identifiers`, `build-tools-signed` |
 | **EU CRA / BSI TR-03183-2 / CISA 2026 Minimum Elements** | 15 | Annex I II(1), **author**, **timestamp**, **supplier**, component-hash, firmware-binding, license/PURL, gen-tool, gen-context, **dependencies**, **data-quality**, KEV | `sbom-present`, `sbom-author`/`-timestamp`/`-supplier`, `dependency-relationships`, `sbom-data-quality` |
-| **NIST SP 800-147 / 147B** + UEFI Secure Boot | 2 | `800-147` flash write-protect, `800-147B` Secure Boot | `platform-protection-posture`, `uefi-secure-boot-posture` |
+| **NIST SP 800-147 / 147B** + UEFI Secure Boot | 2 | `800-147` flash write-protect *(advisory)*, `800-147B` Secure Boot *(advisory)* | `platform-protection-posture`, `uefi-secure-boot-posture` |
 | **OSF Firmware Embedded SBOM** (structural) | 2 | `osf-guid-identity`, `osf-source-hash` *(advisory)* | `osf-identity-shape`, `osf-source-provenance` |
 
 The full evidence → check → control → verdict spine is in [`FRAMEWORKS.md`](FRAMEWORKS.md); the enforced subset is
@@ -191,7 +196,7 @@ make demo      # the full OSS lane end to end (needs cosign + grype)
 the byte-integrity un-rebase test). The **coSWID round-trip and the PEI/XIP BUG-1 regression need
 python-uswid** and only *run* under `make test-full` — under plain `make test` they are honestly skipped, not
 silently passed. The gate itself is
-[`oss-lane/policy/firmware.rego`](oss-lane/policy/firmware.rego) — **35 verifier reports** (plus a conditional 36th, `firmware-freshly-measured`) ANDed into a signed
+[`oss-lane/policy/firmware.rego`](oss-lane/policy/firmware.rego) — **31 always-emitted verifier reports** (plus conditional reports — `firmware-freshly-measured`, `osf-source-provenance`, and the three CHIPSEC posture reports, each emitted only when its evidence is applicable) ANDed into a signed
 SLSA VSA, each with an isolating negative fixture under [`oss-lane/fixtures/`](oss-lane/fixtures).
 
 A clean release ALLOWs; a same-GUID swap DENYs — the byte check catches what membership misses. **Real captured

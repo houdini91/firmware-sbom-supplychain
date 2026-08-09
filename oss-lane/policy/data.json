@@ -55,6 +55,6 @@
     "vex-adjudicated": "declared",
     "chipsec-posture": "sample",
     "platform-protection-posture": "sample",
-    "uefi-secure-boot-posture": "sample"
+    "uefi-secure-boot-posture": "verified"
   }
 }

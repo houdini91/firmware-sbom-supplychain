@@ -6,12 +6,16 @@ built OVMF image. Section 5 (the same-GUID trojan) is self-contained — it runs
 
 ---
 
-## 1. The gate ALLOWs a clean release — 34 signed checks, each tagged with the control it earns
+## 1. The gate ALLOWs a clean release — 32 signed checks, each tagged with the control it earns
 
-A fixture carrying complete, valid evidence: the gate ANDs the **35 always-emitted** verifier reports
-and signs the VSA. On this reference release a 26th fires — `osf-source-provenance` — the conditional
+A fixture carrying complete, valid evidence: the gate ANDs the **31 always-emitted** verifier reports
+and signs the VSA. On this reference release a 32nd fires — `osf-source-provenance` — a conditional
 advisory report that appears only when every module carries a source hash (as the `-Y SBOM` generator
-now emits); it is non-gating, so a build without source hashes simply omits it.
+now emits); it is non-gating, so a build without source hashes simply omits it. The three CHIPSEC
+posture reports (`chipsec-posture` / `uefi-secure-boot-posture` / `platform-protection-posture`) are
+also conditional + advisory: the demo OVMF is a plain DEBUG build with Secure Boot **not provisioned**,
+so a real producer reads every module as NOTAPPLICABLE and those three are honestly **absent** here —
+they emit (and gate) only on a platform that substantiates them (see `chipsec-provisioned.json`).
 
 ```
   verifier reports (clean.json):
@@ -21,8 +25,8 @@ now emits); it is non-gating, so a build without source hashes simply omits it.
    ✅ firmware-digest-anchor: firmware-image digest consistent: build-time SBOM digest == reconcile's independent re-hash (== deployed image when a flash-time verifier supplies FW_IMAGE; assumed equal otherwise)  [cra-bsi-cisa:cisa-fw-binding, sp-800-193:4.3.1, sp-800-53:SR-4(3)]
    ✅ provenance-identity: built by the expected builder and source  [slsa.l2:provenance-exists, ssdf:PS.3.1]
    ✅ slsa-provenance: SLSA L2 provenance verified (platform-generated: attest-build-provenance + gh attestation verify)  [slsa.l2:provenance-authentic, ssdf:PO.3.3]
-   ✅ chipsec-posture: platform protections verified (CHIPSEC: applicable critical modules passed) — SAMPLE/ILLUSTRATIVE chipsec.json on the OVMF/QEMU target, not a live CHIPSEC run and no hardware root of trust  [sp-800-193:4.2]
    ✅ reconcile-membership: every declared module observed in the image; no undeclared artifact  [cra-bsi-cisa:cra-annex-I-II-1, s2c2f:AUD-3, sp-800-53:CM-8, sp-800-53:CM-8(3), sp-800-53:SI-7, sp-800-53:SR-4(3)]
+   ✅ no-duplicate-guid: no shadow-duplicate FILE_GUID — every carved FFS GUID appears once (no trojan hiding behind a declared module's GUID)  [sp-800-53:CM-8(3), sp-800-53:SI-7(1)]
    ✅ component-integrity: every hashable module carries a hash (or a reviewed exemption)  [cra-bsi-cisa:cisa-hash, sp-800-53:CM-8, sp-800-53:SI-7, sp-800-53:SI-7(1)]
    ✅ component-byte-integrity: shipped module bytes match the SBOM's declared hash (byte-integrity — detects a same-GUID swap)  [s2c2f:AUD-3, sp-800-193:4.3.1, sp-800-53:SI-7(1), sp-800-53:SR-4(3)]
    ✅ binary-hardening: every DXE-class module declares NX_COMPAT (W^X-ready; declared-posture evidence, not runtime enforcement)  [sp-800-53:SI-16, ssdf:PW.6.2]
@@ -44,9 +48,7 @@ now emits); it is non-gating, so a build without source hashes simply omits it.
    ✅ component-supplier: every enumerated component carries a supplier.name (CISA 2026 Component Producer, per-component — distinct from the document supplier)  [cra-bsi-cisa:cisa-component-producer]
    ✅ dependency-relationships: SBOM declares a dependency graph (CycloneDX dependencies[]) and it is referentially sound — every dependsOn points at a real component (presence + integrity, not completeness)  [cra-bsi-cisa:cisa-dependencies]
    ✅ sbom-data-quality: SBOM data quality: every declared purl parses and every declared license is well-formed (SPDX-id-shaped / expression / name) — correctness of present identifiers, not full SPDX-list membership  [cra-bsi-cisa:cisa-data-quality]
-   ✅ no-kev-component: no shipped component carries a Known-Exploited CVE in the configured data.cisa_kev set (a real CISA KEV catalog snapshot, 1,662 entries — refresh with make refresh-kev) — or each is waived by an explicit exec-risk VEX justification (declared version, not runtime exploitability)  [cra-bsi-cisa:cisa-kev, sp-800-53:RA-5]
-   ✅ uefi-secure-boot-posture: UEFI Secure Boot provisioned + enforcing (CHIPSEC secureboot.variables PASSED) — SAMPLE/ILLUSTRATIVE chipsec.json on OVMF/QEMU, config-level posture not a live hardware-rooted run  [nist-800-147:800-147B-secure-boot]
-   ✅ platform-protection-posture: platform protections verified (CHIPSEC bios_wp flash write-protection + smm SMM isolation PASSED; bios_ts/smrr N/A on QEMU) — SAMPLE/ILLUSTRATIVE chipsec.json, config-level posture not physical silicon  [nist-800-147:800-147-flash-wp, sp-800-193:4.2.3]
+   ✅ no-kev-component: no shipped component carries a Known-Exploited CVE in the CISA KEV catalog (data.cisa_kev — a real feed snapshot, refresh with `make refresh-kev`) — or each is waived by an explicit exec-risk VEX justification (declared version, not runtime exploitability)  [cra-bsi-cisa:cisa-kev, sp-800-53:RA-5]
    ✅ osf-identity-shape: OSF embedded-SBOM identity shape verified: every firmware module's tag-id (bom-ref) is in GUID form — a manifest-level SHAPE check, NOT proof the value is a live UEFI FILE_GUID carved from the image (a UUID from any tool passes the shape); parsing the coSWID from the shipped PE to confirm the FILE_GUID remains roadmapped  [osf-embedded-sbom:osf-guid-identity]
    ✅ osf-source-provenance: OSF source-file hash (M-srchash) verified: every module carries a source-file hash (CycloneDX edk2:sourceHash property) — manifest-level, not a parse of the coSWID in the shipped PE; the coSWID colloquial-version carrier is written downstream by uswid  [osf-embedded-sbom:osf-source-hash]
 ✅ ALLOW — clean.json  (VSA: PASSED, verifiedLevels=[SLSA_BUILD_LEVEL_0] for the firmware subject; evidenceBuildLevel=SLSA_BUILD_LEVEL_2 — the SBOM artifact's build provenance)
@@ -105,10 +107,10 @@ Evidence (VSA) : vsa.json   verificationResult=PASSED
   ✅ SLSA v1.0 — Build track L2                 3/3  [required]
   ✅ NIST SSDF (SP 800-218 v1.1)                7/7  [required]
   ✅ NIST SP 800-53 Rev 5 (SR/SI/CM/RA)         10/10  [required]
-  ✅ NIST SP 800-193 — Platform Firmware Resiliency (Protection) 2/3  [required]  · 1 advisory pending
+  ✅ NIST SP 800-193 — Platform Firmware Resiliency (Protection) 0/3  [required]  · 3 advisory pending
   ✅ OpenSSF S2C2F v2                           4/4  [required]
   ✅ EU CRA / BSI TR-03183-2 / CISA 2026 Minimum Elements (SBOM obligations) 15/15  [required]
-  ✅ NIST SP 800-147 / 147B + UEFI Secure Boot — BIOS protection & authenticated boot 2/2  [required]
+  ✅ NIST SP 800-147 / 147B + UEFI Secure Boot — BIOS protection & authenticated boot 0/2  [required]  · 2 advisory pending
   ✅ OSF Firmware Embedded SBOM Specification (structural conformance) 2/2  [required]
 ──────────────────────────────────────────────────────────────────
 VERDICT: ✅ ACCEPT — firmware bound + all required frameworks pass.
@@ -127,10 +129,10 @@ The killer feature: it doesn't guess or fail-confusingly. No attestation ⇒ eve
   ❔ SLSA v1.0 — Build track L2                 0/3  [required]
   ❔ NIST SSDF (SP 800-218 v1.1)                0/7  [required]
   ❔ NIST SP 800-53 Rev 5 (SR/SI/CM/RA)         0/10  [required]
-  ❔ NIST SP 800-193 — Platform Firmware Resiliency (Protection) 0/3  [required]  · 1 advisory pending
+  ❔ NIST SP 800-193 — Platform Firmware Resiliency (Protection) 0/3  [required]  · 3 advisory pending
   ❔ OpenSSF S2C2F v2                           0/4  [required]
   ❔ EU CRA / BSI TR-03183-2 / CISA 2026 Minimum Elements (SBOM obligations) 0/15  [required]
-  ❔ NIST SP 800-147 / 147B + UEFI Secure Boot — BIOS protection & authenticated boot 0/2  [required]
+  ❔ NIST SP 800-147 / 147B + UEFI Secure Boot — BIOS protection & authenticated boot 0/2  [required]  · 2 advisory pending
   ❔ OSF Firmware Embedded SBOM Specification (structural conformance) 0/2  [required]  · 1 advisory pending
   ...
 ──────────────────────────────────────────────────────────────────
@@ -186,22 +188,22 @@ byte-integrity: verified=0 modified=1 skipped=0 errored=0 -> .../tampered-verdic
   verifier reports (clean-gate-input.json):
    ✅ reconcile-membership: every declared module observed in the image; no undeclared artifact  [sp-800-53:CM-8(3), sp-800-53:SI-7, sp-800-53:SR-4(3)]
    ✅ component-byte-integrity: shipped module bytes match the SBOM's declared hash (byte-integrity — detects a same-GUID swap)  [sp-800-53:SI-7(1), sp-800-53:SR-4(3)]
-   … (19 other reports, all ✅) …
+   … (30 other reports, all ✅) …
 ✅ ALLOW — clean-gate-input.json  (VSA: PASSED, verifiedLevels=[SLSA_BUILD_LEVEL_0] for the firmware; evidenceBuildLevel=SLSA_BUILD_LEVEL_2)
 
 ▶ 4. The deploy gate DENYs the trojaned image (membership passes, bytes fail)
   verifier reports (tampered-gate-input.json):
    ✅ reconcile-membership: every declared module observed in the image; no undeclared artifact  [sp-800-53:CM-8(3), sp-800-53:SI-7, sp-800-53:SR-4(3)]
    ⛔ component-byte-integrity: byte-integrity: 1 module(s) MODIFIED — shipped bytes differ from the SBOM's declared hash (possible same-GUID swap)  [sp-800-53:SI-7(1), sp-800-53:SR-4(3)]
-   … (19 other reports, all ✅) …
+   … (30 other reports, all ✅) …
 ⛔ DENY — tampered-gate-input.json  (VSA: FAILED)
    • byte-integrity: 1 module(s) MODIFIED — shipped bytes differ from the SBOM's declared hash (possible same-GUID swap)
 ────────────────────────────────────────────────────────────────────
 RESULT: same-GUID byte swap — reconcile-membership PASSED, component-byte-integrity DENIED. ✔ caught.
 ```
 
-The `… (19 other reports, all ✅) …` lines are the only elision — `make attack-demo`
-prints all 35 verifier reports in full both times. **The crux is the contrast:**
+The `… (30 other reports, all ✅) …` lines are the only elision — `make attack-demo`
+prints all 32 verifier reports in full both times. **The crux is the contrast:**
 `reconcile-membership` PASSES the swap in both runs (the GUID is present); only
 `component-byte-integrity` flips from ✅ to ⛔, and that flip is what turns the gate's
 verdict from ALLOW to DENY.

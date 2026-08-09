@@ -162,13 +162,21 @@ def main():
                          status=evaluate(c, present)[0], detail=evaluate(c, present)[1])
                     for c in ini.get("controls", [])]
         # A framework passes when every NON-advisory control passes. An advisory control
-        # (e.g. SP 800-193 §4.3.1 Detection, OSF source-hash) that is MISSING/FAIL is reported
-        # honestly but does NOT fail the framework — matching the deploy gate's `allow` (advisory
-        # reports are non-gating) and verify-initiative.py. Without this, the consumer CLI would
-        # REJECT a clean release the gate ALLOWed. Anti-vacuous guard: a hypothetical all-advisory
-        # framework must not pass on an empty set — it then requires its advisory controls to pass.
-        enforced = [c for c in controls if not c["advisory"]]
-        ok = all(c["status"] == PASS for c in (enforced if enforced else controls))
+        # (e.g. SP 800-193 §4.3.1 Detection, OSF source-hash, or the CHIPSEC posture controls when
+        # the target cannot substantiate them) that is MISSING/FAIL is reported honestly but does
+        # NOT fail the framework — matching the deploy gate's `allow` (advisory reports are
+        # non-gating) and verify-initiative.py. Without this, the consumer CLI would REJECT a clean
+        # release the gate ALLOWed.
+        # A control counts against the framework when it is a PRESENT failure (FAIL) — advisory or
+        # not — or a MISSING non-advisory control. `advisory` exempts only an EXPECTED-ABSENT
+        # (MISSING) control, never a present failure; this mirrors the deploy gate (an emitted report
+        # is ANDed into `allow`) and verify-initiative.py, so the CLI can't say a framework is OK
+        # while the gate DENYs the same VSA. An ALL-advisory framework whose evidence is simply
+        # absent (e.g. NIST SP 800-147/147B + SP 800-193 on the demo OVMF, CHIPSEC NOTAPPLICABLE)
+        # does not block. Non-vacuous guard: a framework declaring zero controls is not a pass.
+        blocking = [c for c in controls
+                    if c["status"] == FAIL or (c["status"] != PASS and not c["advisory"])]
+        ok = (len(controls) > 0) and (len(blocking) == 0)
         frameworks.append(dict(id=key, name=ini["name"], required=key in required, ok=ok, controls=controls))
 
     required_ok = all(f["ok"] for f in frameworks if f["required"])

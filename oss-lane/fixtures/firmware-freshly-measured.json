@@ -89,10 +89,10 @@
     "scanned": true
   },
   "chipsec": {
-    "critical_passed": true,
-    "secure_boot": "PASSED",
-    "smm": "PASSED",
-    "bios_wp": "PASSED",
+    "critical_passed": false,
+    "secure_boot": "NOTAPPLICABLE",
+    "smm": "NOTAPPLICABLE",
+    "bios_wp": "NOTAPPLICABLE",
     "bios_ts": "NOTAPPLICABLE",
     "smrr": "NOTAPPLICABLE"
   },

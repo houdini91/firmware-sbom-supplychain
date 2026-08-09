@@ -63,9 +63,16 @@ with tempfile.TemporaryDirectory() as td:
     check("CLI ACCEPTs the clean bound release (matches the gate's ALLOW)", out["verdict"] == "ACCEPT")
 
     fwmap = {f["id"]: f for f in out["frameworks"]}
-    # SP 800-193 still carries an advisory-MISSING control (§4.3.1 Detection) yet must pass.
-    check("SP 800-193 passes despite §4.3.1 advisory MISSING (2/3)",
+    # SP 800-193 is ALL-advisory on the demo OVMF: §4.3.1 Detection needs a flash-time measurement,
+    # and §4.2 / §4.2.3 (CHIPSEC posture) are NOTAPPLICABLE because Secure Boot is not provisioned
+    # and there is no hardware root of trust — every chipsec report is ABSENT. Advisory controls
+    # never gate, so the framework must still pass (ok) without blocking the verdict.
+    check("SP 800-193 passes despite all-advisory MISSING (Detection + CHIPSEC posture)",
           fwmap["sp-800-193"]["ok"] is True)
+    # NIST SP 800-147/147B is likewise all-advisory on the demo OVMF (both controls are CHIPSEC-only
+    # and NOTAPPLICABLE here) — it must pass without blocking, on the same advisory contract.
+    check("NIST SP 800-147 passes despite all-advisory MISSING (CHIPSEC posture not provisioned)",
+          fwmap["nist-800-147"]["ok"] is True)
     # OSF embedded-SBOM is now FULLY satisfied — the reference carries a real per-module
     # edk2:sourceHash, so osf-source-hash (M-srchash) is met, not advisory-pending.
     osf_ctrls = {c["id"]: c["status"] for c in fwmap["osf-embedded-sbom"]["controls"]}

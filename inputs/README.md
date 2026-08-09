@@ -12,7 +12,7 @@ without a full firmware build:
 | `sbom.uswid` | coSWID view + embed carrier | `producers/interop/to-coswid.sh` (uSWID) |
 | `reconcile-verdict.json` | declared-vs-observed **membership** verdict (+ `image_digest`, anchor leg 2) | `producers/reconcile/carve.sh` |
 | `byte-integrity.json` | **byte-integrity** verdict — each module's shipped PE32 bytes vs the SBOM hash (R4, 122 of 123). Carries a **full per-module manifest** (every module + method); any module that can't be byte-verified must be a reviewed entry in `data.byte_integrity_exempt` (with a documented reason) or the gate **denies and names it**. | `producers/reconcile/byte-integrity.py` |
-| `chipsec.json` | CHIPSEC platform-posture predicate — **sample/illustrative data** (`producers/chipsec/sample-results.json`), not a live CHIPSEC run | `producers/chipsec/to-predicate.py` |
+| `chipsec.json` | CHIPSEC platform-posture predicate — **real** offline read of the demo OVMF's Secure Boot variables (`secureboot.variables=NOTAPPLICABLE`: SB not provisioned); HW-rooted checks NOTAPPLICABLE (no QEMU backing). Not a live `chipsec_main` driver run. | `producers/chipsec/secureboot-from-varstore.py` → `to-predicate.py` |
 | `vex.openvex.json` / `vex.csaf.json` | CVE triage (**OpenVEX** — the signed evidence, in-toto `openvex.dev/ns`, subjects = firmware `D` + the OpenVEX file `H`) + BSI **CSAF** view (**collapsed into a reference inside the OpenVEX attestation**, not a second VEX attestation) | authored / `producers/interop/to-csaf.py` |
 
 > **How these are trusted.** `reconcile-verdict.json`, `byte-integrity.json`, `chipsec.json`, and `binary-hardening.json` are produced

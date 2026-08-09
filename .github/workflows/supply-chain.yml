@@ -167,11 +167,15 @@ jobs:
           cosign attest-blob --yes --new-bundle-format \
             --statement inputs/vex.intoto.json --bundle inputs/vex.att.bundle
 
-          # E10 — CHIPSEC posture: the producer emits the bare predicate, wrap.sh adds both subjects.
-          python3 producers/chipsec/to-predicate.py producers/chipsec/sample-results.json -o inputs/chipsec.pred.json
-          CHIPSEC_PT="$(jq -r .predicateType inputs/chipsec.pred.json)"
-          ./producers/wrap.sh inputs/chipsec.pred.json "$CHIPSEC_PT" "$D" \
-            inputs/chipsec.pred.json chipsec-posture > inputs/chipsec.intoto.json
+          # E10 — CHIPSEC posture: sign the REAL committed inputs/chipsec.json (produced from the
+          # actual OVMF varstore by producers/chipsec/secureboot-from-varstore.py — secureboot is a
+          # real offline varstore read; HW-rooted checks are honestly NOTAPPLICABLE on QEMU). We do
+          # NOT regenerate it from a hand-authored sample. On the demo OVMF every module is
+          # NOTAPPLICABLE (Secure Boot not provisioned), so the gate emits the chipsec reports as
+          # advisory-ABSENT — the signed posture bundle records that true state.
+          CHIPSEC_PT="$(jq -r .predicateType inputs/chipsec.json)"
+          ./producers/wrap.sh inputs/chipsec.json "$CHIPSEC_PT" "$D" \
+            inputs/chipsec.json chipsec-posture > inputs/chipsec.intoto.json
           cosign attest-blob --yes --new-bundle-format \
             --statement inputs/chipsec.intoto.json --bundle inputs/chipsec.att.bundle
 

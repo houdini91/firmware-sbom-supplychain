@@ -47,8 +47,16 @@ python producers/chipsec/to-predicate.py chipsec.raw.json -o inputs/chipsec.json
 
 `to-predicate.py` accepts CHIPSEC's `--json` output (module → {result}) **or** a normalized
 `{module: "PASSED|FAILED|NOTAPPLICABLE|WARNING"}` map, and emits an in-toto-style predicate plus the
-gate fact `critical_passed` (all applicable critical modules PASSED). `sample-results.json` is a realistic
-OVMF/QEMU result (some PASSED, several NOTAPPLICABLE) so the lane is demonstrable before a real run.
+gate fact `critical_passed` (all applicable critical modules PASSED).
+
+**Real evidence source.** The committed `inputs/chipsec.json` is produced by
+[`secureboot-from-varstore.py`](secureboot-from-varstore.py), which reads the actual OVMF variable
+store (PK/KEK/db/SecureBootEnable — the same variables CHIPSEC's `common.secureboot.variables`
+inspects) with `python-virt-firmware`, and emits the HW-rooted checks as `NOTAPPLICABLE` (no QEMU
+register backing). On the plain demo OVMF that is `secureboot.variables = NOTAPPLICABLE` (Secure Boot
+not provisioned) — a real, measured result, not a guess. `sample-results.json` is a **format example
+only** (illustrative values documenting the `to-predicate.py` ingest shape); it is **not** evidence
+and must not be used as such.
 
 ## Critical module set (gated)
 `common.bios_wp`, `common.spi_desc`, `common.spi_lock`, `common.secureboot.variables`, `common.smm`,

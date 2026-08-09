@@ -1,5 +1,5 @@
 {
-  "_comment": "Realistic CHIPSEC result shape for the OVMF/QEMU target (chipsec_main --json). Config-level checks PASS; hardware-root checks with no QEMU backing are NOTAPPLICABLE. Replace with a real run via producers/chipsec/README.md.",
+  "_comment": "FORMAT EXAMPLE ONLY — illustrative values showing the chipsec_main --json result SHAPE. These values are NOT measured from any image and MUST NOT be used as evidence (an earlier version's secureboot=PASSED here was false for the plain demo OVMF, which does not provision Secure Boot). REAL evidence is produced by producers/chipsec/secureboot-from-varstore.py, which reads the actual OVMF varstore (secureboot.variables) — see the committed inputs/chipsec.json. This file is retained only to document the ingest format for to-predicate.py.",
   "chipsec.modules.common.secureboot.variables": { "result": "PASSED" },
   "chipsec.modules.common.bios_wp": { "result": "PASSED" },
   "chipsec.modules.common.smm": { "result": "PASSED" },

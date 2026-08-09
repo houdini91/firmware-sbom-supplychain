@@ -64,6 +64,32 @@ _slsa_verified if input.provenance.slsa_verified
 default _chipsec_posture := false
 _chipsec_posture if input.chipsec.critical_passed
 
+# ---------------------------------------------------------------------------
+# CHIPSEC applicability (HONESTY). A chipsec check is APPLICABLE only when the
+# target actually SUBSTANTIATES it — its underlying result is a real PASS/FAIL,
+# not "NOTAPPLICABLE"/absent/"". The demo OVMF is a plain DEBUG build with Secure
+# Boot NOT provisioned and no hardware root of trust, so a REAL producer
+# (producers/chipsec/secureboot-from-varstore.py) reads every module as
+# NOTAPPLICABLE. When a check is not applicable its report is emitted only
+# ADVISORY (absent), mirroring the §4.3.1 firmware-freshly-measured pattern —
+# the gate must never claim (or DENY on) a platform-protection posture the target
+# cannot evidence. When it IS applicable the report emits and MUST pass (an
+# applicable+FAILED secure boot still DENYs). Use object.get so an absent key
+# reads as "absent" (NOT applicable), never as an undefined that would flip the
+# negation true.
+_chipsec_na := {"NOTAPPLICABLE", "absent", ""}
+
+default _sb_applicable := false
+_sb_applicable if not object.get(input, ["chipsec", "secure_boot"], "absent") in _chipsec_na
+
+default _platform_applicable := false
+_platform_applicable if not object.get(input, ["chipsec", "bios_wp"], "absent") in _chipsec_na
+_platform_applicable if not object.get(input, ["chipsec", "smm"], "absent") in _chipsec_na
+
+default _chipsec_posture_applicable := false
+_chipsec_posture_applicable if _sb_applicable
+_chipsec_posture_applicable if _platform_applicable
+
 # SI-7, CM-8(3): reconcile membership — every declared module was observed in the
 # image and no undeclared (suspicious) artifact was present.
 default _reconcile_membership := false
@@ -448,14 +474,16 @@ _kev_msg := sprintf(
 ) if input.cve.scanned
 
 # NIST SP 800-147B + UEFI Spec §32: UEFI Secure Boot is provisioned and enforcing. Reads the
-# EXISTING CHIPSEC secureboot.variables sub-result surfaced by the assembler. HONESTY CEILING:
-# SAMPLE/ILLUSTRATIVE chipsec.json on the OVMF/QEMU target — config-level posture, not a live
-# hardware-rooted CHIPSEC run.
+# CHIPSEC secureboot.variables sub-result, which a REAL producer
+# (producers/chipsec/secureboot-from-varstore.py) derives from the platform's Secure Boot
+# variables (an offline varstore read — grade: verified). This report is CONDITIONAL (see
+# _uefi_sb_reports): emitted only when the target has a real Secure Boot state. The demo OVMF is
+# not provisioned, so secureboot.variables is NOTAPPLICABLE and the report is ABSENT (advisory).
 default _uefi_secure_boot := false
 _uefi_secure_boot if input.chipsec.secure_boot == "PASSED"
 
 _uefi_sb_msg := sprintf(
-	"UEFI Secure Boot not verified: CHIPSEC secureboot.variables = %v (expected PASSED) — SAMPLE/ILLUSTRATIVE chipsec.json on OVMF/QEMU, not a live run",
+	"UEFI Secure Boot not verified: CHIPSEC secureboot.variables = %v (expected PASSED) — read from the platform's Secure Boot variables (offline varstore read)",
 	[object.get(input, ["chipsec", "secure_boot"], "absent")],
 )
 
@@ -471,7 +499,7 @@ _platform_protection if {
 }
 
 _platform_msg := sprintf(
-	"platform protection not verified: CHIPSEC bios_wp(800-147)=%v smm(800-193 §4.2.3)=%v (expected PASSED; bios_ts=%v smrr=%v report N/A on QEMU) — SAMPLE/ILLUSTRATIVE chipsec.json, not physical silicon",
+	"platform protection not verified: CHIPSEC bios_wp(800-147)=%v smm(800-193 §4.2.3)=%v (expected PASSED; bios_ts=%v smrr=%v report N/A on QEMU) — config-level posture, verify on physical silicon",
 	[
 		object.get(input, ["chipsec", "bios_wp"], "absent"), object.get(input, ["chipsec", "smm"], "absent"),
 		object.get(input, ["chipsec", "bios_ts"], "n/a"), object.get(input, ["chipsec", "smrr"], "n/a"),
@@ -549,14 +577,6 @@ _core_reports := [
 		"slsa-provenance", _slsa_verified,
 		"SLSA L2 provenance verified (platform-generated: attest-build-provenance + gh attestation verify)",
 		"SLSA L2 provenance not verified (needs attest-build-provenance + gh attestation verify)",
-	),
-	# SP800-147 is anchored on the BIOS write-protection pillar (CHIPSEC bios_wp), which
-	# is what actually runs on the QEMU target — NOT the authenticated-update pillar,
-	# which this lane does not assess. SP800-193-4.2 is the platform-resiliency mapping.
-	_report(
-		"chipsec-posture", _chipsec_posture,
-		"platform protections verified (CHIPSEC: applicable critical modules passed) — SAMPLE/ILLUSTRATIVE chipsec.json on the OVMF/QEMU target, not a live CHIPSEC run and no hardware root of trust",
-		"platform protections not verified (CHIPSEC: a critical module failed, or none ran)",
 	),
 	_report(
 		"reconcile-membership", _reconcile_membership,
@@ -664,19 +684,6 @@ _core_reports := [
 		"no shipped component carries a Known-Exploited CVE in the CISA KEV catalog (data.cisa_kev — a real feed snapshot, refresh with `make refresh-kev`) — or each is waived by an explicit exec-risk VEX justification (declared version, not runtime exploitability)",
 		_kev_msg,
 	),
-	# UEFI Secure Boot posture — reads the EXISTING chipsec secureboot.variables result.
-	_report(
-		"uefi-secure-boot-posture", _uefi_secure_boot,
-		"UEFI Secure Boot provisioned + enforcing (CHIPSEC secureboot.variables PASSED) — SAMPLE/ILLUSTRATIVE chipsec.json on OVMF/QEMU, config-level posture not a live hardware-rooted run",
-		_uefi_sb_msg,
-	),
-	# Platform-protection posture — reads the EXISTING chipsec bios_wp (800-147) + smm (800-193 §4.2.3)
-	# results. Honest partial: bios_ts + smrr report N/A on QEMU (no HW root of trust), reported not gated.
-	_report(
-		"platform-protection-posture", _platform_protection,
-		"platform protections verified (CHIPSEC bios_wp flash write-protection + smm SMM isolation PASSED; bios_ts/smrr N/A on QEMU) — SAMPLE/ILLUSTRATIVE chipsec.json, config-level posture not physical silicon",
-		_platform_msg,
-	),
 	# OSF Firmware Embedded SBOM — STRUCTURAL identity conformance (GUID tag-id == FILE_GUID per
 	# module), evaluated against the CycloneDX manifest the gate holds (proxy for the embedded
 	# coSWID shape, not a parse of the shipped-PE coSWID). The MET half of OSF conformance.
@@ -696,7 +703,7 @@ _core_reports := [
 # firmware-freshly-measured is non-gating precisely so it cannot. CEILING: when present it
 # attests a fresh admission-time/off-device measurement was taken — NOT the on-device,
 # boot-time Root of Trust for Detection (measured boot + golden RIM) that §4.3.1 envisions.
-verifier_reports := array.concat(array.concat(_core_reports, _detection_reports), _osf_source_reports)
+verifier_reports := array.concat(array.concat(array.concat(_core_reports, _detection_reports), _osf_source_reports), _chipsec_reports)
 
 _detection_reports := [_report(
 	"firmware-freshly-measured", _fw_freshly_measured,
@@ -720,6 +727,51 @@ _osf_source_reports := [_report(
 )] if _osf_source_hash_ok
 
 _osf_source_reports := [] if not _osf_source_hash_ok
+
+# CHIPSEC platform-posture reports — CONDITIONAL + ADVISORY, on the §4.3.1 pattern.
+# Each report is in verifier_reports (emitted + gating) ONLY when its applicability
+# predicate holds — i.e. the target substantiates the check with a real PASS/FAIL. On the
+# demo OVMF every chipsec result is NOTAPPLICABLE (Secure Boot not provisioned; HW-rooted
+# checks have no QEMU backing), so all three are ABSENT: the mapped 800-147 / 800-193 §4.2
+# controls are then honestly MISSING_EVIDENCE (advisory, not counted against coverage)
+# WITHOUT flipping `allow`. On a provisioned platform they emit and MUST pass — an
+# applicable+FAILED secure boot still DENYs (the guarded deny lines below).
+_chipsec_reports := array.concat(array.concat(_chipsec_posture_reports, _uefi_sb_reports), _platform_protection_reports)
+
+# SP800-147 is anchored on the BIOS write-protection pillar (CHIPSEC bios_wp), which is what
+# actually runs on the QEMU target — NOT the authenticated-update pillar, which this lane does
+# not assess. SP800-193-4.2 is the platform-resiliency mapping.
+_chipsec_posture_reports := [_report(
+	"chipsec-posture", _chipsec_posture,
+	"platform protections verified (CHIPSEC: applicable critical modules passed) — config-level posture assessment (grade: sample), not a live hardware-rooted CHIPSEC run; HW-root checks (SPI descriptor/lock) report N/A where there is no silicon root of trust",
+	"platform protections not verified (CHIPSEC: an applicable critical module failed)",
+)] if _chipsec_posture_applicable
+
+_chipsec_posture_reports := [] if not _chipsec_posture_applicable
+
+# UEFI Secure Boot posture — reads the CHIPSEC secureboot.variables result, which a REAL producer
+# (producers/chipsec/secureboot-from-varstore.py) derives from the platform's Secure Boot variables
+# (an offline varstore read — grade: verified, not sample). Emitted only when the target has a real
+# Secure Boot state (PASSED/FAILED); the demo OVMF is not provisioned, so this is NOTAPPLICABLE and
+# the report is ABSENT (advisory).
+_uefi_sb_reports := [_report(
+	"uefi-secure-boot-posture", _uefi_secure_boot,
+	"UEFI Secure Boot provisioned + enforcing (CHIPSEC secureboot.variables PASSED) — read from the platform's Secure Boot variables (offline varstore read), not a sample",
+	_uefi_sb_msg,
+)] if _sb_applicable
+
+_uefi_sb_reports := [] if not _sb_applicable
+
+# Platform-protection posture — reads the CHIPSEC bios_wp (800-147) + smm (800-193 §4.2.3) results.
+# Honest partial: bios_ts + smrr report N/A on QEMU (no HW root of trust), reported not gated.
+# Emitted only when bios_wp or smm is a real PASS/FAIL (applicable).
+_platform_protection_reports := [_report(
+	"platform-protection-posture", _platform_protection,
+	"platform protections verified (CHIPSEC bios_wp flash write-protection + smm SMM isolation PASSED; bios_ts/smrr N/A on QEMU) — config-level posture (grade: sample), not physical silicon",
+	_platform_msg,
+)] if _platform_applicable
+
+_platform_protection_reports := [] if not _platform_applicable
 
 # Framework+control tags for a report, DERIVED from the manifest (data.initiatives) so the
 # rego reports and frameworks.yaml can never drift — one source of truth. Each tag is
@@ -925,7 +977,13 @@ deny contains msg if {
 
 deny contains "SLSA L2 provenance not verified (needs attest-build-provenance + gh attestation verify)" if not input.provenance.slsa_verified
 
-deny contains "platform protections not verified (CHIPSEC critical module failed or none ran)" if not input.chipsec.critical_passed
+# CHIPSEC deny reasons are ADVISORY-guarded: a reason is added ONLY when the check is APPLICABLE
+# (the target substantiates a real PASS/FAIL) AND failing. A NOTAPPLICABLE/absent chipsec result
+# (the demo OVMF) never adds a deny reason — mirroring the conditional reports above.
+deny contains "platform protections not verified (CHIPSEC: an applicable critical module failed)" if {
+	_chipsec_posture_applicable
+	not _chipsec_posture
+}
 
 deny contains _reconcile_membership_msg if not _reconcile_membership
 
@@ -990,9 +1048,15 @@ deny contains msg if {
 	msg := sprintf("CISA KEV: component %q ships Known-Exploited CVE %s (no exec-risk VEX waiver) — remediate on the BOD 22-01 timeline", [c.component, c.id])
 }
 
-deny contains _uefi_sb_msg if not _uefi_secure_boot
+deny contains _uefi_sb_msg if {
+	_sb_applicable
+	not _uefi_secure_boot
+}
 
-deny contains _platform_msg if not _platform_protection
+deny contains _platform_msg if {
+	_platform_applicable
+	not _platform_protection
+}
 
 # OSF Firmware Embedded SBOM — a module without a GUID-form tag-id fails the identity MUST.
 deny contains _osf_identity_msg if not _osf_identity_shape

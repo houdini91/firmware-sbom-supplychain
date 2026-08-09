@@ -19,6 +19,8 @@ expect() { # <fixture> <allow|deny>
 
 echo "== OSS-lane gate honesty tests =="
 expect clean.json          allow
+expect chipsec-provisioned.json allow
+expect chipsec-sb-failed.json   deny
 expect tampered-sbom.json  deny
 expect wrong-builder.json  deny
 expect critical-cve.json   deny

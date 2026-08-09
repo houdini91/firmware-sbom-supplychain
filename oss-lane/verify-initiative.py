@@ -89,12 +89,14 @@ def main():
         for c in ini.get("controls", []):
             status, detail = evaluate(c, present)
             # An `advisory: true` control is a roadmap/aspirational mapping whose evidence is
-            # legitimately expected-absent in offline/CI (e.g. SP 800-193 §4.3.1, which needs a
-            # genuine flash-time measurement). Report its real status honestly, but do NOT let an
-            # expected-absent advisory control turn the coverage run red — it is not a gap in what
-            # we claim. A non-advisory control that is MISSING/FAIL still fails the run.
+            # legitimately expected-ABSENT in offline/CI (e.g. SP 800-193 §4.3.1, which needs a
+            # genuine flash-time measurement; or the CHIPSEC posture controls when the target does
+            # not substantiate them). `advisory` exempts a control ONLY when its evidence is MISSING
+            # — a control that EMITS a FAILING report is a real failure and counts against the run
+            # EVEN IF advisory (mirrors the deploy gate: an emitted report is ANDed into `allow`).
+            # Without this, coverage would say ALL PASS while the gate DENYs the same VSA.
             advisory = bool(c.get("advisory"))
-            if status != PASS and not advisory:
+            if status == FAIL or (status == MISSING and not advisory):
                 ok = False
                 all_pass = False
             note = (" ← missing: %s" % ", ".join(detail)) if status == MISSING else \
@@ -103,8 +105,10 @@ def main():
                 fixes = [remediation[r] for r in detail if remediation.get(r)]
                 if fixes:
                     note += "\n        → fix: " + " | ".join(fixes)
-            if advisory and status != PASS:
+            if advisory and status == MISSING:
                 note += " (advisory / roadmap — not counted against coverage)"
+            elif advisory and status == FAIL:
+                note += " (advisory mapping, but a PRESENT failure — counts against coverage)"
             # A PASSED control's honesty tag: its weakest-link evidence grade, so a green ✅ backed
             # by a declared/sample report is never read as an unqualified proof.
             gtag = ""

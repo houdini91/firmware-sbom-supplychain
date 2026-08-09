@@ -85,20 +85,14 @@
     "duplicate_count": 0
   },
   "cve": {
-    "findings": [
-      {
-        "id": "CVE-2021-38578",
-        "component": "edk2",
-        "severity": "CRITICAL"
-      }
-    ],
+    "findings": [],
     "scanned": true
   },
   "chipsec": {
-    "critical_passed": false,
-    "secure_boot": "NOTAPPLICABLE",
-    "smm": "NOTAPPLICABLE",
-    "bios_wp": "NOTAPPLICABLE",
+    "critical_passed": true,
+    "secure_boot": "PASSED",
+    "smm": "PASSED",
+    "bios_wp": "PASSED",
     "bios_ts": "NOTAPPLICABLE",
     "smrr": "NOTAPPLICABLE"
   },
@@ -111,7 +105,8 @@
   "firmware": {
     "sbom_digest": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37",
     "reconcile_digest": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37",
-    "deployed_digest": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37"
+    "deployed_digest": "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37",
+    "freshly_measured": false
   },
   "byte_integrity": {
     "ran": true,

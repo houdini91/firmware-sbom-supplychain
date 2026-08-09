@@ -1,0 +1,41 @@
+{
+  "_comment": "REAL secureboot.variables from the actual OVMF varstore (/media/mikey/T71/firmware_artifacts/edk2/Build/OvmfX64/DEBUG_GCC/FV/OVMF_VARS.fd) via python-virt-firmware \u2014 an offline read of the same UEFI variables chipsec's common.secureboot.variables inspects. NOT a live chipsec_main driver run. Hardware-rooted checks are NOTAPPLICABLE (no QEMU register backing) and must be verified on silicon.",
+  "_secureboot_detail": {
+    "pk_enrolled": false,
+    "pk_bytes": 0,
+    "kek_enrolled": false,
+    "db_enrolled": false,
+    "secure_boot_enable": false,
+    "total_vars": 0
+  },
+  "chipsec.modules.common.secureboot.variables": {
+    "result": "NOTAPPLICABLE"
+  },
+  "chipsec.modules.common.uefi.access_uefispec": {
+    "result": "WARNING"
+  },
+  "chipsec.modules.common.bios_wp": {
+    "result": "NOTAPPLICABLE",
+    "note": "BIOS region flash write-protection (BIOS_CNTL.BLE/SMM_BWP) \u2014 chipset registers not modelled by QEMU; verify on silicon"
+  },
+  "chipsec.modules.common.smm": {
+    "result": "NOTAPPLICABLE",
+    "note": "SMRAM lock (D_LCK) \u2014 SMM chipset state not modelled by QEMU; verify on silicon"
+  },
+  "chipsec.modules.common.spi_desc": {
+    "result": "NOTAPPLICABLE",
+    "note": "SPI flash descriptor access control \u2014 no SPI controller on QEMU; verify on silicon"
+  },
+  "chipsec.modules.common.spi_lock": {
+    "result": "NOTAPPLICABLE",
+    "note": "SPI flash configuration lock (FLOCKDN) \u2014 no SPI controller on QEMU; verify on silicon"
+  },
+  "chipsec.modules.common.smrr": {
+    "result": "NOTAPPLICABLE",
+    "note": "System Management Range Registers \u2014 MSRs not modelled by QEMU; verify on silicon"
+  },
+  "chipsec.modules.common.bios_ts": {
+    "result": "NOTAPPLICABLE",
+    "note": "BIOS top-swap \u2014 chipset register not modelled by QEMU; verify on silicon"
+  }
+}

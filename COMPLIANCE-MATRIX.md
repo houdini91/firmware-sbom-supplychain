@@ -11,10 +11,12 @@ result and is recorded here deliberately, not hidden.
 ## How to read this
 
 - **Gated** means the report is one of the `verifier_reports` ANDed into `allow`
-  (`allow if { every r in verifier_reports { r.isSuccess } }`, `firmware.rego`). A clean release
-  emits **35** (34 unconditional core + the conditional `osf-source-provenance`, present when the
-  `-Y SBOM` carries a source hash); `firmware-freshly-measured` is the conditional 36th, emitted
-  only when a real image is measured. If any gated report is `isSuccess:false`, the gate DENYs.
+  (`allow if { every r in verifier_reports { r.isSuccess } }`, `firmware.rego`). A clean demo release
+  emits **32** (31 unconditional core + the conditional `osf-source-provenance`, present when the
+  `-Y SBOM` carries a source hash). The other conditionals are absent on the demo: `firmware-freshly-measured`
+  (emitted only when a real image is measured) and the three CHIPSEC reports (`chipsec-posture`,
+  `uefi-secure-boot-posture`, `platform-protection-posture` — emitted only when the target substantiates
+  them; NOTAPPLICABLE on the un-provisioned demo OVMF). If any emitted report is `isSuccess:false`, the gate DENYs.
 - **Three-state per control** (`verify-initiative.py`): a control is **PASS** only when
   *every* report in its `satisfied_by` list is present **and** green; **FAIL** if a
   satisfier is present but red; **MISSING_EVIDENCE** (❔) if a satisfier is absent. AND
@@ -25,9 +27,17 @@ result and is recorded here deliberately, not hidden.
   CHIPSEC report can only evidence controls those artifacts speak to. Everything a framework
   requires *outside* that evidence envelope (org process, source-code review, runtime, legal
   process) is listed under **Not gated** with the honest reason.
-- **Sample-data caveat**: every CHIPSEC-derived signal is **SAMPLE / ILLUSTRATIVE** on an
-  OVMF/QEMU target — config-level posture, **not** a live hardware-rooted CHIPSEC run. Those
-  rows are honestly labelled and would need a real run on physical silicon to be load-bearing.
+- **CHIPSEC applicability caveat**: on the demo OVMF/QEMU target the platform-protection posture is
+  **not substantiated** — the OVMF is a plain DEBUG build with Secure Boot **not provisioned**, and
+  the HW-rooted checks have no QEMU backing. A **real producer**
+  (`producers/chipsec/secureboot-from-varstore.py`) reads the actual Secure Boot state from the OVMF
+  varstore and reports every module as `NOTAPPLICABLE`. The three CHIPSEC reports are therefore
+  **conditional + advisory**: they are emitted (and gate) **only** when the target substantiates them
+  with a real PASS/FAIL, and are honestly **ABSENT** on the demo — so the 800-147 / 800-193 §4.2
+  controls are advisory-MISSING, never a passing sample. A provisioned platform
+  (`oss-lane/fixtures/chipsec-provisioned.json`) emits them: `uefi-secure-boot-posture` as a
+  **verified** offline varstore read, `chipsec-posture` / `platform-protection-posture` as
+  config-level **sample** posture until run on physical silicon.
 
 ## Scoreboard
 
@@ -36,24 +46,29 @@ result and is recorded here deliberately, not hidden.
 | SLSA v1.0 — Build L2 | 3 | 3 | 3/3 ✅ | L3 (hermetic/isolated) not claimed; Build track only |
 | NIST SSDF (SP 800-218 v1.1) | 7 | 7 | 7/7 ✅ | Org/design/secure-coding/review tasks (PO.1–2, PW.1–3/5/7–9) out of evidence scope |
 | NIST SP 800-53 Rev 5 | 10 | 10 | 10/10 ✅ | Only an SR/SI/CM/RA firmware slice of a 1000+ control catalog |
-| NIST SP 800-193 | 3 | 2 gated + 1 advisory | 2/3 (§4.3.1 ❔ advisory) | **Recovery (§4.4) not covered**; Detection needs a real flash-time measurement |
+| NIST SP 800-193 | 3 | 0 gated + 3 advisory | 0/3 (all ❔ advisory on demo) | **Recovery (§4.4) not covered**; §4.2/§4.2.3 need a substantiating CHIPSEC run, Detection needs a real flash-time measurement |
 | OpenSSF S2C2F v2 | 4 | 4 | 4/4 ✅ | Ingestion/mirroring/enforcement practice areas (ING/ENF/UPD) not covered |
 | EU CRA / BSI TR-03183-2 / CISA 2026 | 15 | 15 | 15/15 ✅ | Only SBOM-artifact obligations; CRA vuln-handling/disclosure/update duties out of scope |
-| NIST SP 800-147 / 147B + UEFI Secure Boot | 2 | 2 | 2/2 ✅ (sample) | **Authenticated BIOS-update mechanism not assessed**; sample CHIPSEC, not silicon |
+| NIST SP 800-147 / 147B + UEFI Secure Boot | 2 | 0 gated + 2 advisory | 0/2 (all ❔ advisory on demo) | **Not provisioned on the demo OVMF** — both controls advisory-MISSING; a provisioned platform gates them (Secure Boot as verified varstore read) |
 | OSF Firmware Embedded SBOM (structural) | 2 | 2 | 2/2 ✅ | Manifest-level proxy, not a parse of the shipped-PE coSWID (deeper check roadmapped) |
-| **Total** | **46** | **45 gated + 1 advisory** | **45/46** | §4.3.1 Detection is the one advisory-MISSING, honest on clean |
+| **Total** | **46** | **41 gated + 5 advisory** | **41/46** | §4.3.1 Detection + the 4 CHIPSEC-only 800-147/800-193 §4.2 controls are advisory-MISSING, honest on the demo OVMF |
 
-45/46 satisfied on a clean release. The one non-green control (§4.3.1 Detection) is
-**advisory** — it reports MISSING_EVIDENCE until a genuine flash-time measurement is supplied,
-and it is not counted against `allow`. (OSF source-hash was advisory-MISSING until the `-Y SBOM`
-generator began emitting a real per-module `edk2:sourceHash`; it is now MET — see §8.) A control
-with no satisfying report reports MISSING_EVIDENCE, never a silent
+41/46 satisfied on a clean release. The five non-green controls are **advisory** and not counted
+against `allow`: **§4.3.1 Detection** (MISSING_EVIDENCE until a genuine flash-time measurement is
+supplied) and the four **CHIPSEC-only** controls — **§4.2** protection, **§4.2.3** SMM,
+**800-147-flash-wp**, **800-147B-secure-boot** — which the demo OVMF cannot substantiate (a plain
+DEBUG build, Secure Boot **not provisioned**, no hardware root of trust), so their reports are ABSENT.
+The real producer verifies this: the OVMF varstore read proves Secure Boot is not enrolled. On a
+provisioned platform (`chipsec-provisioned.json`) these five gate normally. (OSF source-hash was
+advisory-MISSING until the `-Y SBOM` generator began emitting a real per-module `edk2:sourceHash`; it
+is now MET — see §8.) A control with no satisfying report reports MISSING_EVIDENCE, never a silent
 pass.
 
 **Not every ✅ is equally strong — evidence grade.** Each verifier report carries a machine-readable
 `evidenceGrade`, and `verify-initiative.py` prints a control's **weakest-link** grade so a green ✅ is
-never read as an unqualified proof. Of the 45 satisfied controls on an as-if-CI release: **12 verified
-· 29 declared · 4 sample**.
+never read as an unqualified proof. Of the 41 satisfied controls on a clean release: **12 verified
+· 29 declared · 0 sample** (the CHIPSEC config-level **sample** posture reports are ABSENT on the demo
+OVMF — they carry a grade only when substantiated on a provisioned platform).
 - **verified** — re-derived from the shipped bytes or a verified signature (reconcile re-hash, the
   byte-integrity keystone, `cosign` signatures, cross-subject binding). Note `component-integrity`
   is graded **declared**, not verified: it checks every module *carries* a declared hash; the byte
@@ -62,7 +77,10 @@ never read as an unqualified proof. Of the 45 satisfied controls on an as-if-CI 
   but not that it is true of the running firmware (most CISA/BSI metadata fields, KEV-by-version,
   NX_COMPAT-declared hardening, the OSF shape/source-hash claims).
 - **sample** — CHIPSEC config-level posture on a QEMU/OVMF target, **not** hardware-rooted silicon
-  (the two 800-147 rows + the platform-protection maps).
+  (`chipsec-posture` + `platform-protection-posture`). These reports are **conditional**: ABSENT on
+  the demo OVMF (not substantiated), so no control carries a **sample** grade on a clean release; they
+  emit as **sample** only on a provisioned platform. `uefi-secure-boot-posture` is now graded
+  **verified** — a real offline varstore read of the platform's Secure Boot variables, not a sample.
 - **assumed** — a `DEV_ASSUME_*` opt-in stood in for a real check **this run** (offline demo only).
   The assembler emits `assumed_reports` + the `warnings` INTO the gate input / VSA, and the gate
   **downgrades** those reports from `verified` to `assumed`, so the machine grade matches the loud
@@ -136,11 +154,19 @@ operational and organizational controls — is out of scope by design, not by om
 
 | Control | Gated report(s) | Evidence read | Clean |
 |---|---|---|---|
-| §4.2 Protection | `chipsec-posture` | applicable critical CHIPSEC modules passed (**sample**, OVMF/QEMU) | ✅ |
-| §4.2.3 SMM | `platform-protection-posture` | CHIPSEC `smm` SMM-isolation PASSED (**sample**) | ✅ |
+| §4.2 Protection | `chipsec-posture` *(advisory)* | applicable critical CHIPSEC modules passed (config-level **sample** when substantiated) | ❔ **MISSING (advisory)** |
+| §4.2.3 SMM | `platform-protection-posture` *(advisory)* | CHIPSEC `smm` SMM-isolation PASSED (config-level **sample** when substantiated) | ❔ **MISSING (advisory)** |
 | §4.3.1 Detection | `component-byte-integrity`, `firmware-digest-anchor`, **`firmware-freshly-measured`** | admission-time off-device detection of corrupted code | ❔ **MISSING (advisory)** |
 
 **The honest gaps here are the most important in the whole matrix:**
+- **§4.2 / §4.2.3 are MISSING on the demo OVMF, on purpose.** Both read a CHIPSEC posture the demo
+  target cannot substantiate: the OVMF is a plain DEBUG build with Secure Boot **not provisioned** and
+  no hardware root of trust, so a **real producer**
+  (`producers/chipsec/secureboot-from-varstore.py`) reads every module as `NOTAPPLICABLE`. The
+  `chipsec-posture` / `platform-protection-posture` reports are therefore **conditional + advisory** —
+  emitted (and gating) **only** when the target substantiates them with a real PASS/FAIL, ABSENT
+  otherwise — so the controls are honestly MISSING and do **not** flip `allow`. A provisioned platform
+  (`oss-lane/fixtures/chipsec-provisioned.json`) emits them and they gate normally.
 - **§4.3.1 Detection is MISSING on a clean release**, on purpose. Two of its satisfiers are
   always-green, but the third — `firmware-freshly-measured` — is a **conditional** report,
   emitted *only* when a genuine flash-time `FW_IMAGE` measurement is supplied. In offline/CI
@@ -150,9 +176,9 @@ operational and organizational controls — is out of scope by design, not by om
 - **Recovery (§4.4) is NOT covered at all — a truthful RED.** 800-193's third pillar
   (auto-recovery of corrupted firmware to a known-good image) is outside what an
   admission-time supply-chain gate can evidence. It is not mapped and not claimed.
-- **All CHIPSEC signals are SAMPLE / ILLUSTRATIVE on QEMU** — config-level posture with no
-  hardware root of trust. `bios_ts`/`smrr` report N/A on QEMU and are reported-not-gated.
-  A load-bearing §4.2 claim needs a live CHIPSEC run on physical silicon.
+- **CHIPSEC posture is config-level SAMPLE even when substantiated** — no hardware root of trust on
+  QEMU. `bios_ts`/`smrr` report N/A and are reported-not-gated. A load-bearing §4.2 claim needs a live
+  CHIPSEC run on physical silicon.
 
 ## 5 · OpenSSF S2C2F v2
 
@@ -209,17 +235,26 @@ controls upstream of the artifact this gate inspects.
 
 | Control | Gated report(s) | Evidence read | Clean |
 |---|---|---|---|
-| 800-147-flash-wp | `platform-protection-posture` | CHIPSEC `bios_wp` BIOS-region flash write-protection PASSED (**sample**) | ✅ |
-| 800-147B-secure-boot | `uefi-secure-boot-posture` | CHIPSEC `secureboot.variables` PASSED — Secure Boot provisioned + enforcing (**sample**) | ✅ |
+| 800-147-flash-wp | `platform-protection-posture` *(advisory)* | CHIPSEC `bios_wp` BIOS-region flash write-protection (config-level **sample** when substantiated) | ❔ **MISSING (advisory)** |
+| 800-147B-secure-boot | `uefi-secure-boot-posture` *(advisory)* | Secure Boot state read from the OVMF varstore (**verified** offline varstore read when provisioned) | ❔ **MISSING (advisory)** |
 
-**Not gated (truthful scope):**
+**Both controls are advisory-MISSING on the demo OVMF, honestly:**
+- **The demo OVMF is not Secure-Boot-provisioned.** It is a plain DEBUG build with no PK/KEK/db
+  enrolled and no hardware root of trust. The real producer
+  (`producers/chipsec/secureboot-from-varstore.py`) reads the actual Secure Boot state offline from
+  the OVMF varstore and proves it is **not provisioned** — so `secureboot.variables` (and the
+  bios_wp/smm pillars) are `NOTAPPLICABLE`. The two reports are **conditional + advisory**: ABSENT on
+  the demo (controls MISSING, not counted against coverage), emitted and gating on a provisioned
+  platform (`oss-lane/fixtures/chipsec-provisioned.json`). On an enrolled image
+  `uefi-secure-boot-posture` is graded **verified** — a real varstore read, not a sample; a FAILED
+  Secure Boot state on such a platform DENYs (`oss-lane/fixtures/chipsec-sb-failed.json`).
 - **The authenticated BIOS-update mechanism — the core of 800-147 — is NOT assessed.** 800-147
   is primarily about a *signed capsule / authenticated update* path; we gate the
-  flash-write-protection and Secure-Boot-enforcement pillars that the QEMU target actually
-  exposes, not the update-authentication mechanism. Truthful RED.
+  flash-write-protection and Secure-Boot-enforcement pillars, not the update-authentication
+  mechanism. Truthful RED.
 - **147B rollback protection** (monotonic version / anti-rollback on update) is not assessed.
-- **Sample CHIPSEC, not silicon** — both rows are config-level posture on OVMF/QEMU with no
-  hardware root of trust.
+- **CHIPSEC posture stays config-level SAMPLE even when substantiated** — `bios_wp`/`smm` on
+  OVMF/QEMU have no hardware root of trust; a load-bearing claim needs a live run on physical silicon.
 
 ## 8 · OSF Firmware Embedded SBOM Specification (structural conformance)
 
@@ -253,9 +288,14 @@ Both controls are now MET, and the scope stays honestly labelled:
 These caveats apply across the matrix and are the difference between "attestation theater" and
 an honest gate:
 
-1. **CHIPSEC = sample on QEMU.** Every §4.2/§4.2.3/800-147 row reads an illustrative
-   `chipsec.json` on OVMF/QEMU. No hardware root of trust. Real deployment substitutes a live
-   CHIPSEC run on physical silicon; the report messages say so explicitly.
+1. **CHIPSEC posture is conditional + advisory — ABSENT on the demo OVMF, not a passing sample.**
+   The demo OVMF is a plain DEBUG build with Secure Boot **not provisioned** and no hardware root of
+   trust, so a real producer (`producers/chipsec/secureboot-from-varstore.py`) reads every module as
+   `NOTAPPLICABLE`. The three §4.2/§4.2.3/800-147 reports are then **not emitted** and their controls
+   are advisory-MISSING (not counted against coverage), never claimed green. They emit — and gate —
+   only on a platform that substantiates them (`oss-lane/fixtures/chipsec-provisioned.json`):
+   `uefi-secure-boot-posture` as a **verified** offline varstore read, the two config-level pillars as
+   **sample** until run on physical silicon. The report messages say so explicitly.
 2. **OSF embedded-SBOM MUSTs are gate-verified at the manifest level, not the shipped PE.** The
    gate now checks the OSF GUID-identity MUST (`osf-identity-shape`) **and** the source-hash MUST
    (`osf-source-provenance` — a real per-module `edk2:sourceHash` is emitted, so it is MET), both
@@ -269,8 +309,9 @@ an honest gate:
 4. **Declared-not-proven ceiling** on `vex-adjudicated`, `sbom-generation-tool`,
    `sbom-generation-context`, `no-kev-component`: each asserts a *declared* fact in the SBOM,
    not an independently proven one.
-5. **§4.3.1 advisory.** Detection stays MISSING_EVIDENCE until a real flash-time measurement is
-   supplied — it is never counted as a pass on demo data.
+5. **§4.3.1 + the CHIPSEC-only controls are advisory.** Detection stays MISSING_EVIDENCE until a real
+   flash-time measurement is supplied; §4.2, §4.2.3, 800-147-flash-wp, and 800-147B-secure-boot stay
+   MISSING_EVIDENCE until a CHIPSEC run substantiates them. None is counted as a pass on demo data.
 6. **No vacuous SATISFIED — the CVE and reconcile facts carry non-vacuity guards.** An empty CVE
    findings list only satisfies `cve-triage`/`vex-adjudicated`/`no-kev-component` when a scan
    actually ran (`cve.scanned`); a zeroed reconcile block (`declared==0`) does not satisfy

@@ -1,10 +1,13 @@
 # Initiative manifests — framework → control → the verifier report(s) that satisfy it.
 #
 # This is the declarative layer over the enforcing gate (adopted from the Valint/Scribe
-# "initiative" model). The 35 always-emitted rego verifier_reports (plus firmware-freshly-measured,
-# emitted only when a genuine flash-time FW_IMAGE measurement is supplied) stay the source of truth; this maps
-# them to framework control IDs so a run can report per-control, per-framework coverage
-# (and surface MISSING_EVIDENCE — a control whose satisfying report is absent from the VSA).
+# "initiative" model). The 31 always-emitted rego verifier_reports (plus the CONDITIONAL reports —
+# firmware-freshly-measured when a genuine flash-time FW_IMAGE measurement is supplied; osf-source-provenance
+# when a source-file hash rides every module; and the three CHIPSEC posture reports —
+# chipsec-posture / uefi-secure-boot-posture / platform-protection-posture — emitted only when the
+# target substantiates them with a real PASS/FAIL, ADVISORY/absent otherwise) stay the source of
+# truth; this maps them to framework control IDs so a run can report per-control, per-framework
+# coverage (and surface MISSING_EVIDENCE — a control whose satisfying report is absent from the VSA).
 #
 # `satisfied_by`: ALL listed reports must be isSuccess=true for the control to PASS.
 # A report named here but absent from the VSA verifier_reports => MISSING_EVIDENCE.
@@ -161,15 +164,17 @@ initiatives:
     controls:
       - id: "4.2.3"
         name: "SMM protection (System Management Mode isolation)"
-        description: "The platform protects the code and data used for critical firmware functions, including System Management Mode (SMM) — here, CHIPSEC confirms SMM protection is in place (SMRAM locked / SMM guarded). CAVEAT: OVMF/QEMU target with sample/illustrative chipsec.json; SMRR reports N/A with no hardware root of trust."
+        description: "The platform protects the code and data used for critical firmware functions, including System Management Mode (SMM) — here, CHIPSEC confirms SMM protection is in place (SMRAM locked / SMM guarded). CAVEAT: on the demo OVMF/QEMU target there is NO hardware root of trust, so a real producer reads smm as NOTAPPLICABLE and this control is ADVISORY (MISSING_EVIDENCE, not counted against coverage); it becomes gating on a provisioned platform whose CHIPSEC smm result is a real PASS/FAIL."
         citation: "NIST SP 800-193 — §4.2.3 (Protection of critical firmware functions — SMM)"
         canonical: platform-smm-protection
+        advisory: true
         satisfied_by: [platform-protection-posture]
       - id: "4.2"
         name: "Protection posture (config-level, via CHIPSEC on OVMF target)"
-        description: "Platform firmware and its critical data are protected from unauthorized modification (write-protection posture, checked via CHIPSEC). CAVEAT: this is the OVMF/QEMU target with NO hardware root of trust; the demo's chipsec.json is sample/illustrative data, not a live CHIPSEC run, and not all critical modules are applicable (HW-root SPI descriptor/lock checks honestly report N/A on QEMU) — evidence-shaped config-level posture, not enforced platform resiliency."
+        description: "Platform firmware and its critical data are protected from unauthorized modification (write-protection posture, checked via CHIPSEC). CAVEAT: the demo OVMF/QEMU target has NO hardware root of trust, so a real producer reads every applicable critical module as NOTAPPLICABLE — the chipsec-posture report is then ABSENT and this control is ADVISORY (MISSING_EVIDENCE, not counted against coverage). It becomes gating on a provisioned platform whose CHIPSEC critical modules produce real PASS/FAIL results — evidence-shaped config-level posture, not enforced platform resiliency."
         citation: "NIST SP 800-193 — §4.2 (Protection)"
         canonical: platform-firmware-protection
+        advisory: true
         satisfied_by: [chipsec-posture]
       - id: "4.3.1"
         name: "Detection of corrupted firmware code — admission-time, off-device"
@@ -309,15 +314,17 @@ initiatives:
     controls:
       - id: "800-147-flash-wp"
         name: "BIOS flash write-protection"
-        description: "The system firmware (BIOS/UEFI) resides in protected, write-protected flash so it cannot be modified except through an authenticated update mechanism — here, CHIPSEC confirms the BIOS write-protection posture (bios_wp). CAVEAT: OVMF/QEMU target, sample/illustrative chipsec.json, not physical silicon and not the authenticated-update pillar."
+        description: "The system firmware (BIOS/UEFI) resides in protected, write-protected flash so it cannot be modified except through an authenticated update mechanism — here, CHIPSEC confirms the BIOS write-protection posture (bios_wp). CAVEAT: on the demo OVMF/QEMU target there is no hardware root of trust, so a real producer reads bios_wp as NOTAPPLICABLE and this control is ADVISORY (MISSING_EVIDENCE, not counted against coverage); it becomes gating on a provisioned platform whose bios_wp result is a real PASS/FAIL. Does not cover the authenticated-update pillar."
         citation: "NIST SP 800-147 — BIOS Protection Guidelines (flash write-protection)"
         canonical: platform-firmware-protection
+        advisory: true
         satisfied_by: [platform-protection-posture]
       - id: "800-147B-secure-boot"
         name: "UEFI Secure Boot enabled + enforcing"
-        description: "The platform enforces UEFI Secure Boot: the Secure Boot variables (PK/KEK/db/dbx, SecureBoot=1, SetupMode=0) are provisioned and enforced so only signed boot components execute — here, CHIPSEC confirms secureboot.variables. CAVEAT: OVMF/QEMU target, sample/illustrative chipsec.json, config-level posture not a live hardware-rooted measurement."
+        description: "The platform enforces UEFI Secure Boot: the Secure Boot variables (PK/KEK/db/dbx, SecureBoot=1, SetupMode=0) are provisioned and enforced so only signed boot components execute — a real producer (producers/chipsec/secureboot-from-varstore.py) reads secureboot.variables from the platform's Secure Boot variables (an offline varstore read). CAVEAT: the demo OVMF is a plain DEBUG build with Secure Boot NOT provisioned, so secureboot.variables is NOTAPPLICABLE and this control is ADVISORY (MISSING_EVIDENCE, not counted against coverage); on an enrolled/provisioned image it emits a real PASS/FAIL (grade: verified) and is gating."
         citation: "UEFI Specification 2.10 §32 (Secure Boot) + NIST SP 800-147B (server BIOS protection)"
         canonical: uefi-secure-boot
+        advisory: true
         satisfied_by: [uefi-secure-boot-posture]
 
   osf-embedded-sbom:
