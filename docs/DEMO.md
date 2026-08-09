@@ -107,10 +107,10 @@ Evidence (VSA) : vsa.json   verificationResult=PASSED
   ✅ SLSA v1.0 — Build track L2                 3/3  [required]
   ✅ NIST SSDF (SP 800-218 v1.1)                7/7  [required]
   ✅ NIST SP 800-53 Rev 5 (SR/SI/CM/RA)         10/10  [required]
-  ✅ NIST SP 800-193 — Platform Firmware Resiliency (Protection) 0/3  [required]  · 3 advisory pending
+  ◻ NIST SP 800-193 — Platform Firmware Resiliency (Protection) 0/3  [required]  · 3 advisory pending
   ✅ OpenSSF S2C2F v2                           4/4  [required]
   ✅ EU CRA / BSI TR-03183-2 / CISA 2026 Minimum Elements (SBOM obligations) 15/15  [required]
-  ✅ NIST SP 800-147 / 147B + UEFI Secure Boot — BIOS protection & authenticated boot 0/2  [required]  · 2 advisory pending
+  ◻ NIST SP 800-147 / 147B + UEFI Secure Boot — BIOS protection & authenticated boot 0/2  [required]  · 2 advisory pending
   ✅ OSF Firmware Embedded SBOM Specification (structural conformance) 2/2  [required]
 ──────────────────────────────────────────────────────────────────
 VERDICT: ✅ ACCEPT — firmware bound + all required frameworks pass.

@@ -229,7 +229,15 @@ def _render(args, actual, claimed, binding, result, frameworks, accept):
         passed = sum(1 for c in fw["controls"] if c["status"] == PASS)
         missing = sum(1 for c in fw["controls"] if c["status"] == MISSING)
         adv_pending = sum(1 for c in fw["controls"] if c["advisory"] and c["status"] != PASS)
-        state = MARK[PASS] if fw["ok"] else (MARK[MISSING] if missing == n else MARK[FAIL])
+        # ◻ (not ✅) when a framework passes only because every control is advisory-MISSING (0
+        # substantiated) — it is "advisory only", not satisfied; a ✅ identical to a really-passed
+        # framework would mislead. ✅ only when ≥1 control actually passed.
+        if not fw["ok"]:
+            state = MARK[MISSING] if missing == n else MARK[FAIL]
+        elif passed == 0:
+            state = "◻"
+        else:
+            state = MARK[PASS]
         tag = "  [required]" if fw["required"] else ""
         note = "  · %d advisory pending" % adv_pending if adv_pending else ""
         print("  %s %-42s %d/%d%s%s" % (state, fw["name"], passed, n, tag, note))

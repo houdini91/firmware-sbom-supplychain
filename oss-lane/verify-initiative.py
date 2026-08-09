@@ -85,7 +85,7 @@ def main():
     grade_counts = {"verified": 0, "declared": 0, "sample": 0, "assumed": 0}
     print("Compliance coverage (from the signed VSA's verifier reports)\n")
     for key, ini in initiatives.items():
-        rows, ok = [], True
+        rows, ok, passed = [], True, 0
         for c in ini.get("controls", []):
             status, detail = evaluate(c, present)
             # An `advisory: true` control is a roadmap/aspirational mapping whose evidence is
@@ -113,12 +113,23 @@ def main():
             # by a declared/sample report is never read as an unqualified proof.
             gtag = ""
             if status == PASS:
+                passed += 1
                 g = control_grade(c, grade)
                 if g:
                     grade_counts[g] += 1
                     gtag = "  · %s" % GRADE_TAG[g]
             rows.append("    %s %-22s %s%s%s" % (MARK[status], c["id"], c["name"], note, gtag))
-        print("  %s %s  [%s]" % ("✅" if ok else "⛔", ini["name"], key))
+        # Framework glyph: ⛔ on a real failure; ◻ (not ✅) when the framework has NO substantiated
+        # control — every control is advisory-MISSING (e.g. SP 800-193 / 800-147 on the demo OVMF,
+        # CHIPSEC not substantiated). An all-advisory framework is "pending substantiation", NOT
+        # satisfied — showing it identical to a genuinely-passed framework (SLSA 3/3) would mislead.
+        if not ok:
+            fmark, ftail = "⛔", ""
+        elif passed == 0:
+            fmark, ftail = "◻", "  — advisory only (0 substantiated; pending a platform that provides the evidence)"
+        else:
+            fmark, ftail = "✅", ""
+        print("  %s %s  [%s]%s" % (fmark, ini["name"], key, ftail))
         print("\n".join(rows) + "\n")
 
     total_graded = sum(grade_counts.values())
