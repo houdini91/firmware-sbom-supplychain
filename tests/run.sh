@@ -62,6 +62,9 @@ expect data-quality-empty.json deny
 expect sbom-no-serial.json deny
 expect component-supplier-missing.json deny
 expect firmware-freshly-measured.json allow
+# Track A deploy-time reconcile (CONDITIONAL): present+clean deploys; present+drift blocks.
+expect deploy-reconcile-clean.json allow
+expect deploy-reconcile-drift.json deny
 
 # byte-integrity exemption ALLOW path: the same un-verifiable module that DENYs above must
 # ALLOW once it is a reviewed entry in data.byte_integrity_exempt — proves the escape hatch works.

@@ -546,6 +546,51 @@ _osf_source_msg := sprintf(
 	[object.get(input, ["sbom", "osf", "source_hash_present"], 0), object.get(input, ["sbom", "osf", "modules_total"], 0)],
 )
 
+# SP 800-193 §4.3.1 (deploy-time, on-device) — CHIPSEC-fed byte reconcile (Track A).
+# A SECOND, independent carver (CHIPSEC `uefi decode`) extracts the deployed image's
+# per-module PE bytes, our normalizer (canon_unrebase) reproduces the base-0 hash, and
+# they are reconciled — GUID-bound + BIDIRECTIONAL — against the SAME signed, build-born
+# SBOM byte-integrity uses. This extends the baseline from "at rest" (CI admission) to
+# "on silicon" (what is actually flashed). It is CONDITIONAL: present ONLY when the input
+# carries deploy-reconcile evidence (a device/image was scanned). ABSENT on the clean CI
+# demo (no device), where the mapped §4.3.1 control stays advisory-MISSING WITHOUT flipping
+# `allow` (parity with firmware-freshly-measured). When PRESENT it emits + is GATING:
+# PASS iff every reconciled module matched with no missing/unexpected module; a PRESENT +
+# failing report DENYs, because a confirmed on-device byte swap / dropped / implanted module
+# is serious (byte-integrity-like semantics). TE sections + anything CHIPSEC cannot cleanly
+# extract are SKIPPED by the producer and never counted as verified (honest coverage).
+default _deploy_reconcile_present := false
+_deploy_reconcile_present if input.deploy_reconcile.ran
+
+default _deploy_reconcile_ok := false
+_deploy_reconcile_ok if {
+	input.deploy_reconcile.ran
+	input.deploy_reconcile.matched > 0 # NON-VACUITY: something was actually reconciled from real bytes — a run that matched nothing is NOT a clean device
+	input.deploy_reconcile.matched == input.deploy_reconcile.reconciled # every comparable (extractable) module matched
+	input.deploy_reconcile.mismatch_count == 0 # a same-GUID byte swap on the device always fails
+	input.deploy_reconcile.missing_count == 0 # a declared module CHIPSEC could not find -> tamper/missing
+	input.deploy_reconcile.unexpected_count == 0 # a CHIPSEC module absent from the SBOM -> unexpected implant
+}
+
+default _deploy_reconcile_msg := "deploy-time reconcile evidence absent (no deploy_reconcile section) — no on-device/image byte reconcile supplied"
+_deploy_reconcile_msg := sprintf("deploy-time reconcile: %d module(s) MISMATCH on the device — extracted bytes differ from the SBOM's declared hash (possible on-device same-GUID swap): %v", [input.deploy_reconcile.mismatch_count, sort(object.get(input, ["deploy_reconcile", "mismatched"], []))]) if input.deploy_reconcile.mismatch_count > 0
+_deploy_reconcile_msg := sprintf("deploy-time reconcile: %d declared module(s) MISSING from the CHIPSEC extract (tamper / dropped module): %v", [input.deploy_reconcile.missing_count, sort(object.get(input, ["deploy_reconcile", "missing"], []))]) if {
+	input.deploy_reconcile.mismatch_count == 0
+	input.deploy_reconcile.missing_count > 0
+}
+_deploy_reconcile_msg := sprintf("deploy-time reconcile: %d UNEXPECTED module(s) extracted by CHIPSEC but not declared in the SBOM (possible implant): %v", [input.deploy_reconcile.unexpected_count, sort(object.get(input, ["deploy_reconcile", "unexpected"], []))]) if {
+	input.deploy_reconcile.mismatch_count == 0
+	input.deploy_reconcile.missing_count == 0
+	input.deploy_reconcile.unexpected_count > 0
+}
+_deploy_reconcile_msg := "deploy-time reconcile ran but matched 0 modules — a vacuous device read is not a verified device (nothing was actually reconciled from real bytes)" if {
+	input.deploy_reconcile.ran
+	input.deploy_reconcile.mismatch_count == 0
+	input.deploy_reconcile.missing_count == 0
+	input.deploy_reconcile.unexpected_count == 0
+	input.deploy_reconcile.matched == 0
+}
+
 # ---------------------------------------------------------------------------
 # Normalized verifier reports — one per fact, tagged with the controls it
 # satisfies. The gate ANDs isSuccess across all of them.
@@ -703,7 +748,21 @@ _core_reports := [
 # firmware-freshly-measured is non-gating precisely so it cannot. CEILING: when present it
 # attests a fresh admission-time/off-device measurement was taken — NOT the on-device,
 # boot-time Root of Trust for Detection (measured boot + golden RIM) that §4.3.1 envisions.
-verifier_reports := array.concat(array.concat(array.concat(_core_reports, _detection_reports), _osf_source_reports), _chipsec_reports)
+verifier_reports := array.concat(array.concat(array.concat(array.concat(_core_reports, _detection_reports), _osf_source_reports), _chipsec_reports), _deploy_reconcile_reports)
+
+# Deploy-time reconcile (Track A) — CONDITIONAL + GATING-when-present. Emitted ONLY when the
+# input carries deploy-reconcile evidence (a device/image was scanned by CHIPSEC). On the clean
+# CI demo it is ABSENT, so the mapped SP 800-193 §4.3.1 control stays advisory-MISSING WITHOUT
+# flipping `allow`. When PRESENT it emits and MUST pass — a mismatch/missing/unexpected module
+# DENYs (the guarded deny line below), matching byte-integrity's seriousness for a confirmed
+# on-device byte swap.
+_deploy_reconcile_reports := [_report(
+	"deploy-time-reconcile", _deploy_reconcile_ok,
+	"deploy-time byte reconcile verified: CHIPSEC-extracted module bytes reconcile (GUID-bound, bidirectional) against the signed build-born SBOM — every declared module observed on the device with matching bytes, no missing/unexpected module (grade: verified — real extracted bytes; TE/non-extractable sections are SKIPPED, not counted)",
+	_deploy_reconcile_msg,
+)] if _deploy_reconcile_present
+
+_deploy_reconcile_reports := [] if not _deploy_reconcile_present
 
 _detection_reports := [_report(
 	"firmware-freshly-measured", _fw_freshly_measured,
@@ -835,6 +894,7 @@ _remediation := {
 	"component-byte-integrity": "A MODIFIED module means the shipped bytes differ from the SBOM's declared hash (possible same-GUID swap) — rebuild from trusted source and re-attest; if a module is genuinely un-verifiable, add it to data.byte_integrity_exempt with a reviewed reason. Tampering is NEVER exemptable.",
 	"binary-hardening": "Rebuild the named DXE-class module(s) with NX_COMPAT set so W^X can be enforced; a missing-NX regression is not exemptable. Only a genuinely un-scannable (e.g. TE-only/compressed) DXE module may be added to data.binary_hardening_exempt with a reviewed reason.",
 	"chipsec-posture": "Re-run CHIPSEC against the target and fix any FAILED critical module (bios_wp/secureboot/smm); a config-level FAILED is a real platform-protection gap, not an N/A. Do not ship until the applicable critical modules PASS.",
+	"deploy-time-reconcile": "The deployed/flashed firmware's module bytes (CHIPSEC-extracted) do not reconcile with the signed SBOM: a MISMATCH is an on-device same-GUID byte swap, a MISSING module was dropped/tampered away, an UNEXPECTED module is a possible implant. Re-flash from the trusted, attested image and re-scan; a confirmed on-device drift is never exemptable. (TE/non-extractable sections are SKIPPED honestly, not failed.)",
 	"evidence-chain-bound": "Re-generate the multi-subject reconcile attestation so the SBOM-file digest H agrees across SBOM/attestation/provenance AND the attestation's firmware subject equals the firmware anchor D; a mismatch means the evidence is not about these bytes.",
 	"signer-identity-pinned": "Re-sign with a trusted keyless identity and add its cert SAN to data.trusted_signer_identities; an unpinned or unverified signer must not be admitted.",
 	"vex-adjudicated": "Adjudicate every HIGH/CRITICAL finding with a non-empty VEX justification (data.cve_allowlist) — investigate and fix, or record a reviewed not_affected/rationale; an empty justification does not discharge the finding.",
@@ -1000,6 +1060,15 @@ deny contains "evidence chain not bound: SBOM-file digests differ across SBOM/at
 deny contains _firmware_anchor_msg if not _firmware_anchored
 
 deny contains _byte_integrity_msg if not _byte_integrity_ok
+
+# Deploy-time reconcile deny is ADVISORY-guarded (like the CHIPSEC posture denies): a reason is
+# added ONLY when the evidence is PRESENT (a device/image was scanned) AND the reconcile failed.
+# ABSENT deploy-reconcile evidence (the clean CI demo, no device) never adds a deny — the leg is
+# advisory when absent, gating when present.
+deny contains _deploy_reconcile_msg if {
+	_deploy_reconcile_present
+	not _deploy_reconcile_ok
+}
 
 deny contains _binary_hardening_msg if not _binary_hardening_ok
 

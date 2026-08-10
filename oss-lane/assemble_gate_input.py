@@ -439,6 +439,49 @@ def byte_integrity_fact(path, bundle_path=None, anchor_d=""):
     return _byte_integrity_derive(d)
 
 
+def deploy_reconcile_fact(path, bundle_path=None, anchor_d=""):
+    """Track A: fold the deploy-reconcile producer's verdict (CHIPSEC-fed on-device/image byte
+    reconcile vs the signed SBOM) into a gate fact. ran=False (ABSENT) when no deploy-reconcile
+    evidence was supplied — the leg is CONDITIONAL, so on the offline/CI demo (no device) it is
+    absent and the SP 800-193 §4.3.1 control stays advisory-MISSING WITHOUT flipping `allow`.
+    Surfaces matched/reconciled + mismatch/missing/unexpected counts (and names) so the gate can
+    both refuse a vacuous pass (nothing reconciled) and name exactly what drifted on the device.
+    A skip (a TE/non-extractable section) is NOT a pass — reconciled counts only the comparable set.
+
+    When DEPLOY_RECONCILE_BUNDLE is set, the verdict MUST come from the SIGNED, firmware-D-anchored
+    bundle (subject #1 firmware-image == D), IGNORING the loose file — same forge-close as
+    byte_integrity_fact/binary_hardening_fact. A bundle whose firmware subject != D fails closed."""
+    absent = {"ran": False, "reconciled": 0, "matched": 0, "mismatch_count": 0,
+              "missing_count": 0, "unexpected_count": 0, "skipped_count": 0,
+              "mismatched": [], "missing": [], "unexpected": []}
+    if bundle_path:
+        d = signed_predicate(bundle_path, anchor_d)
+        if d is None:
+            return absent  # unbound/mismatched signed verdict is NOT a pass (fail closed)
+        return _deploy_reconcile_derive(d)
+    if not (path and os.path.isfile(path)):
+        return absent
+    try:
+        d = load_json(path)
+    except ValueError:
+        return absent
+    return _deploy_reconcile_derive(d)
+
+
+def _deploy_reconcile_derive(d):
+    mismatched = sorted(n for n in (m.get("name") for m in (d.get("mismatched", []) or [])) if n)
+    missing = sorted(n for n in (m.get("name") for m in (d.get("missing", []) or [])) if n)
+    unexpected = sorted(n for n in (u.get("name") for u in (d.get("unexpected", []) or [])) if n)
+    return {"ran": True,
+            "reconciled": d.get("reconciled", 0),
+            "matched": d.get("matched", 0),
+            "mismatch_count": len(d.get("mismatched", []) or []),
+            "missing_count": len(d.get("missing", []) or []),
+            "unexpected_count": len(d.get("unexpected", []) or []),
+            "skipped_count": len(d.get("skipped", []) or []),
+            "mismatched": mismatched, "missing": missing, "unexpected": unexpected}
+
+
 def _binary_hardening_derive(d):
     # NAMES of DXE-class modules that could not be scanned (skipped OR errored). Only
     # DXE-class matters for the NX expectation, so non-DXE skips (PEI/SEC/TE) are not
@@ -646,6 +689,15 @@ def main():
 
     bi_bundle = _evidence_bundle("BYTE_INTEGRITY_BUNDLE")
     bh_bundle = _evidence_bundle("BINARY_HARDENING_BUNDLE")
+    # Deploy-reconcile is a CONDITIONAL deploy-time leg: absent unless a device/image was scanned.
+    # Its signed bundle is OPTIONAL even under REQUIRE_SIGNED_EVIDENCE (unlike byte-integrity/
+    # binary-hardening, which are admission-time keystones) — so an offline/CI run with no device
+    # simply omits it and the leg stays advisory-absent. A loose fallback still warns.
+    dr_bundle = env("DEPLOY_RECONCILE_BUNDLE") or None
+    if not dr_bundle and env("DEPLOY_RECONCILE_JSON"):
+        warnings.append("DEPLOY_RECONCILE_BUNDLE unset — deploy-reconcile verdict read from an "
+                        "UNSIGNED loose file (local-dev; set DEPLOY_RECONCILE_BUNDLE for the signed, "
+                        "D-anchored bundle).")
 
     gate_input = {
         "sbom": {"present": len(sbom.get("components", [])) > 0, "hash": "sha256:" + sbom_hash,
@@ -686,6 +738,10 @@ def main():
         # loose fallback ALWAYS warns, so a dropped env can never quietly downgrade the keystone.
         "byte_integrity": byte_integrity_fact(env("BYTE_INTEGRITY_JSON"), bi_bundle, fw_sbom),
         "binary_hardening": binary_hardening_fact(env("BINARY_HARDENING_JSON"), bh_bundle, fw_sbom),
+        # Track A deploy-time reconcile — CONDITIONAL (ran=False/absent unless a device/image was
+        # CHIPSEC-scanned). Present + failing DENYs (on-device byte swap); present + clean is a
+        # `verified` leg for SP 800-193 §4.3.1; absent leaves §4.3.1 advisory without flipping allow.
+        "deploy_reconcile": deploy_reconcile_fact(env("DEPLOY_RECONCILE_JSON"), dr_bundle, fw_sbom),
         "build_tools": {"present": bt["present"], "signature_verified": bt["signature_verified"],
                         "all_pinned": bt["all_pinned"], "unpinned": bt["unpinned"]},
         # Machine-readable honesty carry-through (previously stderr-only): the DEV_ASSUME_* /

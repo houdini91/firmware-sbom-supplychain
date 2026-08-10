@@ -61,6 +61,19 @@ Split CHIPSEC evidence by its true collection point.
   cannot model their registers; only a real deployment's operator scan can fill that slot.
 - A consumer of the VSA reads an honest picture: what the admission gate proved from the artifact,
   and what remains for the deployed platform to attest. No control claims more than its evidence.
+- **CHIPSEC is also a deploy-time byte-*source*, not only a posture source (Track A, extending this
+  ADR).** The same "collect it where the answer physically lives" split gives CHIPSEC a second job:
+  its `uefi decode` writes each module's PE bytes to disk, so at deploy time we run those bytes through
+  OUR normalizer and reconcile them — GUID-bound, bidirectional — against the same signed, build-born
+  SBOM (`producers/chipsec/deploy-reconcile.py` → the conditional `deploy-time-reconcile` verifier
+  report, SP 800-193 §4.3.1). This is the deploy-time/on-device twin of the admission-time byte-integrity
+  check: it extends the SBOM baseline from "at rest" (the admitted `.fd`) to "on silicon" (what is
+  actually flashed), catching post-admission / flash-time drift. It follows the **same conditional +
+  advisory-when-absent** discipline as the posture reports above: **absent** on the demo (no device →
+  §4.3.1 advisory-MISSING, `allow` unaffected), **gating when present** (a confirmed on-device MISMATCH /
+  MISSING / UNEXPECTED module DENYs). It stays deploy-time, not runtime: it needs a device or image and
+  is CHIPSEC reading flash — not the boot-time Root of Trust for Detection. Live-silicon SPI readback is
+  roadmap A6.
 
 ## Alternatives considered
 

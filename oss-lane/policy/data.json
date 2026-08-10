@@ -24,6 +24,7 @@
     "reconcile-membership": "verified",
     "no-duplicate-guid": "verified",
     "component-byte-integrity": "verified",
+    "deploy-time-reconcile": "verified",
     "component-integrity": "declared",
     "attestation-signature": "verified",
     "signer-identity-pinned": "verified",

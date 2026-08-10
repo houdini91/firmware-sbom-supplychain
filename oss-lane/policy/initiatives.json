@@ -262,15 +262,16 @@
         },
         {
           "id": "4.3.1",
-          "name": "Detection of corrupted firmware code \u2014 admission-time, off-device",
-          "description": "Detect corruption of firmware code against an authorized reference. CEILING (verbatim): this is ADMISSION-TIME / OFF-DEVICE detection \u2014 the anchored evidence chain plus a fresh flash-time image measurement compared to the build reference off the device \u2014 it is NOT the on-device, boot-time Root of Trust for Detection (measured boot + golden RIM) that \u00a74.3.1 ultimately envisions. Requires a genuine flash-time FW_IMAGE measurement: in DEV_ASSUME_FWIMAGE (offline/CI) mode leg-3 is copied from the build self-claim, so this control is honestly NOT satisfied there.",
+          "name": "Detection of corrupted firmware code \u2014 admission-time off-device + deploy-time on-device (CHIPSEC reconcile)",
+          "description": "Detect corruption of firmware code against an authorized reference. Two collection points feed this: (a) ADMISSION-TIME / OFF-DEVICE \u2014 the anchored evidence chain plus a fresh flash-time image measurement compared to the build reference off the device (firmware-freshly-measured); and (b) DEPLOY-TIME / ON-DEVICE \u2014 deploy-time-reconcile, a CHIPSEC-fed second-carver byte reconcile of the deployed/flashed image's per-module bytes against the SAME signed build-born SBOM (GUID-bound, bidirectional), catching post-admission / flash-time drift. CEILING (verbatim): even (b) is CHIPSEC reading an image / live SPI flash at deploy time \u2014 it is NOT the on-device, boot-time Root of Trust for Detection (measured boot + golden RIM) that \u00a74.3.1 ultimately envisions (live-silicon SPI readback is roadmap A6). Both legs are CONDITIONAL: firmware-freshly-measured needs a real FW_IMAGE, deploy-time-reconcile needs a device/image scan \u2014 in offline/CI both are absent, so this control is honestly NOT satisfied there (advisory).",
           "citation": "NIST SP 800-193 \u2014 \u00a74.3.1 (Detection of Corrupted Code)",
           "canonical": "firmware-corruption-detection",
           "advisory": true,
           "satisfied_by": [
             "component-byte-integrity",
             "firmware-digest-anchor",
-            "firmware-freshly-measured"
+            "firmware-freshly-measured",
+            "deploy-time-reconcile"
           ]
         }
       ]

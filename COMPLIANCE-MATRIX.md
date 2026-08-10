@@ -14,9 +14,11 @@ result and is recorded here deliberately, not hidden.
   (`allow if { every r in verifier_reports { r.isSuccess } }`, `firmware.rego`). A clean demo release
   emits **32** (31 unconditional core + the conditional `osf-source-provenance`, present when the
   `-Y SBOM` carries a source hash). The other conditionals are absent on the demo: `firmware-freshly-measured`
-  (emitted only when a real image is measured) and the three CHIPSEC reports (`chipsec-posture`,
-  `uefi-secure-boot-posture`, `platform-protection-posture` — emitted only when the target substantiates
-  them; NOTAPPLICABLE on the un-provisioned demo OVMF). If any emitted report is `isSuccess:false`, the gate DENYs.
+  (emitted only when a real image is measured), `deploy-time-reconcile` (Track A — emitted only when a
+  device/image was CHIPSEC-scanned and its bytes reconcile against the SBOM), and the three CHIPSEC reports
+  (`chipsec-posture`, `uefi-secure-boot-posture`, `platform-protection-posture` — emitted only when the target
+  substantiates them; NOTAPPLICABLE on the un-provisioned demo OVMF). If any emitted report is `isSuccess:false`,
+  the gate DENYs.
 - **Three-state per control** (`verify-initiative.py`): a control is **PASS** only when
   *every* report in its `satisfied_by` list is present **and** green; **FAIL** if a
   satisfier is present but red; **MISSING_EVIDENCE** (❔) if a satisfier is absent. AND
@@ -156,7 +158,7 @@ operational and organizational controls — is out of scope by design, not by om
 |---|---|---|---|
 | §4.2 Protection | `chipsec-posture` *(advisory)* | applicable critical CHIPSEC modules passed (config-level **sample** when substantiated) | ❔ **MISSING (advisory)** |
 | §4.2.3 SMM | `platform-protection-posture` *(advisory)* | CHIPSEC `smm` SMM-isolation PASSED (config-level **sample** when substantiated) | ❔ **MISSING (advisory)** |
-| §4.3.1 Detection | `component-byte-integrity`, `firmware-digest-anchor`, **`firmware-freshly-measured`** | admission-time off-device detection of corrupted code | ❔ **MISSING (advisory)** |
+| §4.3.1 Detection | `component-byte-integrity`, `firmware-digest-anchor`, **`firmware-freshly-measured`** (admission-time/off-device) + **`deploy-time-reconcile`** (deploy-time/on-device — Track A, CHIPSEC-fed) | detection of corrupted code, off-device AND on-device | ❔ **MISSING (advisory)** |
 
 **The honest gaps here are the most important in the whole matrix:**
 - **§4.2 / §4.2.3 are MISSING on the demo OVMF, on purpose.** Both read a CHIPSEC posture the demo
@@ -168,11 +170,17 @@ operational and organizational controls — is out of scope by design, not by om
   otherwise — so the controls are honestly MISSING and do **not** flip `allow`. A provisioned platform
   (`oss-lane/fixtures/chipsec-provisioned.json`) emits them and they gate normally.
 - **§4.3.1 Detection is MISSING on a clean release**, on purpose. Two of its satisfiers are
-  always-green, but the third — `firmware-freshly-measured` — is a **conditional** report,
-  emitted *only* when a genuine flash-time `FW_IMAGE` measurement is supplied. In offline/CI
-  (`DEV_ASSUME_FWIMAGE`) mode no fresh measurement exists, so the report is **absent**, the
-  control is honestly MISSING, and — because it is flagged `advisory` — it does **not** flip
-  `allow`. The gate must not newly *claim* detection on demo data.
+  always-green, but the other two — `firmware-freshly-measured` (admission-time/off-device) and
+  `deploy-time-reconcile` (deploy-time/on-device, Track A) — are **conditional** reports.
+  `firmware-freshly-measured` rides *only* when a genuine flash-time `FW_IMAGE` measurement is
+  supplied; `deploy-time-reconcile` rides *only* when a device/image was CHIPSEC-scanned and its
+  extracted per-module bytes reconcile (GUID-bound, bidirectional) against the same signed SBOM.
+  In offline/CI (`DEV_ASSUME_FWIMAGE`, no device) both are **absent**, so the control is honestly
+  MISSING and — flagged `advisory` — does **not** flip `allow`; the gate must not newly *claim*
+  detection on demo data. When PRESENT, `deploy-time-reconcile` **gates** exactly like
+  byte-integrity: a confirmed on-device MISMATCH / MISSING / UNEXPECTED module DENYs
+  (`oss-lane/fixtures/deploy-reconcile-clean.json` ALLOWs, `…-drift.json` DENYs). TE / non-cleanly-
+  extractable sections are SKIPPED, never counted as verified.
 - **Recovery (§4.4) is NOT covered at all — a truthful RED.** 800-193's third pillar
   (auto-recovery of corrupted firmware to a known-good image) is outside what an
   admission-time supply-chain gate can evidence. It is not mapped and not claimed.

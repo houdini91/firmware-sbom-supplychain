@@ -26,19 +26,36 @@ Deploy-time + advisory, consistent with [ADR 0001](../docs/adr/0001-chipsec-is-a
   (`producers/reconcile/byte-integrity.py` pefile path). Prove the normalized hash matches the SBOM's
   declared per-module hash on the OVMF reference — i.e. **parity with our FMMT carve path** via a second,
   independent carver. (Cross-carver agreement is itself a nice robustness result.)
-- **A4 — New producer.** `producers/chipsec/deploy-reconcile.py`: CHIPSEC-source → normalize → compare to the
-  signed SBOM → emit a `deploy-reconcile` predicate (new predicateType `https://firmware-sbom-supplychain/deploy-reconcile/v1`,
-  keeping the stable-namespace convention). GUID-bound + bidirectional (swap AND missing both fail).
-- **A5 — Evidence class + gate wiring.** Add a `deploy-time-reconcile` verifier_report as a **deploy-time /
-  advisory** leg (not part of CI admission, since it needs a device/live source). evidenceGrade = `verified`
-  on real device readback, else absent/`sample`. Non-vacuity guard so "no device evidence" ≠ SATISFIED.
+- **A4 — New producer. ✅ DONE.** `producers/chipsec/deploy-reconcile.py`: CHIPSEC-source → OUR normalizer
+  (`canon_unrebase`/`load_sbom_hashes`/`XIP_TYPES` reused UNCHANGED from byte-integrity.py) → GUID-bound,
+  bidirectional compare vs the signed SBOM → emits the `deploy-reconcile` predicate (predicateType
+  `https://firmware-sbom-supplychain/deploy-reconcile/v1`, stable-namespace). Keyed by FILE_GUID (names
+  collide); module TYPE from CHIPSEC's FV filetype dir via the IMMEDIATE parent (nested-FV trap). MISMATCH
+  (swap) / MISSING (declared, unextracted) / UNEXPECTED (extracted, undeclared) all fail; TE / non-cleanly-
+  extractable → SKIP (never counted as verified). **Verified: 122/122 on the OVMF reference (111 direct + 11
+  un-rebase), image digest == anchor D.**
+- **A5 — Evidence class + gate wiring. ✅ DONE.** Added the CONDITIONAL `deploy-time-reconcile` verifier_report
+  to `firmware.rego`: **ABSENT** on the clean demo (no device → advisory-MISSING, `allow` unaffected, never
+  SATISFIED — non-vacuity guard requires `matched>0` reconciled from real bytes); **PRESENT + clean → PASSED**
+  (evidenceGrade `verified`); **PRESENT + any mismatch/missing/unexpected → FAILED → gate DENY** (byte-integrity-
+  like, advisory-guarded deny). Mapped to SP 800-193 §4.3.1 (the deploy-time/on-device detection control — the
+  advisory home that keeps the clean baseline **32 reports / 46 controls / 41 satisfied / 8 frameworks**
+  unchanged; mapping to the non-advisory family controls, e.g. AUD-3 / SI-7(1) / SR-4(3) / cisa-hash, was
+  deliberately NOT done because it would flip those currently-satisfied controls to MISSING on the demo and
+  break the invariant). Assembler folds it via `DEPLOY_RECONCILE_JSON` / `DEPLOY_RECONCILE_BUNDLE` (D-anchored).
 - **A6 — Live-flash path (roadmap within A).** CHIPSEC live SPI dump on real hardware → same pipeline →
   catches flash-time drift. Needs root/driver on the target; document as direction (the "runtime attestation
   next" horizon already drawn in the futuristic diagram).
 - **A7 — Interop artifact.** Emit a CHIPSEC-compatible `efilist.json` from our reconcile so the two cross-check
   (prior-art survey recommendation).
-- **A8 — Tests + docs + diagrams sync** (standing rule after any control/evidence change): fixtures (clean +
-  drift), a `test_deploy_reconcile.py`, DESIGN.md / FRAMEWORKS.md / ADR update, counts re-synced.
+- **A8 — Tests + docs + diagrams sync. ✅ DONE.** Fixtures `deploy-reconcile-clean.json` (present+clean → ALLOW)
+  + `deploy-reconcile-drift.json` (one mismatch → DENY), wired into `tests/run.sh`. `tests/test_deploy_reconcile.py`
+  (hermetic pure-logic: GUID-keying, nested-FV-trap, TE-skip, bidirectional reconcile — runs without pefile; plus
+  the 122/122 OVMF reference assertion, run when pefile + the decode tree are reachable, else SKIP loudly). Docs:
+  ADR 0001 (deploy-time byte-source consequence), FRAMEWORKS.md (§4.3.1 leg + conditional-report list),
+  COMPLIANCE-MATRIX.md (§4.3.1 satisfiers + note), DESIGN.md (new "Deploy-time reconcile" section),
+  frameworks.yaml §4.3.1 `satisfied_by` += `deploy-time-reconcile` (initiatives.json re-synced), data.json
+  evidence_grade += `deploy-time-reconcile: verified`. Clean baseline re-verified **unchanged: 32 / 46 / 41 / 8.**
 
 ---
 
@@ -94,5 +111,9 @@ Reviewed CHIPSEC git `main` (2.0) + dynamic run on PyPI `1.13.16` (identical has
   reconcile logic MIT on the extracted-bytes side of the boundary; (3) open a **design issue first** (no prior
   art), then a PR. Still draft-only / user-gated.
 
-**Status:** A1 DONE. Track A is fully unblocked and needs nothing upstream. Next build step: A2/A3 prototype
-(CHIPSEC `uefi decode` → our normalizer → cross-carver parity vs the signed SBOM, PeiCore/OVMF first).
+**Status:** A1–A5 + A8 DONE. Track A is built end to end: the A2/A3 prototype proved cross-carver parity
+(CHIPSEC `uefi decode` → our normalizer → 122/122 vs the signed SBOM), then A4 productionized it as
+`producers/chipsec/deploy-reconcile.py`, A5 wired the CONDITIONAL `deploy-time-reconcile` gate leg (SP 800-193
+§4.3.1; clean baseline unchanged at 32/46/41/8), and A8 added fixtures + `test_deploy_reconcile.py` + docs.
+Remaining Track-A roadmap: **A6** (live SPI dump on real hardware — needs root/driver) and **A7** (emit a
+CHIPSEC-compatible `efilist.json` for cross-check). Track B (upstream normalized-hash PR) stays draft-only/user-gated.

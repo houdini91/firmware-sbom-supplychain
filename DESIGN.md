@@ -219,6 +219,34 @@ a real TPM + attestation verifier, and generating a correct golden RIM / expecte
 genuinely hard (PCR values depend on SEC/PEI/microcode and event-log ordering; predicting them even for OVMF
 is nontrivial). It is shown in the lifecycle for completeness and marked as direction, not a shipped step.
 
+## Deploy-time reconcile (CHIPSEC-fed, on-device — implemented, needs a device/image)
+
+Between the admission-time file gate and the aspirational runtime bind sits a step we can do **today**
+with an image or a live SPI dump: **deploy-time reconcile** (`producers/chipsec/deploy-reconcile.py`,
+Track A). It extends the same signed, build-born SBOM baseline from "at rest" (the `.fd` the CI gate
+admitted) to "on silicon" (what is actually flashed), catching post-admission / flash-time drift the
+at-rest gate cannot see.
+
+The mechanism reuses the proven byte-integrity primitive through a **second, independent carver**:
+CHIPSEC `uefi decode` extracts each module's PE bytes from the deployed image, our normalizer
+(`canon_unrebase`, unchanged) reproduces the base-0 hash, and the result is reconciled **GUID-bound and
+bidirectionally** against the SBOM — a same-GUID byte swap → `MISMATCH`, a declared module CHIPSEC can't
+find → `MISSING`, a CHIPSEC module absent from the SBOM → `UNEXPECTED`. The module **type** is read from
+CHIPSEC's FV filetype directory using the *immediate* parent (the nested-FV trap), never from the SBOM/
+coSWID, preserving byte-integrity's typeless-coSWID hardening. Modules keyed by **FILE_GUID** because
+names collide (two `CpuMpPei`, two `CpuDxe` with distinct GUIDs). On the OVMF reference this reconciles
+**122/122** (111 direct + 11 XIP un-rebase); cross-carver agreement with the FMMT path is itself a
+robustness result. TE sections and anything CHIPSEC can't cleanly extract are **SKIPPED** — surfaced
+honestly, never counted as verified.
+
+In the gate it is the **conditional** `deploy-time-reconcile` verifier report (SP 800-193 §4.3.1, the
+deploy-time/on-device detection leg): **absent** on the offline demo (no device, so §4.3.1 stays
+advisory-MISSING and `allow` is unaffected), **gating when present** (a confirmed on-device drift DENYs,
+byte-integrity-like), and graded `verified` because it is re-derived from real extracted bytes. It is
+**deploy-time, not runtime**: it needs a device or image and is CHIPSEC reading flash — not the boot-time
+Root of Trust for Detection below. Live-silicon SPI readback on real hardware is the next step (roadmap
+A6); the runtime measured-boot bind remains aspirational.
+
 ## One build, three linked artifacts (not "one hash everywhere")
 
 A single build yields three artifacts for three consumers. Two of them reference the SBOM's **document hash
