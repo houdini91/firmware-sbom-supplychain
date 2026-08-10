@@ -1,5 +1,10 @@
 <div align="center">
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/img/logo-dark.svg">
+  <img src="docs/img/logo.svg" width="104" alt="uefi-supply-chain logo">
+</picture>
+
 # uefi-supply-chain
 
 ***Prove a firmware image ships the exact code its signed bill of materials declares — and block a same-GUID trojan that signatures and inventories miss.***
@@ -15,13 +20,6 @@
 
 </div>
 
-> **Threat model.** *After* the build, a mid-chain actor — an IBV/ODM/OEM repack, or anyone with post-build
-> image access — swaps a module's bytes, keeps its `FILE_GUID`, and re-signs the image. The signature is valid
-> and the inventory matches by ID; only the **born-in-build** SBOM's declared **per-module hash** (generated
-> before the swap) disagrees. That gap is what this gate closes. It does **not** defend against a build step
-> that is *itself* compromised and produces both the trojaned bytes and the SBOM that describes them — that
-> hash would match; catching it is the SLSA build-provenance layer's job (see [SECURITY.md](SECURITY.md)).
-
 ## What it is
 
 An **evidence-centric supply-chain gate** for firmware, built on the open **OVMF / edk2** UEFI reference target.
@@ -33,6 +31,12 @@ artifacts at rest, not a runtime/boot measurement.
 > **New to firmware, SBOMs, or GUIDs?** [**PRIMER.md**](PRIMER.md) explains it all from scratch (~2 min).
 
 ## How it works: two checks, in sequence
+
+> **Threat model.** *After* the build, a mid-chain actor — an IBV/ODM/OEM repack, or anyone with post-build
+> image access — swaps a module's bytes, keeps its `FILE_GUID`, and re-signs the image. The signature is valid
+> and the inventory matches by ID; only the **born-in-build** SBOM's declared **per-module hash** (generated
+> before the swap) disagrees. That gap is what the two checks below close (see [SECURITY.md](SECURITY.md) for
+> scope limits).
 
 **Step 1 — Reconcile** carves the shipped image and confirms every declared module is present. Useful, but it
 matches on the `FILE_GUID`, so a module whose *bytes* were swapped under the same GUID still passes:
@@ -242,6 +246,24 @@ It is documented as direction, not shipped (the `FUTURISTIC` rows in [`FRAMEWORK
   <img alt="Admission-time gate today (solid); runtime measured-boot attestation next (dashed)" src="docs/img/futuristic-runtime.svg" width="1000">
 </picture>
 </div>
+
+## Related work
+
+Byte-checking firmware modules is **not new**, and this project doesn't pretend otherwise. Intel's
+**CHIPSEC** (`tools.uefi.scan_image`) already carves a UEFI image and SHA-256s each module against a golden
+hash list — a same-GUID byte-swap trips it too. The pieces this project builds on, and where it differs:
+
+| Prior / adjacent work | What it does | Relation to this repo |
+|---|---|---|
+| **Intel CHIPSEC** (`tools.uefi.scan_image`) | Carves a UEFI image, SHA-256s each module against a golden-image hash *set*; catches an unknown hash. | Closest prior art for the carve-and-hash primitive. Here the baseline is a **build-born SBOM** (each module's hash declared at build, GUID-bound), the check is **bidirectional** (a swapped *or* a missing module fails), and the result is a **signed admission gate** mapped to 46 controls — versus CHIPSEC's hash-set membership emitted as a warning. |
+| **Eclypsium** (proprietary) | Deviation flagging against a known-good firmware hash database; per-component integrity comparison. | Adjacent, closed-source; carve granularity and same-GUID handling are not inspectable. |
+| **OSF Firmware Embedded SBOM spec** | Defines per-component hashes carried in the image, but not the carve-and-reconcile workflow. | This project implements verification for a step the spec leaves open. |
+| **CISA 2026 SBOM Minimum Elements** | Adds a component-hash + signature field — "verify documented matches deployed." | The policy driver for this work. |
+
+The contribution here is the **composition**, not the carving primitive: a build-born SBOM reconciled
+GUID-bound and bidirectionally against the carved image, enforced as a signed multi-framework gate bound to
+the firmware digest. The fuller survey — including what remains genuinely unfilled — is in
+[`planning/ECOSYSTEM-PRIOR-ART.md`](planning/ECOSYSTEM-PRIOR-ART.md).
 
 ## Documentation
 

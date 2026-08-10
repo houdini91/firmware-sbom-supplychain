@@ -24,6 +24,15 @@ Out of scope — the offline-demo `DEV_ASSUME_*` opt-ins (they are loudly warned
 conveniences, documented as such); missing runtime/measured-boot attestation (a documented future class of
 evidence, not a bug); anything already listed as an honest limitation in `FRAMEWORKS.md` / `DESIGN.md`.
 
+### What this gate does not defend against
+
+The byte-integrity check closes the gap between a re-signed, same-GUID module swap and the born-in-build
+SBOM's declared per-module hash. It does **not** defend against a build step that is *itself* compromised and
+produces both the trojaned bytes and the SBOM that describes them — that hash would match, because the same
+compromised build authored both sides. Catching that is the **SLSA build-provenance** layer's job (the inputs
+are build outputs, not hand-edited artifacts); see the pre-signing attacker note under **Trust model & known
+ceilings** below.
+
 ## Trust model & known ceilings
 
 The signed evidence graph proves **"CI signed these bytes, and they are internally consistent with the
