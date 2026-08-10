@@ -72,8 +72,8 @@
   <text x="34" y="463" font-size="10.5" fill="#334155">&#183; uswid #98 merged uswid PRs #98 &#183; #99 &#183; #100#183; #99 uswid PRs #98 &#183; #99 &#183; #100#183; #100</text>
 
   <rect x="620" y="446" width="296" height="46" rx="8" fill="#eef2ff" stroke="#1d4ed8" stroke-dasharray="4 3"/>
-  <text x="632" y="465" font-size="11" font-weight="700" fill="#1d4ed8">what I contribute here (nobody does this today)</text>
+  <text x="632" y="465" font-size="11" font-weight="700" fill="#1d4ed8">what I add here</text>
   <text x="632" y="482" font-size="10.5" fill="#334155">&#183; shipped-byte reconcile + signed SLSA VSA (operator-side)</text>
 
-  <text x="24" y="520" font-size="10.5" fill="#94a3b8">Feed each existing player (edk2, uswid, fwupd/LVFS); reinvent none. The only new piece is the operator-side shipped-byte reconcile &#8212; the check that catches a re-signed, same-GUID swap.</text>
+  <text x="24" y="520" font-size="10.5" fill="#94a3b8">Feed each existing player (edk2, uswid, fwupd/LVFS); reinvent none. Byte-checking firmware isn't new &#8212; CHIPSEC does it; the twist is driving it from the build-time SBOM into a signed gate.</text>
 </svg>

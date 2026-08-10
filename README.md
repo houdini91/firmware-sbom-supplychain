@@ -87,9 +87,9 @@ An SBOM only helps if it is **born at the build** and can be **checked at the ot
 - **python-uswid (Richard Hughes) — coSWID + embed.** Converts the CycloneDX SBOM to a coSWID tag and embeds it in the image. We *feed* it, we don't replace it (importer fix #98 merged; PRs #99/#100 open upstream).
 - **IBV / ODM / OEM — integration.** Where an image is repacked and **re-signed** — and where an attacker can swap a module under the **same `FILE_GUID`**. The signature verifies again, and SBOM *membership* still lists the GUID.
 - **fwupd / LVFS — distribution + readback.** Delivers firmware and, rarely, its SBOM. Today **&lt;1% of LVFS firmware ships an SBOM**, and none carries a shipped-byte reconcile.
-- **Operator — verify (this repo).** Reconciles each shipped module's bytes against the born-in-build hash. Signature ✓ and membership ✓ — but **bytes ≠ declared hash → DENY.** That shipped-byte reconcile is the one check no player does today.
+- **Operator — verify (this repo).** Reconciles each shipped module's bytes against the born-in-build hash. Signature ✓ and membership ✓ — but **bytes ≠ declared hash → DENY.** No player in this chain reconciles the shipped bytes against a build-born SBOM — that's the gap this fills (byte-checking firmware itself isn't new; see [Related work](#related-work)).
 
-The through-line: **generate CDX at the build → uswid embeds coSWID → operator reconciles shipped bytes + signs a VSA.** Contribute to every stage, compete with none; the only genuinely new piece is the operator-side reconcile that catches a re-signed, same-GUID swap.
+The through-line: **generate CDX at the build → uswid embeds coSWID → operator reconciles shipped bytes + signs a VSA.** Contribute to every stage, compete with none. Byte-checking firmware isn't new — CHIPSEC does it (see [Related work](#related-work)); what's new here is driving the reconcile from the build-born SBOM and enforcing it as a signed gate, which is what catches a re-signed, same-GUID swap.
 
 ## Why it's different
 
