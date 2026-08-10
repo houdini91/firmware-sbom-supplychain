@@ -22,11 +22,12 @@
 
 ## What it is
 
-An **evidence-centric supply-chain gate** for firmware, built on the open **OVMF / edk2** UEFI reference target.
-Every claim about a build — its SBOM, its signature, its provenance, its shipped bytes, its CVEs — becomes signed
-evidence; a policy engine ANDs those facts into **one signed verdict**; the release is blocked unless the
-**executable code that ships in the image** matches the signed SBOM. This is an **admission-time** gate over
-artifacts at rest, not a runtime/boot measurement.
+Firmware reaches you through a long, tangled supply chain — silicon vendor, BIOS/IBV, ODM, OEM — each repacking
+and re-signing the image along the way. This is an **evidence-centric supply-chain gate** for firmware: it
+**blocks a release unless the executable code in the shipped image matches its signed SBOM**. Every claim about
+the build — its SBOM, signature, provenance, shipped bytes, and CVEs — becomes signed evidence, and the gate
+requires all of it to pass before emitting one verdict. It checks the finished image **at rest, before it ships**
+— not while the machine boots. Built on the open **OVMF / edk2** UEFI reference target.
 
 > **New to firmware, SBOMs, or GUIDs?** [**PRIMER.md**](PRIMER.md) explains it all from scratch (~2 min).
 
