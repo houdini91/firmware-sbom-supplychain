@@ -22,12 +22,13 @@
 
 ## What it is
 
-Firmware reaches you through a long, tangled supply chain — silicon vendor, BIOS/IBV, ODM, OEM — each repacking
-and re-signing the image along the way. This is an **evidence-centric supply-chain gate** for firmware: it
-**blocks a release unless the executable code in the shipped image matches its signed SBOM**. Every claim about
-the build — its SBOM, signature, provenance, shipped bytes, and CVEs — becomes signed evidence, and the gate
-requires all of it to pass before emitting one verdict. It checks the finished image **at rest, before it ships**
-— not while the machine boots. Built on the open **OVMF / edk2** UEFI reference target.
+Firmware — the UEFI code that runs before your OS — reaches you through a long, tangled supply chain: silicon
+vendor, BIOS/IBV, ODM, OEM, each repacking and re-signing the image on the way. This is an **evidence-centric
+supply-chain gate** for it, built on the open **OVMF / edk2** reference target: it **blocks a release unless the
+executable code in the shipped image matches its signed SBOM**. Every claim about the build — its SBOM,
+signature, provenance, shipped bytes, and CVEs — becomes signed evidence, and the gate requires all of it to pass
+before emitting one verdict. Today it runs on the finished image **at rest, before it ships**; measuring what
+actually boots on the device is the planned next step, not yet built.
 
 > **New to firmware, SBOMs, or GUIDs?** [**PRIMER.md**](PRIMER.md) explains it all from scratch (~2 min).
 
