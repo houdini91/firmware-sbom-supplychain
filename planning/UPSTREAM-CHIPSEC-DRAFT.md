@@ -72,9 +72,10 @@ against a same-layout golden image.
 >   Add an optional `SHA256_NORM` computed over the rebase-0 form (only meaningful for `EFI_SECTIONS_EXE`).
 > - `dump_efi_module()` (`chipsec/library/uefi/spi.py`) already writes a `.sha256` sidecar; add a
 >   `.sha256_norm` sidecar when enabled.
-> - `scan_image` (`chipsec/modules/tools/uefi/scan_image.py`) — behind a flag (e.g. `-a generate,<file>,norm`),
->   add a `sha256_norm` **value field** to each `efilist.json` entry. **Keep the sha256-as-key schema
->   unchanged** (purely additive), so existing lists and `check` behavior are unaffected.
+> - `scan_image` (`chipsec/modules/tools/uefi/scan_image.py`) — behind a flag (e.g.
+>   `-a generate,<json>,<image>,norm`), add a `sha256_norm` **value field** to each `efilist.json`
+>   entry. **Keep the sha256-as-key schema unchanged** (purely additive), so existing lists and
+>   `check` behavior are unaffected.
 >
 > **Normalization definition (rebase-0)**
 > Parse the PE, set `OptionalHeader.ImageBase = 0`, walk `IMAGE_DIRECTORY_ENTRY_BASERELOC` and undo each
