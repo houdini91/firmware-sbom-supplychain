@@ -84,9 +84,7 @@ to this change**: `chipsec/modules/tools/uefi/scan_image.py` does
 `from chipsec.hal.intel.spi import SPI, BIOS`, but `BIOS` is not exported by
 `chipsec.hal.intel.spi` on `chipsec2` (it is already imported from
 `chipsec.module_common` on the line above), so importing the module raises
-`ImportError`. I left it alone to keep this PR feature-only; the test shims it
-locally. Happy to send a one-line follow-up (`from chipsec.hal.intel.spi import SPI`)
-if you'd like it fixed here or separately.
+`ImportError`. I kept this PR feature-only (the test shims the import locally). The one-line fix is submitted **separately** as its own PR (branch `fix/scan-image-spi-import`) so the two changes stay independent and easy to review — I'll link it here once filed.
 
 ## Open design question (from the issue)
 
