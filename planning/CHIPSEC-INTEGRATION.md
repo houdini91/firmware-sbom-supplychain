@@ -46,8 +46,18 @@ Deploy-time + advisory, consistent with [ADR 0001](../docs/adr/0001-chipsec-is-a
 - **A6 — Live-flash path (roadmap within A).** CHIPSEC live SPI dump on real hardware → same pipeline →
   catches flash-time drift. Needs root/driver on the target; document as direction (the "runtime attestation
   next" horizon already drawn in the futuristic diagram).
-- **A7 — Interop artifact.** Emit a CHIPSEC-compatible `efilist.json` from our reconcile so the two cross-check
-  (prior-art survey recommendation).
+- **A7 — Interop artifact. ✅ DONE.** `deploy-reconcile.py --emit-efilist <path>` writes a CHIPSEC-`scan_image`-
+  compatible `efilist.json` from the same extracted module set — keyed by the **as-found** sha256, value
+  `{sha1, guid, name, type}` in scan_image's exact field order + serialization (byte-schema-identical, no
+  trailing newline). **Verified `check`-consumable:** `chipsec_main -i -n -m tools.uefi.scan_image -a
+  check,<file>,OVMF_CODE.fd` → PASSED on our emitted file. **Cross-tool agreement proven:** our decode-tree
+  carve and CHIPSEC's independent `scan_image -a generate` model carve produce the **SAME 122 entries with
+  identical {sha1, guid, name, type}** (0 disagreements) — a second cross-carver result. `--emit-efilist-annotated`
+  adds a NON-STANDARD additive `sha256_norm` value field (rebase-0 == SBOM-declared; 11/122 differ from the
+  as-found key == the un-rebased XIP set), demonstrating the Track B proposal; `check` ignores it (still PASSED).
+  `tests/test_efilist_interop.py`: hermetic schema/dedupe/annotated tests always run; the full cross-tool
+  agreement runs when pefile + a decode tree + `chipsec_main` are reachable, else SKIPs loudly. Producer
+  **output only** — baseline **32 / 46 / 41 / 8 unchanged**.
 - **A8 — Tests + docs + diagrams sync. ✅ DONE.** Fixtures `deploy-reconcile-clean.json` (present+clean → ALLOW)
   + `deploy-reconcile-drift.json` (one mismatch → DENY), wired into `tests/run.sh`. `tests/test_deploy_reconcile.py`
   (hermetic pure-logic: GUID-keying, nested-FV-trap, TE-skip, bidirectional reconcile — runs without pefile; plus
@@ -111,9 +121,10 @@ Reviewed CHIPSEC git `main` (2.0) + dynamic run on PyPI `1.13.16` (identical has
   reconcile logic MIT on the extracted-bytes side of the boundary; (3) open a **design issue first** (no prior
   art), then a PR. Still draft-only / user-gated.
 
-**Status:** A1–A5 + A8 DONE. Track A is built end to end: the A2/A3 prototype proved cross-carver parity
+**Status:** A1–A5 + A7 + A8 DONE. Track A is built end to end: the A2/A3 prototype proved cross-carver parity
 (CHIPSEC `uefi decode` → our normalizer → 122/122 vs the signed SBOM), then A4 productionized it as
 `producers/chipsec/deploy-reconcile.py`, A5 wired the CONDITIONAL `deploy-time-reconcile` gate leg (SP 800-193
-§4.3.1; clean baseline unchanged at 32/46/41/8), and A8 added fixtures + `test_deploy_reconcile.py` + docs.
-Remaining Track-A roadmap: **A6** (live SPI dump on real hardware — needs root/driver) and **A7** (emit a
-CHIPSEC-compatible `efilist.json` for cross-check). Track B (upstream normalized-hash PR) stays draft-only/user-gated.
+§4.3.1; clean baseline unchanged at 32/46/41/8), A8 added fixtures + `test_deploy_reconcile.py` + docs, and A7
+added the CHIPSEC-compatible `efilist.json` interop emit + cross-tool agreement test (our carve == scan_image's,
+122/122 identical `{sha1,guid,name,type}`; `check`-consumable). Remaining Track-A roadmap: **A6** (live SPI dump
+on real hardware — needs root/driver). Track B (upstream normalized-hash PR) stays draft-only/user-gated.

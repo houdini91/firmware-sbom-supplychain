@@ -35,6 +35,17 @@ tree of per-module `.efi` bytes), OR an `--image` that this script decodes itsel
   deploy-reconcile.py --sbom sbom.cdx.json --decode-dir <img>.fd.dir [--efilist efilist.json] [-o verdict.json]
   deploy-reconcile.py --sbom sbom.cdx.json --image OVMF_CODE.fd [--chipsec-util <path>] [-o verdict.json]
 
+A7 (interop): the same CHIPSEC-extracted per-module set can ALSO be emitted as a
+CHIPSEC-`scan_image`-compatible `efilist.json` so our tool and CHIPSEC's `scan_image`
+cross-check each other (`--emit-efilist <path>`). The base file is byte-schema-identical
+to `scan_image`'s own output — keyed by the **as-found** sha256, value `{sha1, guid, name,
+type}` in CHIPSEC's field order — so `chipsec_main -i -n -m tools.uefi.scan_image -a
+check,<file>,<image>` consumes it unchanged. `--emit-efilist-annotated <path>` writes a
+variant that adds a NON-STANDARD `sha256_norm` value field (the rebase-0 hash == the SBOM's
+declared) as a concrete demonstration of the Track B upstream proposal
+(planning/UPSTREAM-CHIPSEC-DRAFT.md); CHIPSEC's `check` keys on the sha256 and IGNORES the
+extra field, so the annotated variant stays check-consumable too.
+
 The verdict JSON carries a stable-namespace, signed-able predicateType
 `https://firmware-sbom-supplychain/deploy-reconcile/v1` (wrap.sh wraps it into a
 D-anchored in-toto Statement). Exit 0 iff the reconcile is clean (>=1 module matched,
@@ -131,6 +142,59 @@ def normalize(mod):
     return hashlib.sha256(raw).hexdigest(), "direct"
 
 
+def _guid_dashed_upper(norm_guid):
+    """32-hex-lowercase (our internal key form) -> CHIPSEC's 8-4-4-4-12 UPPERCASE-dashed
+    FILE_GUID form (what scan_image writes into efilist.json's `guid` value field)."""
+    g = norm_guid
+    return ("%s-%s-%s-%s-%s" % (g[0:8], g[8:12], g[12:16], g[16:20], g[20:32])).upper()
+
+
+def build_efilist(mods, annotated=False):
+    """Assemble a CHIPSEC-`scan_image`-compatible efilist, keyed by the module's **as-found**
+    sha256 (== CHIPSEC's `EFI_MODULE.SHA256`, i.e. the key scan_image writes), value dict
+    `{sha1, guid, name, type}` in CHIPSEC's exact field ORDER. De-duplicated by sha256 (first
+    walk-order occurrence wins) — mirroring scan_image's genlist_callback, which drops a
+    later section with an already-seen SHA256 into a duplicate list rather than re-adding it.
+
+    annotated=True appends a NON-STANDARD, additive `sha256_norm` value field — the rebase-0
+    hash (== the SBOM's declared per-module hash), a concrete demo of the Track B upstream
+    proposal (planning/UPSTREAM-CHIPSEC-DRAFT.md). It is null when the module is not a
+    normalizable PE (TE / non-PE) or pefile is unavailable for an XIP un-rebase — never faked.
+    CHIPSEC's `check` keys on the sha256 and ignores extra value fields, so the annotated file
+    is still `check`-consumable; the base (annotated=False) file is byte-schema-identical to
+    scan_image's own output."""
+    efilist = {}
+    for md in mods:
+        key = md["asfound"]
+        if key in efilist:   # same-hash section already recorded -> CHIPSEC-style dedupe
+            continue
+        # 'type' is the SECTION type scan_image records (EFI_SECTION.Name), NOT the FV
+        # filetype: an executable section is S_PE32 (PE32/PE32+) or S_TE (terse-executable).
+        entry = {
+            "sha1": hashlib.sha1(md["raw"]).hexdigest(),
+            "guid": _guid_dashed_upper(md["guid"]),
+            "name": md["name"],
+            "type": "S_TE" if md["path"].endswith(".te") else "S_PE32",
+        }
+        if annotated:
+            norm = None
+            if md["is_pe"]:
+                try:
+                    norm, _ = normalize(md)   # rebase-0 hash == the SBOM's declared
+                except Exception:  # noqa: BLE001 — pefile missing / bad reloc: null, never faked
+                    norm = None
+            entry["sha256_norm"] = norm  # additive, non-standard; CHIPSEC `check` ignores it
+        efilist[key] = entry
+    return efilist
+
+
+def write_efilist(efilist, path):
+    """Serialize EXACTLY as scan_image does — `json.dumps(indent=2, separators=(',', ': '))`,
+    NO trailing newline — so the base file is byte-schema-identical to CHIPSEC's efilist.json."""
+    with open(path, "w") as f:
+        f.write(json.dumps(efilist, indent=2, separators=(",", ": ")))
+
+
 def reconcile(declared, mods, image_digest=""):
     """Bidirectional, GUID-bound reconcile of CHIPSEC-extracted modules vs the SBOM's declared
     per-module hashes. declared: {guid: (name, sha256)}; mods: collect_modules() output."""
@@ -220,7 +284,15 @@ def main():
                     help="a `chipsec_util uefi decode <image>` output tree (per-module .efi bytes)")
     ap.add_argument("--image", help="a firmware image to decode with CHIPSEC ourselves (needs chipsec_util)")
     ap.add_argument("--chipsec-util", dest="chipsec_util", help="path to chipsec_util (default: on PATH)")
-    ap.add_argument("--efilist", help="optional CHIPSEC efilist.json (name/guid cross-check)")
+    ap.add_argument("--efilist", help="optional CHIPSEC efilist.json INPUT (name/guid cross-check)")
+    ap.add_argument("--emit-efilist", dest="emit_efilist", metavar="PATH",
+                    help="ALSO write a CHIPSEC-scan_image-compatible efilist.json (keyed by the as-found "
+                         "sha256, value {sha1,guid,name,type}) — byte-schema-identical to scan_image's, so "
+                         "`chipsec_main -m tools.uefi.scan_image -a check,<PATH>,<image>` consumes it (A7 interop)")
+    ap.add_argument("--emit-efilist-annotated", dest="emit_efilist_annotated", metavar="PATH",
+                    help="ALSO write an efilist.json with a NON-STANDARD additive `sha256_norm` value field "
+                         "(rebase-0 hash == the SBOM-declared) — a demo of the Track B upstream proposal; "
+                         "CHIPSEC `check` keys on the sha256 and ignores it")
     ap.add_argument("-o", "--out")
     a = ap.parse_args()
 
@@ -244,6 +316,18 @@ def main():
             sys.exit("deploy-reconcile: --decode-dir not a directory: %s" % decode_dir)
         mods = collect_modules(decode_dir, a.efilist)
         verdict = reconcile(declared, mods, image_digest)
+        # A7 interop: emit a CHIPSEC-scan_image-compatible efilist from the SAME extracted
+        # module set (an OUTPUT — does not change the verdict / gate counts).
+        if a.emit_efilist:
+            el = build_efilist(mods, annotated=False)
+            write_efilist(el, a.emit_efilist)
+            print("deploy-reconcile: wrote CHIPSEC-compatible efilist (%d entries) -> %s"
+                  % (len(el), a.emit_efilist), file=sys.stderr)
+        if a.emit_efilist_annotated:
+            ela = build_efilist(mods, annotated=True)
+            write_efilist(ela, a.emit_efilist_annotated)
+            print("deploy-reconcile: wrote sha256_norm-annotated efilist (%d entries) -> %s"
+                  % (len(ela), a.emit_efilist_annotated), file=sys.stderr)
 
     out = json.dumps(verdict, indent=2)
     if a.out:

@@ -247,6 +247,23 @@ byte-integrity-like), and graded `verified` because it is re-derived from real e
 Root of Trust for Detection below. Live-silicon SPI readback on real hardware is the next step (roadmap
 A6); the runtime measured-boot bind remains aspirational.
 
+### CHIPSEC-compatible `efilist.json` interop (A7)
+
+From the *same* extracted module set, the producer can emit a CHIPSEC-`scan_image`-compatible
+`efilist.json` (`--emit-efilist <path>`), so our tool and CHIPSEC cross-check each other. It is keyed by
+the module's **as-found** sha256 (== CHIPSEC's `EFI_MODULE.SHA256`), value `{sha1, guid, name, type}` in
+scan_image's exact field order and serialization — byte-schema-identical to CHIPSEC's own output, so
+`chipsec_main -i -n -m tools.uefi.scan_image -a check,<file>,<image>` consumes it unchanged. On the OVMF
+reference our decode-tree carve and CHIPSEC's independent `scan_image -a generate` model carve produce the
+**same 122 entries with identical `{sha1, guid, name, type}`** — a second cross-carver agreement result,
+and a mechanical guard that our extraction has not silently drifted from CHIPSEC's. `--emit-efilist-annotated`
+writes a variant with a **non-standard, additive** `sha256_norm` value field (the rebase-0 hash == the
+SBOM's declared) — a concrete demonstration of the [Track B upstream proposal](planning/UPSTREAM-CHIPSEC-DRAFT.md);
+CHIPSEC's `check` keys on the sha256 and ignores it, so the annotated file stays check-consumable. This is a
+producer **output** only — no gate control or count depends on it. (`tests/test_efilist_interop.py` asserts
+the schema hermetically and the full cross-tool agreement when pefile + a decode tree + `chipsec_main` are
+reachable, else SKIPs loudly.)
+
 ## One build, three linked artifacts (not "one hash everywhere")
 
 A single build yields three artifacts for three consumers. Two of them reference the SBOM's **document hash
