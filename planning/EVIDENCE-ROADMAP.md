@@ -39,7 +39,7 @@ Effort: S ≈ hours · M ≈ 1–2 days · H ≈ multi-day · XH ≈ project-sca
   firmware-distinctive evidence and the one that begins converting the "futuristic zero" (SP 800-193 Protection,
   SP 800-147) into real coverage **without** needing a TPM quote — it checks *protections/config*, not measured
   boot. Hands-on CHIPSEC tooling experience is a deliverable in its own right.
-- **Differentiator + horizon track** — R4 (byte-integrity, our unique control), then R7/R8, then R9 (the honest
+- **Differentiator + horizon track** — R4 (byte-integrity — the *composition* is our differentiator; byte-checking firmware modules itself isn't new, CHIPSEC does it — see Related work), then R7/R8, then R9 (the honest
   long-horizon runtime-attestation project).
 
 ---

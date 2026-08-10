@@ -52,7 +52,12 @@ golden (RIM/CoRIM); SBOM-vs-file-hash validation (Microsoft sbom-tool).
 - **Cite, don't claim against:** CHIPSEC `scan_image` (prior art our reconcile extends), Binarly blog
   (motivation), CISA 2026 hash field (driver), OSFW embedded-SBOM spec (format we verify).
 - **Interoperate:** uSWID/coSWID, CycloneDX + SPDX 3.0.1, SLSA VSA + in-toto/cosign, OSCAL export.
-  Consider emitting CHIPSEC-compatible `efilist.json` so our reconcile is cross-checkable.
+  ~~Consider emitting CHIPSEC-compatible `efilist.json` so our reconcile is cross-checkable.~~ **DONE (A7
+  shipped):** `producers/chipsec/deploy-reconcile.py --emit-efilist` writes a byte-schema-identical
+  `efilist.json` (and `--emit-efilist-annotated` a `sha256_norm` variant), and a **CHIPSEC-fed second
+  carver** now exists — the Track A `deploy-reconcile` producer extracts modules with CHIPSEC `uefi decode`
+  and reconciles them against the build-born SBOM, so our extraction and CHIPSEC `scan_image` cross-check
+  each other (identical 122-entry list on the OVMF reference).
 - **Defensible novelty sentence (each clause survives the survey):** *"a build-born SBOM whose
   per-module source+shipped-byte hashes are reconciled (bidirectionally, GUID-bound) against the
   FMMT-carved image to catch a same-GUID re-signed module swap, enforced as an OPA admission gate

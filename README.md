@@ -267,6 +267,10 @@ GUID-bound and bidirectionally against the carved image, enforced as a signed mu
 the firmware digest. The fuller survey — including what remains genuinely unfilled — is in
 [`planning/ECOSYSTEM-PRIOR-ART.md`](planning/ECOSYSTEM-PRIOR-ART.md).
 
+> **Status.** This is a working demonstration plus a set of upstream proposals: the edk2 `-Y SBOM`
+> generator and the CHIPSEC normalized-hash pieces are proposals in discussion with those communities, so
+> the core approach is expected to evolve as that engagement lands.
+
 ## Documentation
 
 Read in order: **[`PRIMER.md`](PRIMER.md)** (from scratch) → this README → [`DESIGN.md`](DESIGN.md) (the

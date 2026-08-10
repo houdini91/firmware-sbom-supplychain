@@ -69,6 +69,14 @@ reconcile: ## Carve a real image + reconcile: make reconcile EDK2=<tree> IMG=<im
 	@test -n "$(EDK2)" -a -n "$(IMG)" || { echo "usage: make reconcile EDK2=<edk2 tree> IMG=<image.fd>"; exit 2; }
 	EDK2=$(EDK2) bash producers/reconcile/carve.sh $(IMG)
 
+.PHONY: deploy-reconcile
+deploy-reconcile: ## Track A deploy-time reconcile: CHIPSEC `uefi decode` a deployed image + reconcile per-module bytes vs the signed SBOM. Usage: make deploy-reconcile IMG=<image.fd> [SBOM=<sbom.cdx.json>]  (or DECODE_DIR=<chipsec_util uefi decode tree>). Needs chipsec_util on PATH for the IMG path.
+	@test -n "$(IMG)" -o -n "$(DECODE_DIR)" || { echo "usage: make deploy-reconcile IMG=<image.fd> [SBOM=<sbom.cdx.json>]  (or DECODE_DIR=<chipsec_util uefi decode tree>)"; exit 2; }
+	python3 producers/chipsec/deploy-reconcile.py \
+	  --sbom $(or $(SBOM),inputs/sbom.cdx.json) \
+	  $(if $(DECODE_DIR),--decode-dir "$(DECODE_DIR)",--image "$(IMG)") \
+	  -o inputs/deploy-reconcile.json
+
 .PHONY: attack-demo
 attack-demo: ## "Same-GUID trojan caught": byte-tamper a real module under its GUID; real producer -> MODIFIED -> gate DENY. Add FW_IMAGE=<OVMF.fd> EDK2=<tree> for the full real-image run.
 	OPA=$(or $(OPA),$(ROOT)bin/opa) bash scripts/attack-demo.sh

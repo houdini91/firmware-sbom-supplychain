@@ -227,6 +227,10 @@ Track A). It extends the same signed, build-born SBOM baseline from "at rest" (t
 admitted) to "on silicon" (what is actually flashed), catching post-admission / flash-time drift the
 at-rest gate cannot see.
 
+*See also:* the collection-point rationale in [ADR 0001](docs/adr/0001-chipsec-is-a-deploy-time-collection-point.md),
+the SP 800-193 §4.3.1 mapping in [FRAMEWORKS.md](FRAMEWORKS.md#nist-sp-800-193-platform-firmware-resiliency--4-subsection-numbers-verified-against-the-primary-pdf),
+and the Track A task map in [planning/CHIPSEC-INTEGRATION.md](planning/CHIPSEC-INTEGRATION.md); run it with `make deploy-reconcile` (see [`producers/chipsec/README.md`](producers/chipsec/README.md)).
+
 The mechanism reuses the proven byte-integrity primitive through a **second, independent carver**:
 CHIPSEC `uefi decode` extracts each module's PE bytes from the deployed image, our normalizer
 (`canon_unrebase`, unchanged) reproduces the base-0 hash, and the result is reconciled **GUID-bound and
@@ -236,16 +240,37 @@ CHIPSEC's FV filetype directory using the *immediate* parent (the nested-FV trap
 coSWID, preserving byte-integrity's typeless-coSWID hardening. Modules keyed by **FILE_GUID** because
 names collide (two `CpuMpPei`, two `CpuDxe` with distinct GUIDs). On the OVMF reference this reconciles
 **122/122** (111 direct + 11 XIP un-rebase); cross-carver agreement with the FMMT path is itself a
-robustness result. TE sections and anything CHIPSEC can't cleanly extract are **SKIPPED** — surfaced
-honestly, never counted as verified.
+robustness result. Collection is **magic-based** off CHIPSEC's authoritative `<img>.UEFI.json` (a module
+is found by its `MZ`/`VZ` magic wherever it nests — robust under compressed / GUID-defined / nested-FV
+sections), with a magic-based dir walk as fallback.
+
+**Hardened coverage + skip semantics (as of the 2026-08 security hardening).** A declared module that
+comes back as a TE (`VZ`) section, a non-PE blob, unextractable, or an extraction error is **UNVERIFIABLE
+DRIFT, not a benign skip** — a same-GUID PE→TE swap lands here. So *clean* now requires **full coverage of
+the declared set**: `matched == declared`, and `declared == sbom.integrity.hashed` (parity with
+byte-integrity's `checked == hashed`) — a 1-of-N reconcile no longer passes. Every unverifiable declared
+module must be a **reviewed exemption** (`data.deploy_reconcile_exempt`, default empty) or the gate
+**DENYs and names it**. (The producer verdict is unconditionally strict; the exemption allowlist is a
+rego-side policy decision, mirroring byte-integrity.)
 
 In the gate it is the **conditional** `deploy-time-reconcile` verifier report (SP 800-193 §4.3.1, the
 deploy-time/on-device detection leg): **absent** on the offline demo (no device, so §4.3.1 stays
 advisory-MISSING and `allow` is unaffected), **gating when present** (a confirmed on-device drift DENYs,
-byte-integrity-like), and graded `verified` because it is re-derived from real extracted bytes. It is
-**deploy-time, not runtime**: it needs a device or image and is CHIPSEC reading flash — not the boot-time
-Root of Trust for Detection below. Live-silicon SPI readback on real hardware is the next step (roadmap
-A6); the runtime measured-boot bind remains aspirational.
+byte-integrity-like), and graded `verified` because it is re-derived from real extracted bytes. A
+**present** verdict must be **D-anchored** — a loose `DEPLOY_RECONCILE_JSON` must self-anchor
+(`image_digest == D`, else it fails closed to advisory-absent), and under `REQUIRE_SIGNED_EVIDENCE=1` a
+present loose verdict with no signed `DEPLOY_RECONCILE_BUNDLE` **aborts** (parity with byte-integrity's
+signed-evidence enforcement). It is **deploy-time, not runtime**: it needs a device or image and is CHIPSEC
+reading flash — not the boot-time Root of Trust for Detection below. Live-silicon SPI readback on real
+hardware is the next step (roadmap A6); the runtime measured-boot bind remains aspirational.
+
+> **Namespace note (stable identifiers, deliberately not renamed).** The signed `predicateType` values
+> across this repo — `https://firmware-sbom-supplychain/{reconcile,byte-integrity,binary-hardening,`
+> `chipsec-posture,deploy-reconcile}/v1` — and the rego rule-id namespace (`firmware-sbom-supplychain/`
+> `<name>@v1`) keep the original `firmware-sbom-supplychain` token even though the project is now
+> **uefi-supply-chain**. These are **stable identifiers baked into already-signed evidence**: renaming
+> them would break verification of existing attestations and change the signed VSA's rule ids. The token
+> is a frozen namespace, not the current project name — intentional, not a stale leftover.
 
 ### CHIPSEC-compatible `efilist.json` interop (A7)
 

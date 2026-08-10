@@ -75,6 +75,23 @@ Split CHIPSEC evidence by its true collection point.
   is CHIPSEC reading flash — not the boot-time Root of Trust for Detection. Live-silicon SPI readback is
   roadmap A6.
 
+  **Hardened semantics (2026-08 security review).** When the leg is present it fails closed, not open:
+  - **Coverage floor.** *Clean* requires `matched == declared` **and** `declared == sbom.integrity.hashed`
+    — the verdict must reconcile **every** declared hashable module (parity with byte-integrity's
+    `checked == hashed`). A 1-of-N reconcile no longer passes, so a same-GUID PE→TE swap cannot silently
+    shrink the comparable set.
+  - **Unverifiable ⇒ DENY unless reviewed-exempt.** A declared module that returns a TE / non-PE section,
+    is unextractable, or errors is **unverifiable drift, not a benign skip**. It DENYs the gate and is
+    named unless it is a reviewed exemption in `data.deploy_reconcile_exempt` (default empty). A
+    MISMATCH / MISSING / UNEXPECTED module is never exemptable.
+  - **D-anchored, signed-when-required.** A present loose verdict must self-anchor (`image_digest == D`,
+    else fail-closed to advisory-absent); under `REQUIRE_SIGNED_EVIDENCE=1` a present loose verdict with no
+    signed bundle aborts (parity with byte-integrity's signed-evidence enforcement).
+
+  *See also:* [DESIGN.md → Deploy-time reconcile](../../DESIGN.md), [FRAMEWORKS.md §4.3.1](../../FRAMEWORKS.md),
+  the Track A task map in [planning/CHIPSEC-INTEGRATION.md](../../planning/CHIPSEC-INTEGRATION.md), and the
+  run/usage doc in [`producers/chipsec/README.md`](../../producers/chipsec/README.md).
+
 ## Alternatives considered
 
 - **Drop the six hardware checks from the control map entirely** (out of admission scope). Defensible
