@@ -566,10 +566,20 @@ default _deploy_reconcile_ok := false
 _deploy_reconcile_ok if {
 	input.deploy_reconcile.ran
 	input.deploy_reconcile.matched > 0 # NON-VACUITY: something was actually reconciled from real bytes — a run that matched nothing is NOT a clean device
-	input.deploy_reconcile.matched == input.deploy_reconcile.reconciled # every comparable (extractable) module matched
+	input.deploy_reconcile.declared == input.sbom.integrity.hashed # COVERAGE: the verdict reconciled EVERY declared hashable module — not a cherry-picked / stale subset (parity with byte-integrity's checked==hashed). A same-GUID PE->TE swap can no longer shrink the comparable set unnoticed.
 	input.deploy_reconcile.mismatch_count == 0 # a same-GUID byte swap on the device always fails
-	input.deploy_reconcile.missing_count == 0 # a declared module CHIPSEC could not find -> tamper/missing
+	input.deploy_reconcile.missing_count == 0 # a declared module CHIPSEC could not find -> tamper/missing (NEVER exemptable)
 	input.deploy_reconcile.unexpected_count == 0 # a CHIPSEC module absent from the SBOM -> unexpected implant
+	count(_deploy_reconcile_unexpected) == 0 # every UNVERIFIABLE declared module (non-PE/TE skip or extraction error) is a REVIEWED exemption (data.deploy_reconcile_exempt), else DENY and name it — a PE->TE swap lands here
+}
+
+# Declared modules the deploy-reconcile could not verify (a non-PE/TE skip or an extraction error)
+# and that are NOT on the reviewed exemption list. A genuinely-unverifiable on-device section is
+# accepted ONLY when listed in data.deploy_reconcile_exempt with a documented reason; anything else
+# (e.g. a same-GUID PE->TE swap) fails the gate and is named. Default allowlist is empty.
+_deploy_reconcile_unexpected contains m if {
+	some m in object.get(input.deploy_reconcile, "unverifiable", [])
+	not data.deploy_reconcile_exempt[m]
 }
 
 default _deploy_reconcile_msg := "deploy-time reconcile evidence absent (no deploy_reconcile section) — no on-device/image byte reconcile supplied"
@@ -583,11 +593,27 @@ _deploy_reconcile_msg := sprintf("deploy-time reconcile: %d UNEXPECTED module(s)
 	input.deploy_reconcile.missing_count == 0
 	input.deploy_reconcile.unexpected_count > 0
 }
+_deploy_reconcile_msg := sprintf("deploy-time reconcile: %d declared module(s) could NOT be verified on the device (non-PE/TE or extraction error) and are not a reviewed exemption: %v — a same-GUID PE->TE swap looks like this; investigate, or add to data.deploy_reconcile_exempt with a documented reason", [count(_deploy_reconcile_unexpected), sort([m | some m in _deploy_reconcile_unexpected])]) if {
+	input.deploy_reconcile.mismatch_count == 0
+	input.deploy_reconcile.missing_count == 0
+	input.deploy_reconcile.unexpected_count == 0
+	count(_deploy_reconcile_unexpected) > 0
+}
+_deploy_reconcile_msg := sprintf("deploy-time reconcile: verdict covers only %d of %d declared hashable modules — an under-scoped or stale verdict is not full coverage (cherry-picking guard)", [input.deploy_reconcile.declared, input.sbom.integrity.hashed]) if {
+	input.deploy_reconcile.ran
+	input.deploy_reconcile.mismatch_count == 0
+	input.deploy_reconcile.missing_count == 0
+	input.deploy_reconcile.unexpected_count == 0
+	count(_deploy_reconcile_unexpected) == 0
+	input.deploy_reconcile.declared != input.sbom.integrity.hashed
+}
 _deploy_reconcile_msg := "deploy-time reconcile ran but matched 0 modules — a vacuous device read is not a verified device (nothing was actually reconciled from real bytes)" if {
 	input.deploy_reconcile.ran
 	input.deploy_reconcile.mismatch_count == 0
 	input.deploy_reconcile.missing_count == 0
 	input.deploy_reconcile.unexpected_count == 0
+	count(_deploy_reconcile_unexpected) == 0
+	input.deploy_reconcile.declared == input.sbom.integrity.hashed
 	input.deploy_reconcile.matched == 0
 }
 

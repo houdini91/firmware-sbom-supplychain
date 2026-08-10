@@ -166,6 +166,38 @@ os.unlink(_p2)
 check("byte_integrity: modified_count + NAMES (sorted) + unverifiable from skipped",
       bi["modified_count"] == 2 and bi["modified"] == ["Alpha", "Zeta"] and bi["unverifiable"] == ["SkipMod"])
 
+# deploy_reconcile_fact — the D-anchor fail-closed path (finding #2). A PRESENT loose verdict must
+# D-anchor ITSELF (predicate image_digest == the firmware anchor D); a verdict pointed at another /
+# empty image is untrustworthy and fails closed to ABSENT (advisory), never a PASS. It also surfaces
+# `declared` (coverage denominator) + `unverifiable` NAMES (skipped/errored) for the gate's
+# exemption check. No bundle + no verdict -> absent (the leg is conditional).
+_D = "sha256:7965c31705bb824133d173fb9afe64d649005df2d4fc8878274ef25162fb8f37"
+
+
+def _dr_loose(verdict):
+    _fd, _p = _tempfile.mkstemp(suffix=".json")
+    with os.fdopen(_fd, "w") as _f:
+        _json.dump(verdict, _f)
+    try:
+        return a.deploy_reconcile_fact(_p, None, _D)
+    finally:
+        os.unlink(_p)
+
+
+_dr_base = {"declared": 122, "reconciled": 122, "matched": 122, "mismatched": [], "missing": [],
+            "unexpected": [], "skipped": [{"name": "TeSkip"}], "errored": [{"name": "ErrMod"}]}
+check("deploy_reconcile: no verdict + no bundle -> absent (ran=False), the conditional leg stays advisory",
+      a.deploy_reconcile_fact(None, None, _D)["ran"] is False)
+check("deploy_reconcile: a loose verdict D-anchored to D -> ran=True, surfaces declared + unverifiable NAMES",
+      _dr_loose({**_dr_base, "image_digest": _D}) == {
+          "ran": True, "declared": 122, "reconciled": 122, "matched": 122, "mismatch_count": 0,
+          "missing_count": 0, "unexpected_count": 0, "skipped_count": 1,
+          "mismatched": [], "missing": [], "unexpected": [], "unverifiable": ["ErrMod", "TeSkip"]})
+check("deploy_reconcile: a loose verdict pointed at ANOTHER image (image_digest != D) fails closed to ABSENT (no PASS)",
+      _dr_loose({**_dr_base, "image_digest": "sha256:" + "de" * 32})["ran"] is False)
+check("deploy_reconcile: a loose verdict with EMPTY image_digest fails closed to ABSENT (cannot prove it is about image D)",
+      _dr_loose({**_dr_base, "image_digest": ""})["ran"] is False)
+
 # chipsec_subresults: the platform-posture facts read from chipsec.json results[]; absent module -> ABSENT
 cs = a.chipsec_subresults({"results": [
     {"module": "common.secureboot.variables", "result": "PASSED"},

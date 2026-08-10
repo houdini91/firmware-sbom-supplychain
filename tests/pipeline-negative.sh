@@ -185,5 +185,48 @@ else
   printf 'PASS  %-38s -> abort (fail-closed)\n' "require-signed-missing-bundle-ABORTS"
 fi
 echo "================================================"
+
+# ---------------------------------------------------------------------------------------------------
+# SECURITY (deploy-reconcile forge, finding #2): the deploy-time reconcile leg is CONDITIONAL, but a
+# PRESENT loose verdict must be D-anchored + (under REQUIRE_SIGNED_EVIDENCE=1) signed. Prove:
+#   (a) a forged loose PASSING DEPLOY_RECONCILE_JSON, no DR bundle, REQUIRE_SIGNED_EVIDENCE=1 -> ABORT
+#       (the unsigned loose forge can no longer feed the gate; BI/BH bundles are supplied so the abort
+#        is specifically the deploy-reconcile one).
+#   (b) a forged loose verdict whose image_digest != the anchor D -> the leg fails closed to ABSENT
+#       (ran=false): a verdict pointed at ANOTHER image yields NO deploy-reconcile PASS.
+echo "== deploy-reconcile forge: loose verdict must be D-anchored + signed (finding #2) =="
+DR_FORGED_CLEAN="$TMP/dr.forged-clean.json"     # a passing verdict anchored to the REAL image D
+jq -n --arg d "sha256:$D" '{declared:122,reconciled:122,matched:122,mismatch_count:0,missing_count:0,
+  unexpected_count:0,mismatched:[],missing:[],unexpected:[],skipped:[],errored:[],image_digest:$d}' > "$DR_FORGED_CLEAN"
+DR_WRONG_IMAGE="$TMP/dr.wrong-image.json"        # same passing verdict, but pointed at ANOTHER image
+WRONG_IMG="$(printf '%s' some-other-firmware | sha256sum | cut -d' ' -f1)"
+jq -n --arg d "sha256:$WRONG_IMG" '{declared:122,reconciled:122,matched:122,mismatch_count:0,missing_count:0,
+  unexpected_count:0,mismatched:[],missing:[],unexpected:[],skipped:[],errored:[],image_digest:$d}' > "$DR_WRONG_IMAGE"
+
+# (a) REQUIRE_SIGNED_EVIDENCE=1 + a PRESENT loose DR verdict + no DR bundle -> ABORT (no gate-input).
+rm -f "$TMP/dr-req-gate.json"
+if env SBOM="$IN/sbom.cdx.json" BUNDLE="$BUNDLE" SIG=true GRYPE_JSON="$IN/grype.json" \
+     OUT="$TMP/dr-req-gate.json" DEV_ASSUME_IDENTITY=1 DEV_ASSUME_SLSA=1 CHIPSEC_JSON="$IN/chipsec.json" \
+     REQUIRE_SIGNED_EVIDENCE=1 BYTE_INTEGRITY_BUNDLE="$TMP/bi.clean.bundle" BINARY_HARDENING_BUNDLE="$TMP/bh.clean.bundle" \
+     BYTE_INTEGRITY_JSON="$BI_FORGED_CLEAN" BINARY_HARDENING_JSON="$BH_LOOSE" DEPLOY_RECONCILE_JSON="$DR_FORGED_CLEAN" \
+     BUILD_TOOLS_JSON="$IN/build-tools.cdx.json" DEV_ASSUME_BUILDTOOLS=1 DEV_ASSUME_CHAIN=1 DEV_ASSUME_FWIMAGE=1 \
+     bash "$ROOT/oss-lane/assemble-gate-input.sh" >/dev/null 2>&1; then
+  printf 'FAIL  %-38s assembler succeeded (expected abort)\n' "dr-loose-forge-require-signed-ABORTS"; fail=1
+elif [ -f "$TMP/dr-req-gate.json" ]; then
+  printf 'FAIL  %-38s wrote a gate-input (expected none)\n' "dr-loose-forge-require-signed-ABORTS"; fail=1
+else
+  printf 'PASS  %-38s -> abort (fail-closed)\n' "dr-loose-forge-require-signed-ABORTS"
+fi
+
+# (b) loose DR verdict pointed at ANOTHER image (image_digest != D) -> leg fails closed to ABSENT.
+env SBOM="$IN/sbom.cdx.json" BUNDLE="$BUNDLE" SIG=true GRYPE_JSON="$IN/grype.json" \
+    OUT="$TMP/dr-wrongimg-gate.json" DEV_ASSUME_IDENTITY=1 DEV_ASSUME_SLSA=1 CHIPSEC_JSON="$IN/chipsec.json" \
+    BYTE_INTEGRITY_JSON="$BI_FORGED_CLEAN" BINARY_HARDENING_JSON="$BH_LOOSE" DEPLOY_RECONCILE_JSON="$DR_WRONG_IMAGE" \
+    BUILD_TOOLS_JSON="$IN/build-tools.cdx.json" DEV_ASSUME_BUILDTOOLS=1 DEV_ASSUME_CHAIN=1 DEV_ASSUME_FWIMAGE=1 \
+    bash "$ROOT/oss-lane/assemble-gate-input.sh" >/dev/null 2>&1
+dr_ran="$(jq -r '.deploy_reconcile.ran' "$TMP/dr-wrongimg-gate.json" 2>/dev/null)"
+if [ "$dr_ran" = "false" ]; then printf 'PASS  %-38s -> absent (no deploy-reconcile PASS)\n' "dr-loose-wrong-image-D-fails-closed"
+else printf 'FAIL  %-38s expected ran=false, got %s\n' "dr-loose-wrong-image-D-fails-closed" "$dr_ran"; fail=1; fi
+echo "================================================"
 [ "$fail" -eq 0 ] && echo "ALL PASS" || echo "FAILURES"
 exit $fail

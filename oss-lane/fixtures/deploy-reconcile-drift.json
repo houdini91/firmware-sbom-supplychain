@@ -126,6 +126,7 @@
   },
   "deploy_reconcile": {
     "ran": true,
+    "declared": 122,
     "reconciled": 122,
     "matched": 121,
     "mismatch_count": 1,
@@ -136,6 +137,7 @@
       "DxeCore"
     ],
     "missing": [],
-    "unexpected": []
+    "unexpected": [],
+    "unverifiable": []
   }
 }

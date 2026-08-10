@@ -44,8 +44,6 @@ _spec.loader.exec_module(dr)
 ok = True
 skipped = 0
 
-_SCRATCH = "/tmp/claude-1000/-home-mikey-mikey/59320455-965d-4554-a945-77eedd38cbac/scratchpad"
-
 
 def check(name, cond):
     global ok
@@ -131,16 +129,14 @@ def _find(paths, is_dir=False):
     return None
 
 
-decode_dir = _find([os.environ.get("EFILIST_DECODE_DIR"), os.environ.get("DEPLOY_RECONCILE_REF"),
-                    os.path.join(_SCRATCH, "chipsec-verify", "run", "OVMF_CODE.fd.dir")], is_dir=True)
+# Reference inputs come ONLY from env overrides (no committed session-specific scratch path); the
+# T71 OVMF image is the one stable, non-session default. Absent -> the cross-tool block SKIPs loudly.
+decode_dir = _find([os.environ.get("EFILIST_DECODE_DIR"), os.environ.get("DEPLOY_RECONCILE_REF")], is_dir=True)
 ovmf = _find([os.environ.get("EFILIST_OVMF"),
-              os.path.join(_SCRATCH, "chipsec-verify", "run", "OVMF_CODE.fd"),
               "/media/mikey/T71/firmware_artifacts/edk2/Build/OvmfX64/DEBUG_GCC/FV/OVMF_CODE.fd"])
-chipsec_main = _find([os.environ.get("CHIPSEC_MAIN"),
-                      os.path.join(_SCRATCH, "chipsec-verify", ".venv", "bin", "chipsec_main")]) \
-    or shutil.which("chipsec_main")
+chipsec_main = _find([os.environ.get("CHIPSEC_MAIN")]) or shutil.which("chipsec_main")
 
-if dr.bi.pefile is None:
+if dr.ffs.pefile is None:
     skipped += 1
     print("SKIP  cross-tool efilist agreement (pefile not installed — the XIP un-rebase path for the "
           "annotated norm cannot run; run with the pefile venv). Hermetic schema tests above still ran.")

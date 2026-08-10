@@ -126,9 +126,9 @@
   },
   "deploy_reconcile": {
     "ran": true,
-    "declared": 122,
-    "reconciled": 122,
-    "matched": 122,
+    "declared": 121,
+    "reconciled": 121,
+    "matched": 121,
     "mismatch_count": 0,
     "missing_count": 0,
     "unexpected_count": 0,

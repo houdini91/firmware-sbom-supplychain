@@ -65,6 +65,12 @@ expect firmware-freshly-measured.json allow
 # Track A deploy-time reconcile (CONDITIONAL): present+clean deploys; present+drift blocks.
 expect deploy-reconcile-clean.json allow
 expect deploy-reconcile-drift.json deny
+# Coverage floor: a verdict that reconciled FEWER than the declared hashable modules (a cherry-picked
+# / stale subset) is not full coverage -> DENY (parity with byte-integrity's checked==hashed).
+expect deploy-reconcile-undercoverage.json deny
+# Skip/coverage bypass (the reviewers' finding #1): a declared module that came back UNVERIFIABLE
+# (a same-GUID PE->TE swap looks exactly like this) and is NOT a reviewed exemption -> DENY.
+expect deploy-reconcile-unexpected-skip.json deny
 
 # byte-integrity exemption ALLOW path: the same un-verifiable module that DENYs above must
 # ALLOW once it is a reviewed entry in data.byte_integrity_exempt — proves the escape hatch works.
@@ -80,6 +86,14 @@ _tb="$(mktemp)"; jq '.binary_hardening_exempt += {"SomeUnscannableDxeModule":"re
 _bv="$("$OPA" eval -I -f json -d "$POL/firmware.rego" -d "$_tb" -d "$POL/kev-catalog.json" -d "$POL/cve-allowlist.json" -d "$POL/initiatives.json" 'data.firmware.deploy.allow' < "$IN/binary-hardening-unexpected-skip.json" 2>/dev/null | jq -r '.result[0].expressions[0].value')"
 rm -f "$_tb"
 if [ "$_bv" = "true" ]; then echo "PASS  binary-hardening exemption: the same module, listed in binary_hardening_exempt -> ALLOW"; else echo "FAIL  binary-hardening exemption ALLOW path (got $_bv)"; fail=1; fi
+
+# deploy-reconcile exemption ALLOW path: the same UNVERIFIABLE module that DENYs above (a genuinely
+# TE-only on-device section) ALLOWs once it is a reviewed entry in data.deploy_reconcile_exempt —
+# proving the escape hatch works while a same-GUID PE->TE swap (not listed) still denies.
+_tr="$(mktemp)"; jq '.deploy_reconcile_exempt += {"SomeUnverifiableModule":"reviewed test exemption"}' "$POL/data.json" > "$_tr"
+_rv="$("$OPA" eval -I -f json -d "$POL/firmware.rego" -d "$_tr" -d "$POL/kev-catalog.json" -d "$POL/cve-allowlist.json" -d "$POL/initiatives.json" 'data.firmware.deploy.allow' < "$IN/deploy-reconcile-unexpected-skip.json" 2>/dev/null | jq -r '.result[0].expressions[0].value')"
+rm -f "$_tr"
+if [ "$_rv" = "true" ]; then echo "PASS  deploy-reconcile exemption: the same module, listed in deploy_reconcile_exempt -> ALLOW"; else echo "FAIL  deploy-reconcile exemption ALLOW path (got $_rv)"; fail=1; fi
 
 echo "================================"
 [ "$fail" -eq 0 ] && echo "ALL PASS" || echo "FAILURES"

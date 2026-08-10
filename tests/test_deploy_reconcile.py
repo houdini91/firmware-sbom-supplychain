@@ -140,13 +140,86 @@ v2 = dr.reconcile(dr.load_sbom_hashes(_sbom({GUID_A: ("ModA", h(PE))})),
                   [m for m in mods2 if m["guid"] == GUID_A])
 check("reconcile: an all-matching extract (1/1) is clean -> exit-0 shape", v2["clean"] is True and v2["matched"] == 1)
 
+# ---- 2b) SECURITY — coverage floor: a declared module that comes back UNVERIFIABLE (a same-GUID
+# PE->TE swap, or any non-PE/error) is DRIFT, never a benign skip. `clean` requires matched ==
+# declared, so a partial pass (1-of-N, or one module swapped to TE) is NOT clean. (Repro of the
+# skip/coverage bypass three reviewers flagged: pre-fix `clean` needed only matched>0.) ----
+# (i) same-GUID PE->TE swap: GUID_A stays a real PE (matches); GUID_B is DECLARED as a PE but the
+#     device now carries a TE under the SAME GUID -> B is unverifiable, the run is NOT clean.
+td_swap = tempfile.mkdtemp()
+_write_module(td_swap, "FV_DRIVER", GUID_A, "ModA.efi", PE, idx=1)
+_write_module(td_swap, "FV_PEIM", GUID_B, "ModB.te", TE, idx=2)  # B swapped PE->TE (same GUID)
+v_swap = dr.reconcile(dr.load_sbom_hashes(_sbom({GUID_A: ("ModA", h(PE)), GUID_B: ("ModB", h(PE))})),
+                      dr.collect_modules(td_swap))
+check("SECURITY: a same-GUID PE->TE swap is UNVERIFIABLE drift, NOT clean (matched=1 != declared=2)",
+      v_swap["clean"] is False and v_swap["matched"] == 1 and v_swap["declared"] == 2)
+check("SECURITY: the swapped module is surfaced in `skipped` (so the gate can name + exemption-check it), NOT silently missing",
+      len(v_swap["missing"]) == 0 and any(s["guid"] == GUID_B for s in v_swap["skipped"]))
+# (ii) 1-of-N: only 1 of 4 declared modules matched (rest TE-skipped) -> NOT clean (coverage floor).
+td_1ofn = tempfile.mkdtemp()
+_write_module(td_1ofn, "FV_DRIVER", GUID_A, "ModA.efi", PE, idx=1)
+for _i, _g in enumerate(("11" * 16, "22" * 16, "33" * 16)):
+    _write_module(td_1ofn, "FV_DRIVER", _g, "M%d.te" % _i, TE, idx=_i + 2)
+v_1ofn = dr.reconcile(dr.load_sbom_hashes(_sbom({
+    GUID_A: ("ModA", h(PE)), "11" * 16: ("M0", h(b"x")),
+    "22" * 16: ("M1", h(b"y")), "33" * 16: ("M2", h(b"z"))})), dr.collect_modules(td_1ofn))
+check("SECURITY: matched=1 / rest-skipped of 4 declared is NOT clean (coverage floor, not matched>0)",
+      v_1ofn["clean"] is False and v_1ofn["matched"] == 1 and v_1ofn["declared"] == 4)
+
+# ---- 2c) COLLECTION (finding #3) — a module nested under a compression / GUID-defined section (no
+# '<NN>_<guid>.FV_TYPE.dir' immediate parent, as on real Dell/Lenovo Insyde firmware) is COLLECTED by
+# MAGIC wherever it nests, not silently dropped into a false MISSING. Two paths, both asserted:
+#   (a) the AUTHORITATIVE path: a synthesized CHIPSEC `<img>.UEFI.json` whose PE32 section sits deep
+#       under an S_GUID_DEFINED/S_FV_IMAGE nest; FILE_GUID comes from the nearest ancestor EFI_FILE.
+#   (b) the magic-based dir FALLBACK: the '.efi' lives directly under an 'NN_S_COMPRESSION.dir'. ----
+GUID_NEST = "9b" * 16
+# (a) authoritative UEFI.json walk
+uj_root = tempfile.mkdtemp()
+_pe_path = os.path.join(uj_root, "OVMF.fd.dir", "FV", "00_fv.dir", "sec.dir", "ModNest.efi")
+os.makedirs(os.path.dirname(_pe_path), exist_ok=True)
+with open(_pe_path, "wb") as _f:
+    _f.write(PE)
+_uefi_json = [{"class": "EFI_FV", "Guid": _dash("f" * 32), "children": [
+    {"class": "EFI_FILE", "Guid": _dash(GUID_NEST), "Type": "7", "children": [   # Type 7 = DXE_DRIVER
+        {"class": "EFI_SECTION", "Name": "S_GUID_DEFINED", "Type": "2", "children": [
+            {"class": "EFI_SECTION", "Name": "S_PE32", "Type": "16",
+             "file_path": "OVMF.fd.dir/FV/00_fv.dir/sec.dir/ModNest.efi"}]}]}]}]
+with open(os.path.join(uj_root, "OVMF.fd.UEFI.json"), "w") as _f:
+    json.dump(_uefi_json, _f)
+mods_nest = dr.collect_modules(os.path.join(uj_root, "OVMF.fd.dir"))
+check("collect_modules(#3): a PE32 nested under S_GUID_DEFINED is COLLECTED via the authoritative UEFI.json (not MISSING)",
+      len(mods_nest) == 1 and mods_nest[0]["guid"] == GUID_NEST)
+check("collect_modules(#3): its FILE_GUID + filetype come from the nearest ancestor EFI_FILE (Type 7 -> DXE_DRIVER)",
+      mods_nest[0]["filetype"] == "DXE_DRIVER")
+v_nest = dr.reconcile(dr.load_sbom_hashes(_sbom({GUID_NEST: ("ModNest", h(PE))})), mods_nest)
+check("collect_modules(#3): the nested module reconciles clean (1/1) instead of a false MISSING/DENY",
+      v_nest["clean"] is True and len(v_nest["missing"]) == 0)
+# (b) magic-based dir fallback (no UEFI.json): '.efi' directly under an 'NN_S_COMPRESSION.dir'
+fb_root = tempfile.mkdtemp()
+_comp = os.path.join(fb_root, "FV", "00_%s.dir" % _dash("aa" * 16), "01_S_COMPRESSION.dir")
+os.makedirs(_comp)
+with open(os.path.join(_comp, "ModC.efi"), "wb") as _f:
+    _f.write(PE)
+mods_fb = dr.collect_modules(fb_root)
+check("collect_modules(#3): the magic-based dir FALLBACK collects a module under an 'NN_S_COMPRESSION.dir' (no FV_TYPE.dir parent)",
+      len(mods_fb) == 1 and mods_fb[0]["is_pe"] is True)
+
+# ---- 2d) TYPE FROM MAGIC (finding #4) — CHIPSEC names a TE-with-UI module '<name>.efi' (VZ magic).
+# The efilist `type` + is_pe must come from the MAGIC, not the '.efi' extension. ----
+td_te = tempfile.mkdtemp()
+_write_module(td_te, "FV_PEIM", GUID_TE, "TeNamedEfi.efi", TE, idx=1)  # TE bytes, '.efi' name
+mods_te = dr.collect_modules(td_te)
+check("collect_modules(#4): a TE-magic ('VZ') file NAMED '.efi' is is_pe=False (magic, not extension)",
+      mods_te[0]["is_pe"] is False)
+check("build_efilist(#4): a TE-magic '.efi' is typed 'S_TE' (from magic), not 'S_PE32' (from extension)",
+      list(dr.build_efilist(mods_te).values())[0]["type"] == "S_TE")
+
 # ---- 3) REFERENCE: the real OVMF CHIPSEC extraction reconciles 122/122 (needs pefile + tree) ----
+# The decode tree is supplied ONLY via env DEPLOY_RECONCILE_REF (a `chipsec_util uefi decode
+# <OVMF>.fd.dir`) — no committed session-specific scratch path; absent -> SKIP LOUDLY below.
 ref = os.environ.get("DEPLOY_RECONCILE_REF")
-_A3 = "/tmp/claude-1000/-home-mikey-mikey/59320455-965d-4554-a945-77eedd38cbac/scratchpad/chipsec-verify/run"
-if not ref and os.path.isdir(os.path.join(_A3, "OVMF_CODE.fd.dir")):
-    ref = os.path.join(_A3, "OVMF_CODE.fd.dir")
 ref_sbom = os.path.join(ROOT, "inputs", "sbom.cdx.json")
-if dr.bi.pefile is None:
+if dr.ffs.pefile is None:
     skipped += 1
     print("SKIP  122/122 OVMF reference reconcile (pefile not installed — the XIP un-rebase path "
           "cannot run; install pefile / run with the pefile venv). Hermetic tests above still ran.")
@@ -164,6 +237,19 @@ else:
           not rv["mismatched"] and not rv["missing"] and not rv["unexpected"] and rv["clean"] is True)
     check("reference: 11 XIP modules took the un-rebase path, 111 the direct path (A3 split)",
           rv["verified_unrebase"] == 11 and rv["verified_direct"] == 111)
+    check("reference: the verdict's declared count == the 122 hashable SBOM modules (coverage denominator)",
+          rv["declared"] == 122)
+    # XIP un-rebase is a REAL transform: an XIP module's normalized (rebase-0) hash must DIFFER from
+    # its as-found (in-flash, rebased) hash — else the un-rebase did nothing and we'd be comparing the
+    # wrong bytes. (Direct modules have norm == as-found; TE has norm null — both already tested.)
+    ela = dr.build_efilist(rmods, annotated=True)
+    xip_norm_differs = any(
+        e["sha256_norm"] is not None and e["sha256_norm"] != k
+        for k, e in ela.items()
+        for md in [next((m for m in rmods if m["asfound"] == k), None)]
+        if md and md["filetype"] in dr.XIP_TYPES)
+    check("reference: an XIP module's sha256_norm (rebase-0) DIFFERS from its as-found hash (un-rebase is a real transform, not a no-op)",
+          xip_norm_differs)
 
 print("----")
 if skipped:

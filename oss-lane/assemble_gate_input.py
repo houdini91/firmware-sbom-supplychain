@@ -450,36 +450,56 @@ def deploy_reconcile_fact(path, bundle_path=None, anchor_d=""):
 
     When DEPLOY_RECONCILE_BUNDLE is set, the verdict MUST come from the SIGNED, firmware-D-anchored
     bundle (subject #1 firmware-image == D), IGNORING the loose file — same forge-close as
-    byte_integrity_fact/binary_hardening_fact. A bundle whose firmware subject != D fails closed."""
-    absent = {"ran": False, "reconciled": 0, "matched": 0, "mismatch_count": 0,
-              "missing_count": 0, "unexpected_count": 0, "skipped_count": 0,
-              "mismatched": [], "missing": [], "unexpected": []}
+    byte_integrity_fact/binary_hardening_fact. A bundle whose firmware subject != D fails closed.
+
+    A LOOSE (unsigned) verdict carries no signed subject to anchor D, so it must D-anchor ITSELF: its
+    predicate `image_digest` MUST equal the firmware anchor D. A loose verdict pointed at another/empty
+    image is untrustworthy and fails closed to ABSENT (advisory) — never a PASS. (No verdict at all
+    stays advisory-absent; the REQUIRE_SIGNED_EVIDENCE=1 abort for a PRESENT loose verdict is enforced
+    by the caller, mirroring byte-integrity's _evidence_bundle.)"""
     if bundle_path:
         d = signed_predicate(bundle_path, anchor_d)
         if d is None:
-            return absent  # unbound/mismatched signed verdict is NOT a pass (fail closed)
+            return _DR_ABSENT  # unbound/mismatched signed verdict is NOT a pass (fail closed)
         return _deploy_reconcile_derive(d)
     if not (path and os.path.isfile(path)):
-        return absent
+        return _DR_ABSENT
     try:
         d = load_json(path)
     except ValueError:
-        return absent
+        return _DR_ABSENT
+    anchor = (anchor_d or "").replace("sha256:", "")
+    img = (d.get("image_digest") or "").replace("sha256:", "")
+    if not anchor or not img or img != anchor:
+        return _DR_ABSENT  # loose verdict not self-anchored to D -> advisory-absent, no PASS
     return _deploy_reconcile_derive(d)
+
+
+_DR_ABSENT = {"ran": False, "declared": 0, "reconciled": 0, "matched": 0, "mismatch_count": 0,
+              "missing_count": 0, "unexpected_count": 0, "skipped_count": 0,
+              "mismatched": [], "missing": [], "unexpected": [], "unverifiable": []}
 
 
 def _deploy_reconcile_derive(d):
     mismatched = sorted(n for n in (m.get("name") for m in (d.get("mismatched", []) or [])) if n)
     missing = sorted(n for n in (m.get("name") for m in (d.get("missing", []) or [])) if n)
     unexpected = sorted(n for n in (u.get("name") for u in (d.get("unexpected", []) or [])) if n)
+    # NAMES of declared modules that came back UNVERIFIABLE (a non-PE/TE skip or an extraction error) —
+    # NOT a benign pass. The gate checks each against data.deploy_reconcile_exempt; an un-exempted one
+    # denies (parity with byte-integrity's `unverifiable`). A same-GUID PE->TE swap surfaces here.
+    unverifiable = sorted(n for n in
+                          ([x.get("name") for x in (d.get("skipped", []) or [])]
+                           + [x.get("name") for x in (d.get("errored", []) or [])]) if n)
     return {"ran": True,
+            "declared": d.get("declared", 0),
             "reconciled": d.get("reconciled", 0),
             "matched": d.get("matched", 0),
             "mismatch_count": len(d.get("mismatched", []) or []),
             "missing_count": len(d.get("missing", []) or []),
             "unexpected_count": len(d.get("unexpected", []) or []),
             "skipped_count": len(d.get("skipped", []) or []),
-            "mismatched": mismatched, "missing": missing, "unexpected": unexpected}
+            "mismatched": mismatched, "missing": missing, "unexpected": unexpected,
+            "unverifiable": unverifiable}
 
 
 def _binary_hardening_derive(d):
@@ -695,6 +715,17 @@ def main():
     # simply omits it and the leg stays advisory-absent. A loose fallback still warns.
     dr_bundle = env("DEPLOY_RECONCILE_BUNDLE") or None
     if not dr_bundle and env("DEPLOY_RECONCILE_JSON"):
+        # Deploy-reconcile is a CONDITIONAL leg (absent with no device), so no verdict at all never
+        # aborts. But a PRESENT loose verdict under REQUIRE_SIGNED_EVIDENCE=1 must come from the
+        # signed, D-anchored bundle — refuse the unsigned loose forge (parity with the byte-integrity/
+        # binary-hardening _evidence_bundle abort). A dropped bundle env can no longer feed a forged
+        # loose deploy-reconcile pass.
+        if require_signed:
+            sys.exit("assemble_gate_input: DEPLOY_RECONCILE_BUNDLE is required when "
+                     "REQUIRE_SIGNED_EVIDENCE=1 and a deploy-reconcile verdict is present "
+                     "(DEPLOY_RECONCILE_JSON set) — refusing the UNSIGNED loose file (deploy-reconcile "
+                     "forge closed). Produce + pass the D-anchored signed bundle, or supply no verdict "
+                     "(the leg stays advisory-absent).")
         warnings.append("DEPLOY_RECONCILE_BUNDLE unset — deploy-reconcile verdict read from an "
                         "UNSIGNED loose file (local-dev; set DEPLOY_RECONCILE_BUNDLE for the signed, "
                         "D-anchored bundle).")

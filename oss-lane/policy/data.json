@@ -12,6 +12,9 @@
   "binary_hardening_exempt": {
     "_comment": "Reviewed exemptions for the binary-hardening gate \u2014 {\"ModuleName\": \"reason a DXE-class module genuinely cannot be scanned (e.g. a TE-only or compressed section) + reviewer + date\"}. Only DXE-class modules that could NOT be scanned are eligible; a missing-NX finding is a regression and is NEVER exemptable. EMPTY today: the reference build scans all declared DXE-class modules. Added ONLY after human review; anything un-scannable and NOT listed here fails the gate and is named."
   },
+  "deploy_reconcile_exempt": {
+    "_comment": "Reviewed exemptions for the deploy-time reconcile gate (Track A, CHIPSEC-fed) \u2014 {\"ModuleName\": \"reason a declared module genuinely cannot be verified on the device (e.g. a legitimately TE-only or compressed on-device section CHIPSEC cannot extract to a normalizable PE) + reviewer + date\"}. A MISMATCH / MISSING / UNEXPECTED module is on-device drift and is NEVER exemptable; only an UNVERIFIABLE (non-PE/TE skip or extraction error) declared module is eligible. EMPTY today: the OVMF reference reconciles all 122 PE-carrying modules. Added ONLY after human review; anything unverifiable and NOT listed here fails the gate and is named \u2014 a same-GUID PE->TE swap looks exactly like this."
+  },
   "trusted_signer_identities": [
     "https://github.com/houdini91/uefi-supply-chain/.github/workflows/supply-chain.yml@refs/heads/main"
   ],

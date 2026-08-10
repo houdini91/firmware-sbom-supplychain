@@ -7,11 +7,25 @@ declare?). Keeping the FFS/section walk and the FMMT extraction in one place mea
 the two producers carve the deployed image identically — a divergence here would
 make the two lanes disagree about *which bytes* a module even is.
 """
+import hashlib
 import json
 import os
 import struct
 import subprocess
 import sys
+
+try:
+    import pefile  # only needed for XIP/PEI un-rebase canonicalization (byte-integrity phase 3)
+except ImportError:
+    pefile = None
+
+# XIP / execute-in-place module types: stored rebased to their flash address in the FV, so the
+# in-image PE32 differs from the declared (un-rebased) .efi. Naive byte comparison does NOT apply —
+# the image bytes are un-rebased first, never reported as tampered. The module's type is read from
+# the CARVED FFS (ffs_module_type), i.e. from the shipped image — NOT from the SBOM/coSWID, which
+# carries only the declared HASH. Shared by byte-integrity (at-rest) + deploy-reconcile (deploy-time)
+# so the two lanes make the identical XIP/direct decision.
+XIP_TYPES = {"SEC", "PEI_CORE", "PEIM"}
 
 
 # EFI_FV_FILETYPE (PI spec, EFI_FFS_FILE_HEADER.Type at offset 0x12) -> the
@@ -106,3 +120,90 @@ def iter_sbom_modules(sbom_path, include_libraries=False):
         if is_lib and not include_libraries:
             continue
         yield ref, c.get("name"), props.get("edk2:moduleType", "")
+
+
+def ffs_type_label(type_num):
+    """Map an EFI_FV_FILETYPE NUMBER (e.g. CHIPSEC's UEFI.json EFI_FILE.Type, a decimal string,
+    or a raw int) to the module-type label byte-integrity/deploy-reconcile branch on. Returns ''
+    (conservatively non-XIP -> direct) for an unknown / unparseable value. This is the numeric
+    twin of ffs_module_type() (which reads the same byte off the carved FFS header)."""
+    try:
+        n = int(type_num)
+    except (TypeError, ValueError):
+        return ""
+    return FFS_FILETYPE.get(n, "")
+
+
+def load_sbom_hashes(sbom_path):
+    """{guid(lower,no-dashes): (name, declared_sha256)} for components with a GUID bom-ref and a
+    declared SHA-256. The module TYPE is deliberately NOT read here — it is derived per-module from
+    the carved image (ffs_module_type / ffs_type_label), so a typeless SBOM/coSWID (declaring only
+    the hash) cannot force the wrong comparison. Shared by byte-integrity (at-rest) and
+    deploy-reconcile (deploy-time) so both reconcile against the IDENTICAL declared set."""
+    with open(sbom_path) as f:
+        sbom = json.load(f)
+    out = {}
+    for c in sbom.get("components", []):
+        ref = (c.get("bom-ref") or "").replace("-", "").lower()
+        if len(ref) != 32:
+            continue
+        for h in c.get("hashes", []) or []:
+            if h.get("alg") == "SHA-256" and h.get("content"):
+                digest = h["content"].lower()
+                # F6 guard: two components sharing a FILE_GUID collapse in a GUID-keyed map.
+                # Harmless when they declare the same hash; if they differ, one would be silently
+                # unchecked — warn loudly rather than mask it.
+                if ref in out and out[ref][1] != digest:
+                    sys.stderr.write("  ⚠ duplicate FILE_GUID %s with differing hashes (%s / %s) — "
+                                     "only one instance is byte-checked\n" % (ref, out[ref][1][:12], digest[:12]))
+                out[ref] = (c.get("name"), digest)
+    return out
+
+
+def canon_unrebase(pe_bytes):
+    """Un-rebase a PE image back to ImageBase 0 (undo the flash relocation) and zero
+    ImageBase/TimeDateStamp/CheckSum — so an XIP/PEI module's rebased in-flash bytes can be fairly
+    compared to the declared (un-rebased) .efi. The relocation table records exactly which fields
+    were shifted, so this is exact and reversible. A module with NO relocation table has nothing to
+    reverse — rebasing moved only its ImageBase — so header normalization alone canonicalizes it. A
+    real tamper changes code the relocations don't cover, so it still fails. Returns canonical bytes,
+    or None if pefile is unavailable."""
+    if pefile is None:
+        return None
+    pe = pefile.PE(data=pe_bytes, fast_load=True)
+    pe.parse_data_directories(directories=[pefile.DIRECTORY_ENTRY['IMAGE_DIRECTORY_ENTRY_BASERELOC']])
+    base = pe.OPTIONAL_HEADER.ImageBase
+    buf = bytearray(pe.__data__)
+    # A non-zero ImageBase with NO relocation table means the module has no relocations at all:
+    # being rebased to its flash address changed ONLY the ImageBase header field, nothing in
+    # code/data. Zeroing ImageBase/TimeDateStamp/CheckSum (below) is therefore the exact, faithful
+    # canonicalization. A module whose reloc table was STRIPPED after rebasing would fail to match
+    # here — flagged modified, never a false pass. Only when a reloc table is present is there
+    # anything to reverse.
+    if base and hasattr(pe, "DIRECTORY_ENTRY_BASERELOC"):
+        for blk in pe.DIRECTORY_ENTRY_BASERELOC:
+            for e in blk.entries:
+                if e.type == 0:            # IMAGE_REL_BASED_ABSOLUTE — padding, skip
+                    continue
+                off = pe.get_offset_from_rva(e.rva)
+                if off is None:
+                    raise ValueError("relocation rva %#x maps to no file offset" % e.rva)
+                if e.type == 3:            # HIGHLOW (32-bit)
+                    if off + 4 > len(buf):
+                        raise ValueError("HIGHLOW reloc past end of image")
+                    v = struct.unpack_from("<I", buf, off)[0]
+                    struct.pack_into("<I", buf, off, (v - base) & 0xFFFFFFFF)
+                elif e.type == 10:         # DIR64 (64-bit)
+                    if off + 8 > len(buf):
+                        raise ValueError("DIR64 reloc past end of image")
+                    v = struct.unpack_from("<Q", buf, off)[0]
+                    struct.pack_into("<Q", buf, off, (v - base) & ((1 << 64) - 1))
+                else:
+                    # HIGH/LOW/HIGHADJ/ARM/etc. — not handled; fail closed so we never emit a
+                    # partially-un-rebased (wrong) image as if it were canonical.
+                    raise ValueError("unsupported relocation type %d" % e.type)
+    pe2 = pefile.PE(data=bytes(buf), fast_load=True)
+    pe2.OPTIONAL_HEADER.ImageBase = 0
+    pe2.FILE_HEADER.TimeDateStamp = 0
+    pe2.OPTIONAL_HEADER.CheckSum = 0
+    return pe2.write()

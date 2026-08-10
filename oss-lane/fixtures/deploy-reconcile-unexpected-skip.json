@@ -127,15 +127,17 @@
   "deploy_reconcile": {
     "ran": true,
     "declared": 122,
-    "reconciled": 122,
-    "matched": 122,
+    "reconciled": 121,
+    "matched": 121,
     "mismatch_count": 0,
     "missing_count": 0,
     "unexpected_count": 0,
-    "skipped_count": 0,
+    "skipped_count": 1,
     "mismatched": [],
     "missing": [],
     "unexpected": [],
-    "unverifiable": []
+    "unverifiable": [
+      "SomeUnverifiableModule"
+    ]
   }
 }

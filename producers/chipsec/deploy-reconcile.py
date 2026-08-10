@@ -32,7 +32,7 @@ Input is EITHER a directory produced by `chipsec_util uefi decode <image>` (an F
 tree of per-module `.efi` bytes), OR an `--image` that this script decodes itself when a
 `chipsec_util` is reachable. evidenceGrade = `verified` — reconciled from real extracted bytes.
 
-  deploy-reconcile.py --sbom sbom.cdx.json --decode-dir <img>.fd.dir [--efilist efilist.json] [-o verdict.json]
+  deploy-reconcile.py --sbom sbom.cdx.json --decode-dir <img>.fd.dir [--efilist-in efilist.json] [-o verdict.json]
   deploy-reconcile.py --sbom sbom.cdx.json --image OVMF_CODE.fd [--chipsec-util <path>] [-o verdict.json]
 
 A7 (interop): the same CHIPSEC-extracted per-module set can ALSO be emitted as a
@@ -53,7 +53,6 @@ and no mismatch / missing / unexpected / error).
 """
 import argparse
 import hashlib
-import importlib.util
 import json
 import os
 import re
@@ -61,73 +60,167 @@ import subprocess
 import sys
 import tempfile
 
-# --- REUSE the proven normalizer from byte-integrity.py, imported (not reimplemented) ---
-# (A3 proved these reproduce the SBOM's declared per-module hash from CHIPSEC-extracted bytes.)
+# --- REUSE the proven carving + normalizer primitives from ffs.py, imported (not reimplemented) ---
+# (A3 proved canon_unrebase reproduces the SBOM's declared per-module hash from CHIPSEC-extracted
+# bytes.) ffs also provides the numeric EFI_FV_FILETYPE -> label map used against CHIPSEC's UEFI.json.
 _RECON = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "reconcile")
-sys.path.insert(0, os.path.abspath(_RECON))  # so byte-integrity's own `from ffs import ...` resolves
-_spec = importlib.util.spec_from_file_location("byte_integrity", os.path.join(_RECON, "byte-integrity.py"))
-bi = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(bi)
-canon_unrebase = bi.canon_unrebase
-load_sbom_hashes = bi.load_sbom_hashes
-XIP_TYPES = bi.XIP_TYPES
+sys.path.insert(0, os.path.abspath(_RECON))
+import ffs  # noqa: E402 — module handle so tests can reach ffs.pefile (XIP un-rebase availability)
+from ffs import canon_unrebase, load_sbom_hashes, XIP_TYPES, ffs_type_label  # noqa: E402
 
 PREDICATE_TYPE = "https://firmware-sbom-supplychain/deploy-reconcile/v1"
 
-# CHIPSEC's FV filetype-dir label -> byte-integrity's XIP_TYPES label, so the XIP/direct
-# branch is IDENTICAL to byte-integrity's (which reads the EFI_FV_FILETYPE byte off the FFS).
+# CHIPSEC's FV filetype-dir label -> the XIP_TYPES label, so the XIP/direct branch is IDENTICAL to
+# byte-integrity's (which reads the EFI_FV_FILETYPE byte off the FFS). Used only by the dir-name
+# FALLBACK; the authoritative path derives the label from UEFI.json's EFI_FILE.Type via ffs_type_label.
 FV_TO_FILETYPE = {
     "FV_SECURITY_CORE": "SEC", "FV_PEI_CORE": "PEI_CORE", "FV_PEIM": "PEIM",
     "FV_DXE_CORE": "DXE_CORE", "FV_DRIVER": "DXE_DRIVER",
     "FV_APPLICATION": "APPLICATION", "FV_FREEFORM": "FREEFORM",
 }
-# The module's TRUE filetype is the IMMEDIATE parent dir of the module file:
-# '<NN>_<file_guid>.FV_TYPE.dir'. Matching the basename of the CONTAINING dir only avoids
-# the nested-FV trap (grabbing an outer wrapper FV's '..FV_FVIMAGE.dir').
-FV_DIR_RE = re.compile(r"^[0-9]+_([0-9a-fA-F-]{36})\.(FV_[A-Z_]+)\.dir$")
+# '<NN>_<file_guid>[.FV_TYPE].dir' — a FILE_GUID-bearing decode dir. The NEAREST such ancestor of a
+# module file gives its FILE_GUID (and, when present, its FV type), avoiding the nested-FV trap
+# (grabbing an outer wrapper FV's '..FV_FVIMAGE.dir'). Used by the dir-name fallback only.
+FV_DIR_RE = re.compile(r"^[0-9]+_([0-9a-fA-F-]{36})(?:\.(FV_[A-Z_]+))?\.dir$")
+
+# Executable-section magics: an MZ image is a (normalizable) PE32; a VZ image is a Terse Executable
+# (TE) — surfaced honestly and SKIPPED, never hashed as if it were the PE. Collection keys on these
+# MAGIC bytes, NOT the file extension: CHIPSEC names a TE-with-UI-section module '<name>.efi' (VZ
+# magic), so an extension filter both mislabels TE as PE32 and misses magic-only modules.
+_PE_MAGIC = b"MZ"
+_TE_MAGIC = b"VZ"
 
 
 def _norm_guid(g):
     return (g or "").replace("-", "").lower()
 
 
+def _mk_mod(raw, guid, filetype, name, path, efilist):
+    """Assemble a module dict {guid, name, filetype, fv_type, sec_type, path, raw, asfound, is_pe}.
+    is_pe / sec_type are derived from the extracted bytes' MAGIC (MZ->PE32, VZ->TE), never the file
+    extension. An OPTIONAL efilist.json (keyed by CHIPSEC's as-found sha256) supplies a NAME hint
+    only — it NEVER overrides the authoritative FILE_GUID derived from the FFS-file ancestry; a
+    conflicting hint GUID is warned about, not applied (it falls back only when no authoritative
+    GUID was derived at all)."""
+    asfound = hashlib.sha256(raw).hexdigest()
+    meta = efilist.get(asfound, {})
+    guid = _norm_guid(guid)
+    hint_guid = _norm_guid(meta.get("guid"))
+    if guid and hint_guid and hint_guid != guid:
+        sys.stderr.write("  ⚠ efilist name-hint GUID %s != authoritative FILE_GUID %s (%s) — keeping "
+                         "the authoritative FILE_GUID\n" % (hint_guid[:12], guid[:12], meta.get("name") or name))
+    guid = guid or hint_guid  # hint is a fallback ONLY when no authoritative GUID was derived
+    is_te = raw[:2] == _TE_MAGIC
+    return {
+        "guid": guid, "name": meta.get("name") or name,
+        "filetype": filetype, "fv_type": filetype,
+        # 'type' the efilist records is the SECTION type (S_PE32/S_TE), from MAGIC.
+        "sec_type": "S_TE" if is_te else "S_PE32",
+        "path": path, "raw": raw, "asfound": asfound,
+        # a normalizable PE has the 'MZ' DOS header; TE images ('VZ') and non-PE blobs do not —
+        # those are is_pe=False -> UNVERIFIABLE (surfaced, never hashed as if they were the PE).
+        "is_pe": raw[:2] == _PE_MAGIC,
+    }
+
+
+def _collect_from_uefi_json(uefi_json_path, base_dir, efilist):
+    """AUTHORITATIVE collection: walk CHIPSEC's `<img>.UEFI.json` firmware tree (per-node class /
+    Guid / Type / file_path). Every executable section (extracted bytes with MZ/VZ magic) is a
+    module whose FILE_GUID + FFS filetype come from its NEAREST ANCESTOR EFI_FILE node — so a module
+    nested arbitrarily deep under S_COMPRESSION / S_GUID_DEFINED / nested-FV sections is still
+    collected with the right identity (the dir-name layout is irrelevant). Returns a module list, or
+    None to signal 'fall back to the dir walk' when the JSON is unreadable."""
+    try:
+        with open(uefi_json_path) as f:
+            tree = json.load(f)
+    except (ValueError, OSError):
+        return None
+    mods, seen = [], set()
+
+    def _resolve(fp):
+        if not fp:
+            return None
+        return fp if os.path.isabs(fp) else os.path.join(base_dir, fp)
+
+    def rec(node, anc_guid, anc_type):
+        if isinstance(node, list):
+            for it in node:
+                rec(it, anc_guid, anc_type)
+            return
+        if not isinstance(node, dict):
+            return
+        cls = node.get("class")
+        if cls == "EFI_FILE":
+            # An EFI_FILE (FFS file) carries the FILE_GUID + the EFI_FV_FILETYPE the module class is
+            # read from. (An EFI_FV's Guid is the VOLUME id, not a module identity — it must NOT
+            # become the ancestry, else nested-FV modules would inherit the wrapper's GUID.)
+            anc_guid = _norm_guid(node.get("Guid")) or anc_guid
+            anc_type = ffs_type_label(node.get("Type"))
+        if cls == "EFI_SECTION":
+            path = _resolve(node.get("file_path"))
+            if path and os.path.isfile(path) and path not in seen:
+                with open(path, "rb") as f:
+                    raw = f.read()
+                if raw[:2] in (_PE_MAGIC, _TE_MAGIC):
+                    seen.add(path)
+                    name = node.get("ui_string") or os.path.basename(path).rsplit(".", 1)[0]
+                    mods.append(_mk_mod(raw, anc_guid, anc_type, name, path, efilist))
+        for _k, v in node.items():
+            if isinstance(v, (list, dict)):
+                rec(v, anc_guid, anc_type)
+
+    rec(tree, "", "")
+    return mods
+
+
+def _collect_from_dirs(decode_dir, efilist):
+    """FALLBACK collection (no readable UEFI.json): walk the decode tree and collect every file whose
+    MAGIC is MZ/VZ, WHEREVER it nests — the FILE_GUID + FV type come from the NEAREST ANCESTOR
+    '<NN>_<guid>[.FV_TYPE].dir'. Magic-based (not extension-based) so a module directly under an
+    'NN_S_COMPRESSION.dir' / 'NN_S_GUID_DEFINED.dir' (no '.FV_TYPE.dir' immediate parent) is still
+    collected instead of silently dropped into a false MISSING."""
+    mods = []
+    for root, _dirs, files in os.walk(decode_dir):
+        for fn in files:
+            path = os.path.join(root, fn)
+            try:
+                with open(path, "rb") as f:
+                    raw = f.read()
+            except OSError:
+                continue
+            if raw[:2] not in (_PE_MAGIC, _TE_MAGIC):
+                continue
+            guid, filetype = "", ""
+            for seg in reversed(path.split(os.sep)[:-1]):  # nearest ancestor guid dir wins
+                m = FV_DIR_RE.match(seg)
+                if m:
+                    guid = m.group(1)
+                    filetype = FV_TO_FILETYPE.get(m.group(2) or "", "")
+                    break
+            mods.append(_mk_mod(raw, guid, filetype, fn.rsplit(".", 1)[0], path, efilist))
+    return mods
+
+
 def collect_modules(decode_dir, efilist_path=None):
-    """Walk a `chipsec_util uefi decode` tree. -> list of module dicts
-    {guid, name, filetype, fv_type, path, raw, asfound, is_pe}. GUID + FV type come from the
-    IMMEDIATE parent '<NN>_<guid>.FV_TYPE.dir' segment; efilist.json (keyed by CHIPSEC's
-    as-found sha256) is an OPTIONAL cross-check for name/guid. A module file that is not a PE
-    (TE 'VZ' magic, or anything without an 'MZ' header) is flagged is_pe=False -> SKIP."""
+    """Collect the executable modules from a `chipsec_util uefi decode` tree. Prefers CHIPSEC's
+    authoritative `<img>.UEFI.json` (per-node guid/type/file_path, robust to arbitrary
+    compression/GUID-defined/nested-FV nesting); falls back to a magic-based dir walk when no
+    UEFI.json sits beside the tree. -> list of module dicts (see _mk_mod)."""
     efilist = {}
     if efilist_path and os.path.isfile(efilist_path):
         try:
-            efilist = json.load(open(efilist_path))
+            with open(efilist_path) as f:
+                efilist = json.load(f)
         except (ValueError, OSError):
             efilist = {}
-    mods = []
-    for root, _dirs, files in os.walk(decode_dir):
-        m = FV_DIR_RE.match(os.path.basename(root))
-        if not m:
-            continue  # only files sitting DIRECTLY in a '<NN>_<guid>.FV_TYPE.dir' are modules
-        dir_guid = _norm_guid(m.group(1))
-        fv_type = m.group(2)
-        for fn in files:
-            if not (fn.endswith(".efi") or fn.endswith(".te")):
-                continue
-            path = os.path.join(root, fn)
-            with open(path, "rb") as f:
-                raw = f.read()
-            asfound = hashlib.sha256(raw).hexdigest()
-            meta = efilist.get(asfound, {})
-            guid = _norm_guid(meta.get("guid")) or dir_guid
-            mods.append({
-                "guid": guid, "name": meta.get("name") or fn.rsplit(".", 1)[0],
-                "filetype": FV_TO_FILETYPE.get(fv_type, ""), "fv_type": fv_type,
-                "path": path, "raw": raw, "asfound": asfound,
-                # a normalizable PE has the 'MZ' DOS header; TE images ('VZ') and non-PE
-                # blobs do not — those are SKIPPED, never hashed as if they were the PE.
-                "is_pe": raw[:2] == b"MZ",
-            })
-    return mods
+    dd = decode_dir.rstrip(os.sep)
+    base_dir = os.path.dirname(os.path.abspath(dd))
+    uefi_json = (dd[:-4] if dd.endswith(".dir") else dd) + ".UEFI.json"
+    if os.path.isfile(uefi_json):
+        mods = _collect_from_uefi_json(uefi_json, base_dir, efilist)
+        if mods is not None:
+            return mods
+    return _collect_from_dirs(decode_dir, efilist)
 
 
 def normalize(mod):
@@ -174,7 +267,10 @@ def build_efilist(mods, annotated=False):
             "sha1": hashlib.sha1(md["raw"]).hexdigest(),
             "guid": _guid_dashed_upper(md["guid"]),
             "name": md["name"],
-            "type": "S_TE" if md["path"].endswith(".te") else "S_PE32",
+            # section type from the MAGIC of the extracted bytes (VZ->S_TE, MZ->S_PE32), NOT the file
+            # extension — CHIPSEC names a TE-with-UI module '<name>.efi', which an extension test
+            # would mislabel S_PE32. sec_type is computed once in _mk_mod.
+            "type": md["sec_type"],
         }
         if annotated:
             norm = None
@@ -233,8 +329,18 @@ def reconcile(declared, mods, image_digest=""):
                if guid not in accounted]
 
     reconciled = len(matched) + len(mismatched)  # the comparable set
-    clean = (len(matched) > 0 and not mismatched and not missing
-             and not unexpected and not errored)
+    declared_count = len(declared)
+    # A declared module that came back non-PE (TE), unextractable, or errored is UNVERIFIABLE DRIFT,
+    # NOT a benign skip — a same-GUID PE->TE swap lands here, and folding it into a pass would let it
+    # through. So `clean` requires FULL coverage of the declared set: every declared module MATCHED,
+    # with nothing mismatched / missing / unexpected / skipped / errored. (The gate additionally
+    # honors a reviewed data.deploy_reconcile_exempt allowlist for genuinely-unverifiable modules —
+    # the producer verdict is unconditionally strict; the exemption is a rego-side policy decision,
+    # mirroring byte-integrity, whose producer `clean` is likewise verified==checked.)
+    clean = (declared_count > 0
+             and len(matched) == declared_count
+             and not mismatched and not missing and not unexpected
+             and not skipped and not errored)
     return {
         "tool": "deploy-reconcile",
         "predicateType": PREDICATE_TYPE,
@@ -284,7 +390,12 @@ def main():
                     help="a `chipsec_util uefi decode <image>` output tree (per-module .efi bytes)")
     ap.add_argument("--image", help="a firmware image to decode with CHIPSEC ourselves (needs chipsec_util)")
     ap.add_argument("--chipsec-util", dest="chipsec_util", help="path to chipsec_util (default: on PATH)")
-    ap.add_argument("--efilist", help="optional CHIPSEC efilist.json INPUT (name/guid cross-check)")
+    # INPUT name-hints (disambiguated from the --emit-efilist OUTPUTs below): a CHIPSEC efilist.json
+    # consulted for module NAMES only; it NEVER overrides the authoritative FILE_GUID. '--efilist' is
+    # kept as a deprecated alias.
+    ap.add_argument("--efilist-in", "--name-hints", "--efilist", dest="efilist_in", metavar="PATH",
+                    help="optional CHIPSEC efilist.json read for module NAME hints only (never overrides "
+                         "the authoritative FILE_GUID). Alias: --name-hints (deprecated: --efilist)")
     ap.add_argument("--emit-efilist", dest="emit_efilist", metavar="PATH",
                     help="ALSO write a CHIPSEC-scan_image-compatible efilist.json (keyed by the as-found "
                          "sha256, value {sha1,guid,name,type}) — byte-schema-identical to scan_image's, so "
@@ -308,13 +419,13 @@ def main():
 
     declared = load_sbom_hashes(a.sbom)  # {guid: (name, declared_sha256)} — REUSED loader
 
-    with tempfile.TemporaryDirectory() as td:
-        decode_dir = a.decode_dir
-        if not decode_dir:
-            decode_dir = run_decode(a.image, a.chipsec_util, td)
+    # A pre-decoded --decode-dir needs NO temp dir; only the self-decode (--image) path does.
+    td_ctx = tempfile.TemporaryDirectory() if not a.decode_dir else None
+    try:
+        decode_dir = a.decode_dir or run_decode(a.image, a.chipsec_util, td_ctx.name)
         if not os.path.isdir(decode_dir):
             sys.exit("deploy-reconcile: --decode-dir not a directory: %s" % decode_dir)
-        mods = collect_modules(decode_dir, a.efilist)
+        mods = collect_modules(decode_dir, a.efilist_in)
         verdict = reconcile(declared, mods, image_digest)
         # A7 interop: emit a CHIPSEC-scan_image-compatible efilist from the SAME extracted
         # module set (an OUTPUT — does not change the verdict / gate counts).
@@ -328,6 +439,9 @@ def main():
             write_efilist(ela, a.emit_efilist_annotated)
             print("deploy-reconcile: wrote sha256_norm-annotated efilist (%d entries) -> %s"
                   % (len(ela), a.emit_efilist_annotated), file=sys.stderr)
+    finally:
+        if td_ctx is not None:
+            td_ctx.cleanup()
 
     out = json.dumps(verdict, indent=2)
     if a.out:
