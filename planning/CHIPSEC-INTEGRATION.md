@@ -16,10 +16,10 @@ silicon" (what's actually flashed), catching post-admission / flash-time drift t
 Deploy-time + advisory, consistent with [ADR 0001](../docs/adr/0001-chipsec-is-a-deploy-time-collection-point.md).
 
 ### Task map (initial — refine after the verification agent lands)
-- **A1 — Verify CHIPSEC (IN PROGRESS, agent running).** Code review of `tools.uefi.scan_image` + `uefi
-  decode`; confirm it hashes as-found bytes, confirm no native normalization, confirm `uefi decode` gives
-  per-module PE **bytes** we can normalize; dynamic run against our OVMF `.fd`; efilist.json schema; upstream
-  issue/PR scan; maintainer/contribution facts. → determines whether A needs anything from upstream (expected: no).
+- **A1 — Verify CHIPSEC (DONE — see "Verification findings" below).** Confirmed: CHIPSEC hashes the raw
+  PE/TE section **as-found** (no normalization anywhere in the tree), BUT `chipsec_util uefi decode` writes the
+  per-module PE/TE **bytes** to disk (`spi.py:442`) — so **Track A needs nothing from upstream.** Verified
+  dynamically against our exact OVMF reference.
 - **A2 — Extraction prototype.** Run CHIPSEC on our OVMF image; extract per-module PE/TE sections to disk;
   confirm we get `{FILE_GUID, bytes}` per module.
 - **A3 — Reuse our normalizer.** Feed CHIPSEC-extracted bytes into the existing rebase-0 canonicalizer
@@ -56,5 +56,43 @@ flash layouts and align with **CISA 2026's new component-hash field** — an eco
 - **Sequencing:** we're already mid-flight upstream (uSWID #98 merged, #99/#100 open; edk2 #10507). This is a
   third thread — pace it.
 
-**Status:** both A and B are logged as next steps. A1 verification agent is running; A task map above is the
-working plan, to be refined once verification lands.
+---
+
+## Verification findings (A1 — DONE, evidence-cited)
+
+Reviewed CHIPSEC git `main` (2.0) + dynamic run on PyPI `1.13.16` (identical hashing code). Scratch:
+`scratchpad/chipsec-verify/`.
+
+- **What it hashes:** raw PE/TE section body **as-found** — `EFI_MODULE.calc_hashes()` SHA-256s
+  `self.Image[off:]` (`chipsec/library/uefi/fv.py:216-227`), called with `off=HeaderSize` for exe sections
+  (`spi.py:162-164`); `scan_image.py:102-105` uses that hash as the dict key. **No normalization / rebase /
+  reloc-reversal exists anywhere** (whole-tree search confirmed).
+- **We get the bytes:** `dump_efi_module()` writes `mod.Image[HeaderSize:]` to disk (`spi.py:439-449`) with
+  `.sha256` sidecars. `chipsec_util uefi decode <img>` → per-module `.efi` files in an FV-mirrored tree +
+  `<img>.UEFI.json`. **→ our normalizer runs on these bytes; zero upstream change needed.**
+- **Dynamic proof:** `pip install chipsec` (1.13.16, prebuilt wheel, no driver). Ran on our reference
+  `OVMF_CODE.fd` (sha256 `7965c317…62fb8f37` — the same D we anchor on) → 122 modules extracted; scan_image
+  generate PASSED, 122 entries. Worked example: `PeiCore` GUID `52C05B14-…-04B50211D680`, extracted 56,256 B,
+  our `sha256sum` == the `.sha256` sidecar == the `efilist.json` key. PeiCore is PE32+ with **ImageBase =
+  0x830140** and a populated `.reloc` (RVA 0xDB00 size 0xC0) → a rebase-0 hash **necessarily differs** from
+  CHIPSEC's as-found hash. **Normalization gap confirmed concretely on our own reference image.**
+- **efilist.json schema:** `{ "<sha256>": {sha1, guid, name, type} }` — sha256 is the KEY (no `sha256`/`ver`
+  value fields). For A7 interop we must key on the hash and mirror this shape.
+- **Upstream:** `chipsec` org (Intel-origin, community-run), very active (daily commits, monthly releases,
+  v2.0.7 2026-07-30), **GPL-2.0**, DCO `Signed-off-by` required, takes community feature PRs. **No existing
+  SBOM / normalized-hash / coSWID / reproducible-hash issue or PR** — Track B is open + non-duplicative. Only
+  `scan_image` issues are detection-completeness (#1296, #1790, #2197), unrelated.
+
+### Refinements this forces
+- **A2/A3 are directly unblocked with data in hand:** extract via `uefi decode`; compare the *as-found* hash
+  to our SBOM's declared *rebase-0* hash → they should DIFFER (proving the gap), then normalize → should MATCH.
+  PeiCore on OVMF is the ready-made first test vector.
+- **A5 evidence source note:** consuming CHIPSEC = a subprocess/tool dependency (GPL-2.0 tool, invoked — not
+  linked); fine for an MIT repo since we shell out to `chipsec_util`, we don't vendor its code.
+- **Track B caveats (before drafting):** (1) propose an **additive** normalized-hash field — do NOT change the
+  sha256-as-key schema; (2) **GPL-2.0**: a normalizer upstreamed into CHIPSEC becomes GPL — keep our own
+  reconcile logic MIT on the extracted-bytes side of the boundary; (3) open a **design issue first** (no prior
+  art), then a PR. Still draft-only / user-gated.
+
+**Status:** A1 DONE. Track A is fully unblocked and needs nothing upstream. Next build step: A2/A3 prototype
+(CHIPSEC `uefi decode` → our normalizer → cross-carver parity vs the signed SBOM, PeiCore/OVMF first).
