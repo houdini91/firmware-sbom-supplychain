@@ -5,6 +5,34 @@
 > uSWID / OSF engagements. Best filed now that Track A is a working reference (`producers/chipsec/deploy-reconcile.py`).
 > Repo target: <https://github.com/chipsec/chipsec> · License **GPL-2.0** · DCO `Signed-off-by` required.
 
+## Where + how to file (research-backed)
+
+**Venue: a GitHub Issue on `chipsec/chipsec`, labeled as an enhancement.** NOT a Discussion, NOT the
+mailing list, NOT a cold PR. Evidence:
+- **Issues get design replies; Ideas Discussions rot.** Community *Ideas* discussions (#2705, #1642) sit at
+  0 maintainer comments; enhancement *Issues* get real design responses. Precedent: **[#2360](https://github.com/chipsec/chipsec/issues/2360)**
+  "Extend `tools.uefi.scan_image` verification" — labeled `enhancement`/`help wanted`, OPEN, maintainer
+  **@npmitche** engaged with a concrete design question. That is the direct analog to this ask — cite it.
+- **Mailing list `oe-chipsec@lists.linux.dev`** (lore.kernel.org/oe-chipsec) exists but is legacy/low-traffic
+  — it is *not* CHIPSEC's edk2-groups.io; development is coordinated on GitHub. Do **not** lead there.
+- **Discord** (discord.gg/NvxdPe8RKt) + quarterly community meetings = optional secondary amplification
+  *after* the issue exists, not first contact.
+- No issue/PR template, no CLA. Contact page lists `chipsec@intel.com`, then GitHub Issues/PRs.
+
+**How to file:**
+1. Open one Issue, framed as an *optional, non-breaking* `scan_image` enhancement; give the forensic use case
+   (reproducible/normalized module hashing for cross-build + SBOM comparison); link our working reference
+   (`producers/chipsec/deploy-reconcile.py`, 122/122 on OVMF); **cite #2360** as related; **ask one design
+   question** about output/flag shape so a maintainer must respond; **cc @npmitche** (primary triager; optional
+   @dscott90 — not @kerneis-anssi, AMD-only).
+2. On their nod, open the PR: `git commit -s` (**DCO required, real name, no CLA**), **unit tests mandatory**
+   (house rule), type hints, pass **flake8 / pylint / pre-commit**, GPLv2 headers.
+3. Expect first reply in days–weeks (median ~4d overall; enhancements skew 2–8 weeks). A polite bump
+   referencing the ready PR is fine; two-week silence ≠ rejection.
+
+Project is actively maintained (monthly releases, latest v2.0.7 2026-07-30; PRs merged within days) — a
+proposal will be seen. Active maintainers: **@npmitche**, @dscott90, @frinzell, @jun2zhou (all Intel).
+
 ## The ask (one line)
 Add an **optional, additive normalized (rebase-0) module hash** to `scan_image` / the `EFI_MODULE` hash so
 CHIPSEC's per-module hashes become comparable **across flash layouts and against build-time SBOMs**, not only
@@ -63,7 +91,12 @@ against a same-layout golden image.
 > - Not a signing or trust mechanism; just a layout-independent identity for comparison.
 > - TE-format handling can land in a follow-up; PE32/PE32+ first.
 >
-> Would the maintainers be open to this as a flagged feature? Happy to open a PR against an agreed shape.
+> **Related:** this is adjacent to #2360 (extend `tools.uefi.scan_image` verification).
+>
+> **One design question to align on:** should the normalized hash be an added `sha256_norm` **value field**
+> on each `efilist.json` entry — my preference, since it keeps the `sha256`-as-key schema and `check`
+> untouched — or a separate `--norm` list variant? Happy to open a DCO-signed, unit-tested PR against
+> whichever shape you prefer. (cc @npmitche)
 
 ---
 
