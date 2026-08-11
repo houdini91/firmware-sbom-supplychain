@@ -53,3 +53,6 @@ bin/sbom-convert
 # FMMT writes a build log into CWD
 FMMT_Build.log
 bin/
+
+# private engagement strategy / outreach drafts — keep local, never publish
+planning/engagement/
